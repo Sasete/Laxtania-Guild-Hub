@@ -471,7 +471,7 @@ window.toggleEditMessage = async function() {
       textEl.contentEditable = "false";
       btn.textContent = "Edit Notice";
     } catch(e) {
-      alert("Failed to save notice. Please try again.");
+      alert("Failed to save notice: " + e.message);
     } finally {
       btn.disabled = false;
     }
