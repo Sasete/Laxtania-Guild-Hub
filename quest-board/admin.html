@@ -951,7 +951,10 @@
   // the count by one, and the chip disappears once count reaches zero.
   function groupClaimants(claims) {
     const groups = [];
-    (claims || []).forEach((name, i) => {
+    const claimsArr = Array.isArray(claims)
+      ? claims
+      : (claims && typeof claims === 'object' ? Object.values(claims) : []);
+    claimsArr.filter(name => name).forEach((name, i) => {
       const existing = groups.find(g => g.name === name);
       if (existing) {
         existing.count++;
@@ -964,9 +967,10 @@
   }
 
   function extractRewardValue(rewards, iconChar) {
-    const item = (rewards || []).find(r => r.icon === iconChar);
+    const item = (rewards || []).find(r => r && r.icon === iconChar);
     if (!item) return 0;
-    const num = item.text.replace(/[^\d]/g, '');
+    const textStr = String(item.text || '');
+    const num = textStr.replace(/[^\d]/g, '');
     return parseInt(num, 10) || 0;
   }
 
@@ -1045,7 +1049,9 @@
   const inactiveGrid    = document.getElementById('inactive-grid');
 
   function render() {
-    const entries = Object.entries(currentDefs).sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0));
+    const entries = Object.entries(currentDefs)
+      .filter(([, def]) => def)
+      .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0));
     const active   = entries.filter(([, def]) => def.active !== false);
     const inactive = entries.filter(([, def]) => def.active === false);
 
@@ -1164,7 +1170,8 @@
     const tilt = (Math.random() * 2.4 - 1.2).toFixed(2);
     const prestige = extractRewardValue(def.rewards, '♦');
     const silver = extractRewardValue(def.rewards, '⛀');
-    const remaining = Math.max((def.slots || 0) - claims.length, 0);
+    const claimsArr = Array.isArray(claims) ? claims : (claims && typeof claims === 'object' ? Object.values(claims) : []);
+    const remaining = Math.max((def.slots || 0) - claimsArr.length, 0);
 
     const claimsHtml = groupClaimants(claims).map(({ name, count, index }) => `
       <span class="claim-tag">
@@ -1322,7 +1329,8 @@
   }
 
   async function removeClaimant(id, index) {
-    const claims = (currentClaims[id] || []).slice();
+    const rawClaims = currentClaims[id] || [];
+    const claims = (Array.isArray(rawClaims) ? rawClaims : Object.values(rawClaims)).slice();
     const name = claims[index];
     if (name === undefined) return;
     if (!confirm(`Remove ${name}'s claim on "${currentDefs[id]?.name || id}"?\n\nThe slot will become available again.`)) return;
@@ -1334,7 +1342,8 @@
   // If slots would reach 0, also mark the quest inactive automatically.
   async function completeClaimant(id, index) {
     const def = currentDefs[id];
-    const claims = (currentClaims[id] || []).slice();
+    const rawClaims = currentClaims[id] || [];
+    const claims = (Array.isArray(rawClaims) ? rawClaims : Object.values(rawClaims)).slice();
     const name = claims[index];
     if (name === undefined) return;
     if (!confirm(`Mark ${name}'s contract as complete?\n\nThe slot will be permanently closed.`)) return;

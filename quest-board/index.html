@@ -1029,7 +1029,8 @@
   }
 
   function renderQuest(card, claims, totalSlots) {
-    const remaining = Math.max(totalSlots - claims.length, 0);
+    const claimsArr = Array.isArray(claims) ? claims : (claims && typeof claims === 'object' ? Object.values(claims) : []);
+    const remaining = Math.max(totalSlots - claimsArr.length, 0);
     const statusEl = card.querySelector('.slot-status');
     statusEl.textContent = `${remaining} / ${totalSlots} contracts open`;
     statusEl.classList.toggle('full', remaining === 0);
@@ -1064,7 +1065,10 @@
 
   function groupClaimants(claims) {
     const groups = [];
-    (claims || []).forEach(name => {
+    const claimsArr = Array.isArray(claims)
+      ? claims
+      : (claims && typeof claims === 'object' ? Object.values(claims) : []);
+    claimsArr.filter(name => name).forEach(name => {
       const existing = groups.find(g => g.name === name);
       if (existing) existing.count++;
       else groups.push({ name, count: 1 });
@@ -1101,14 +1105,15 @@
     article.dataset.slots = def.slots;
     article.style.setProperty('--tilt', `${(Math.random() * 2.4 - 1.2).toFixed(2)}deg`);
 
-    const rewardsHtml = (def.rewards || []).map(r => {
+    const rewardsHtml = (def.rewards || []).filter(r => r).map(r => {
       const symbolId = r.icon === '⛀' ? 'icon-silver' : r.icon === '♦' ? 'icon-prestige' : null;
       const iconHtml = symbolId
         ? `<svg class="reward-icon" viewBox="0 0 16 16"><use href="#${symbolId}"/></svg>`
         : `<span class="reward-icon">${escapeHtml(r.icon)}</span>`;
       let text = r.text;
       if (symbolId === 'icon-silver') {
-        const num = parseInt(r.text.replace(/[^\d]/g, ''), 10) || 0;
+        const textStr = String(r.text || '');
+        const num = parseInt(textStr.replace(/[^\d]/g, ''), 10) || 0;
         text = `${formatSilverShort(num)} Silver`;
       }
       return `<div class="reward-item">${iconHtml} ${escapeHtml(text)}</div>`;
@@ -1150,7 +1155,7 @@
     questsContainer.innerHTML = '';
 
     const entries = Object.entries(questDefs || {})
-      .filter(([, def]) => !isExpired(def) && def.active !== false)
+      .filter(([, def]) => def && !isExpired(def) && def.active !== false)
       .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0));
 
     if (entries.length === 0) {
