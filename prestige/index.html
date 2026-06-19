@@ -5,299 +5,279 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Laxtania — Prestige Registry</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-:root{
-  --parchment:#f2e8d5;--ink:#2c1e0f;--ink-light:#4a3520;--ink-faded:#7a6040;
-  --gold:#9a7030;--gold-bright:#c9a84c;--red-wax:#8b1a1a;
-  --wood:#3d2010;--wood-mid:#5c3318;
-  --border-gold:rgba(154,112,48,0.5);--shadow:0 6px 40px rgba(30,15,5,0.55);
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{min-height:100vh;background-color:var(--wood);background-image:repeating-linear-gradient(90deg,transparent,transparent 38px,rgba(0,0,0,0.07) 38px,rgba(0,0,0,0.07) 40px),repeating-linear-gradient(180deg,transparent,transparent 6px,rgba(255,255,255,0.015) 6px,rgba(255,255,255,0.015) 7px),radial-gradient(ellipse at 50% 0%,rgba(92,51,24,0.9) 0%,rgba(30,12,4,0.98) 100%);font-family:'EB Garamond',Georgia,serif;color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:32px 16px 60px;}
+  :root{
+    --wood-dark:#3a2718;--wood-mid:#4f3622;--wood-light:#6b4a30;
+    --parchment:#f1e4c4;--parchment-shadow:#ddc69a;
+    --ink:#2e2014;--ink-soft:#5a4632;
+    --gold:#c8a04a;--gold-bright:#e6c878;
+    --navy:#1c2a40;--seal-red:#8c2424;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif;background-color:var(--wood-dark);background-image:repeating-linear-gradient(90deg,var(--wood-dark) 0px,var(--wood-mid) 18px,var(--wood-dark) 36px,var(--wood-light) 54px),radial-gradient(ellipse at center,rgba(0,0,0,0) 0%,rgba(0,0,0,0.45) 100%);color:var(--ink);min-height:100vh;padding:40px 20px 60px;}
 
-/* FRAME */
-.board-frame{width:100%;max-width:960px;background:var(--wood-mid);border:6px solid var(--wood);border-radius:4px;box-shadow:var(--shadow),inset 0 0 0 2px rgba(255,255,255,0.04);padding:10px;position:relative;}
-.board-frame::before{content:'✦';position:absolute;top:16px;left:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
-.board-frame::after{content:'✦';position:absolute;top:16px;right:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
-.bolt-bl{position:absolute;bottom:16px;left:18px;color:var(--gold);opacity:0.7;pointer-events:none;}
-.bolt-br{position:absolute;bottom:16px;right:18px;color:var(--gold);opacity:0.7;pointer-events:none;}
+  /* BANNER */
+  .board-header{max-width:980px;margin:0 auto 36px;text-align:center;}
+  .banner{background:linear-gradient(180deg,#233754 0%,var(--navy) 100%);border:2px solid var(--gold);border-radius:4px;padding:22px 30px 26px;box-shadow:0 0 0 5px rgba(0,0,0,0.25),0 12px 30px rgba(0,0,0,0.5);position:relative;}
+  .banner::before,.banner::after{content:"";position:absolute;top:50%;width:60px;height:1px;background:var(--gold);opacity:0.6;transform:translateY(-50%);}
+  .banner::before{left:18px;}.banner::after{right:18px;}
+  .banner-eyebrow{display:block;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--gold-bright);font-variant:small-caps;margin-bottom:8px;}
+  .banner h1{font-size:36px;font-weight:400;letter-spacing:3px;color:var(--parchment);text-shadow:0 2px 4px rgba(0,0,0,0.6);}
+  .banner-sub{display:block;margin-top:8px;font-size:13px;letter-spacing:2px;color:rgba(241,228,196,0.65);font-style:italic;}
 
-/* PARCHMENT */
-.parchment{background:var(--parchment);background-image:radial-gradient(ellipse at 30% 20%,rgba(255,255,255,0.35) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(180,140,80,0.18) 0%,transparent 50%),repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(154,112,48,0.06) 28px,rgba(154,112,48,0.06) 29px);border:2px solid var(--border-gold);padding:28px 32px 32px;position:relative;}
-.parchment::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 0% 0%,rgba(120,80,20,0.25) 0%,transparent 25%),radial-gradient(circle at 100% 100%,rgba(120,80,20,0.25) 0%,transparent 25%);}
+  /* USER BAR */
+  .user-bar{max-width:980px;margin:0 auto 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(28,42,64,0.9);border:1px solid var(--gold);padding:8px 16px;flex-wrap:wrap;gap:8px;}
+  .user-bar-name{font-variant:small-caps;letter-spacing:2px;font-size:13px;color:var(--gold-bright);}
+  .user-bar-name span{color:var(--parchment);}
+  .user-bar-actions{display:flex;gap:8px;align-items:center;}
+  .user-bar-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:transparent;border:1px solid rgba(200,160,74,0.4);color:rgba(230,200,120,0.75);padding:5px 12px;cursor:pointer;transition:all 0.15s;text-decoration:none;display:inline-block;}
+  .user-bar-btn:hover{border-color:var(--gold);color:var(--gold-bright);}
+  .admin-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 12px;border:1px solid rgba(140,36,36,0.5);background:rgba(140,36,36,0.1);transition:all 0.15s;user-select:none;font-variant:small-caps;font-size:12px;letter-spacing:1.5px;color:var(--seal-red);}
+  .admin-toggle:hover{background:rgba(140,36,36,0.2);}
+  .admin-toggle.active{background:rgba(140,36,36,0.22);border-color:var(--seal-red);}
+  .admin-toggle-dot{width:7px;height:7px;border-radius:50%;background:rgba(140,36,36,0.35);transition:background 0.2s;}
+  .admin-toggle.active .admin-toggle-dot{background:var(--seal-red);box-shadow:0 0 5px rgba(140,36,36,0.6);}
 
-/* USER BAR */
-.user-bar{display:flex;align-items:center;justify-content:space-between;background:rgba(44,30,15,0.06);border:1px solid var(--border-gold);padding:7px 13px;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
-.user-greeting{font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink);}
-.user-greeting span{color:var(--gold);}
-.user-actions{display:flex;gap:7px;align-items:center;}
+  /* PARCHMENT WRAPPER */
+  .parchment-wrap{max-width:980px;margin:0 auto;background-color:var(--parchment);background-image:radial-gradient(ellipse at 25% 20%,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0) 50%),radial-gradient(ellipse at 80% 85%,rgba(120,90,50,0.18) 0%,rgba(120,90,50,0) 55%);border-radius:3px 9px 4px 10px/9px 4px 10px 3px;padding:32px 36px 36px;box-shadow:inset 0 0 0 1px rgba(120,90,50,0.25),inset 0 0 40px rgba(120,90,50,0.18),0 14px 28px rgba(0,0,0,0.45);position:relative;}
+  .pin{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--gold-bright),var(--gold) 55%,#8a6a28 100%);box-shadow:0 3px 5px rgba(0,0,0,0.5),inset 0 0 2px rgba(255,255,255,0.6);}
+  .divider{border:none;height:1px;background:linear-gradient(to right,transparent,var(--gold) 15%,var(--gold) 85%,transparent);margin:16px 0;opacity:0.7;}
 
-/* ADMIN TOGGLE */
-.admin-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 12px;border:1px solid rgba(139,26,26,0.4);background:rgba(139,26,26,0.06);transition:all 0.15s;user-select:none;}
-.admin-toggle:hover{background:rgba(139,26,26,0.12);}
-.admin-toggle.active{background:rgba(139,26,26,0.15);border-color:var(--red-wax);}
-.admin-toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(139,26,26,0.3);transition:background 0.2s;}
-.admin-toggle.active .admin-toggle-dot{background:var(--red-wax);box-shadow:0 0 6px rgba(139,26,26,0.5);}
-.admin-toggle-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.15em;color:var(--red-wax);}
+  /* MY PRESTIGE CARD */
+  .my-card{background:rgba(255,255,255,0.4);border:1px solid rgba(120,90,50,0.35);border-left:3px solid var(--gold);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .my-rank-num{font-size:28px;font-weight:400;color:var(--navy);min-width:30px;text-align:center;}
+  .my-info{flex:1;}
+  .my-name-disp{font-size:17px;font-weight:400;letter-spacing:1px;color:var(--ink);margin-bottom:3px;}
+  .my-meta-disp{font-size:13px;font-style:italic;color:var(--ink-soft);}
+  .my-pts-disp{font-size:22px;color:var(--navy);text-align:right;}
+  .my-pts-lbl{font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);display:block;text-align:right;}
 
-/* PENDING BANNER */
-.pending-banner{display:none;background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.3);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:10px;}
-.pending-banner.visible{display:flex;}
-.pending-banner-text{font-family:'Cinzel',serif;font-size:0.72rem;color:var(--red-wax);letter-spacing:0.08em;}
-.pending-banner-text span{font-size:0.85rem;font-weight:700;}
+  /* TIER LEGEND */
+  .tier-legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:18px;}
+  .tier-badge{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.3);border:1px solid rgba(120,90,50,0.25);border-radius:2px;padding:3px 10px;font-size:12px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);}
+  .tier-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
-/* ADMIN TOOLBAR */
-.admin-toolbar{display:none;background:rgba(139,26,26,0.05);border:1px solid rgba(139,26,26,0.2);padding:10px 14px;margin-bottom:16px;flex-wrap:wrap;gap:8px;align-items:center;}
-.admin-toolbar.visible{display:flex;}
-.admin-toolbar-label{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.2em;color:rgba(139,26,26,0.7);margin-right:4px;}
+  /* TABS */
+  .tabs{display:flex;border-bottom:1px solid rgba(120,90,50,0.3);margin-bottom:20px;}
+  .tab-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;color:var(--ink-soft);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:8px 20px 10px;cursor:pointer;transition:all 0.15s;}
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
 
-/* HEADER */
-.header{text-align:center;}
-.back-link{display:inline-block;margin-bottom:12px;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.2em;color:var(--ink-faded);text-decoration:none;border-bottom:1px solid var(--border-gold);padding-bottom:1px;transition:color 0.15s;}
-.back-link:hover{color:var(--gold);}
-.eyebrow{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.45em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:9px;}
-h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,5vw,2.5rem);font-weight:700;color:var(--ink);letter-spacing:0.08em;text-shadow:1px 1px 0 rgba(255,255,255,0.4);}
-.subtitle{margin-top:5px;font-style:italic;font-size:1rem;color:var(--ink-faded);}
+  /* LEADERBOARD TABLE */
+  .lb-table{width:100%;border-collapse:collapse;}
+  .lb-table thead tr{background:rgba(28,42,64,0.07);border-bottom:1px solid rgba(120,90,50,0.3);}
+  .lb-table th{font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);padding:9px 12px;text-align:left;font-weight:400;white-space:nowrap;}
+  .lb-table th.r,.lb-table td.r{text-align:right;}
+  .lb-table td{padding:9px 12px;border-bottom:1px solid rgba(120,90,50,0.1);font-size:14px;vertical-align:middle;}
+  .lb-table tbody tr:last-child td{border-bottom:none;}
+  .lb-table tbody tr:hover{background:rgba(255,255,255,0.3);}
+  .lb-table tbody tr.is-me{background:rgba(200,160,74,0.1);border-left:3px solid var(--gold);}
+  .lb-table tbody tr.is-me td:first-child{padding-left:9px;}
+  .rank-num{font-size:13px;color:var(--ink-soft);}
+  .rank-1{color:var(--gold);font-weight:bold;}.rank-2{color:#7a8a90;}.rank-3{color:#9a6630;}
+  .member-name{font-size:15px;color:var(--ink);}
+  .member-name.leader{color:var(--navy);font-style:italic;}
+  .me-tag{font-size:10px;background:rgba(200,160,74,0.2);border:1px solid rgba(200,160,74,0.5);padding:1px 5px;margin-left:5px;font-variant:small-caps;letter-spacing:1px;color:var(--gold);border-radius:2px;vertical-align:middle;}
+  .tier-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border:1px solid;border-radius:2px;font-size:11px;font-variant:small-caps;letter-spacing:1px;white-space:nowrap;}
+  .tier-pill .dot{width:5px;height:5px;border-radius:50%;}
+  .family-tag{display:inline-block;padding:1px 7px;font-size:12px;color:var(--ink-soft);border:1px solid rgba(120,90,50,0.25);border-radius:2px;font-style:italic;}
+  .pts-cell{font-size:14px;color:var(--navy);}
 
-/* ORNAMENT */
-.ornament{display:flex;align-items:center;gap:12px;margin:16px 0;}
-.ornament::before,.ornament::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-gold),transparent);}
-.ornament-inner{font-family:'Cinzel',serif;font-size:0.63rem;letter-spacing:0.3em;color:var(--ink-faded);display:flex;align-items:center;gap:7px;}
-.gem{width:6px;height:6px;background:var(--gold-bright);transform:rotate(45deg);flex-shrink:0;}
+  /* FAMILY CARDS */
+  .family-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .family-card{background-color:var(--parchment);background-image:radial-gradient(ellipse at 20% 15%,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0) 45%);border-radius:3px 8px 3px 8px/8px 3px 8px 3px;padding:18px;box-shadow:inset 0 0 0 1px rgba(120,90,50,0.2),inset 0 0 20px rgba(120,90,50,0.1),0 4px 12px rgba(0,0,0,0.2);position:relative;transition:transform 0.15s;}
+  .family-card:hover{transform:translateY(-2px);}
+  .family-card.is-mine{box-shadow:inset 0 0 0 2px rgba(200,160,74,0.5),inset 0 0 20px rgba(120,90,50,0.1),0 4px 14px rgba(0,0,0,0.25);}
+  .family-card-rank{position:absolute;top:10px;right:13px;font-size:22px;color:rgba(46,32,20,0.1);font-weight:400;}
+  .family-name{font-size:16px;font-weight:400;letter-spacing:0.5px;color:var(--ink);margin-bottom:3px;}
+  .family-meta{font-size:12px;font-style:italic;color:var(--ink-soft);margin-bottom:12px;}
+  .score-row{display:flex;gap:14px;margin-bottom:8px;}
+  .score-block{flex:1;}
+  .score-lbl{font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:2px;}
+  .score-val{font-size:17px;color:var(--navy);}
+  .score-val.bonus{color:#4a7a90;}
+  .score-total{font-size:12px;color:var(--ink-soft);padding-top:7px;border-top:1px dashed rgba(46,32,20,0.2);display:flex;justify-content:space-between;}
+  .score-total span:last-child{color:var(--navy);}
 
-/* MY PRESTIGE CARD */
-.my-prestige-card{background:rgba(154,112,48,0.08);border:2px solid var(--gold-bright);padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-.my-rank{font-family:'Cinzel',serif;font-size:1.9rem;color:var(--gold);min-width:34px;text-align:center;}
-.my-info{flex:1;}
-.my-name{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--ink);margin-bottom:3px;}
-.my-meta{font-size:0.8rem;color:var(--ink-faded);font-style:italic;}
-.my-pts{font-family:'Cinzel',serif;font-size:1.5rem;color:var(--gold);text-align:right;}
-.my-pts-lbl{font-size:0.58rem;letter-spacing:0.2em;color:var(--ink-faded);font-family:'Cinzel',serif;text-align:right;display:block;}
+  /* FAMILY MINI LEADERBOARD */
+  .family-mini-lb{margin-top:10px;border-top:1px dashed rgba(46,32,20,0.2);padding-top:8px;}
+  .family-mini-lb-title{font-size:10px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:6px;}
+  .fam-member-row{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(120,90,50,0.07);}
+  .fam-member-row:last-child{border-bottom:none;}
+  .fam-member-rank{font-size:11px;color:var(--ink-soft);min-width:14px;text-align:center;}
+  .fam-member-rank.r1{color:var(--gold);font-weight:bold;}
+  .fam-member-name{font-size:13px;color:var(--ink);flex:1;}
+  .fam-member-name.is-me{color:var(--navy);font-style:italic;}
+  .fam-lord-tag{font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--seal-red);border:1px solid rgba(140,36,36,0.3);padding:1px 4px;border-radius:2px;flex-shrink:0;}
+  .fam-member-pts{font-size:12px;color:var(--navy);min-width:40px;text-align:right;}
 
-/* TIER LEGEND */
-.tier-legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:18px;}
-.tier-badge{display:flex;align-items:center;gap:6px;background:rgba(44,30,15,0.07);border:1px solid var(--border-gold);border-radius:2px;padding:3px 10px;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.1em;color:var(--ink-light);}
-.tier-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  /* ADMIN INLINE */
+  .admin-toolbar{display:none;background:rgba(140,36,36,0.06);border:1px solid rgba(140,36,36,0.2);padding:9px 14px;margin-bottom:14px;flex-wrap:wrap;gap:8px;align-items:center;}
+  .admin-toolbar.visible{display:flex;}
+  .admin-toolbar-lbl{font-variant:small-caps;font-size:11px;letter-spacing:2px;color:rgba(140,36,36,0.7);margin-right:4px;}
+  .admin-toolbar-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:11px;background:transparent;border:1px solid rgba(140,36,36,0.4);color:var(--seal-red);padding:5px 12px;cursor:pointer;transition:all 0.15s;}
+  .admin-toolbar-btn:hover{background:rgba(140,36,36,0.1);}
 
-/* TABS */
-.tabs{display:flex;border-bottom:2px solid var(--border-gold);margin-bottom:20px;}
-.tab-btn{font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.18em;color:var(--ink-faded);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:8px 22px 10px;cursor:pointer;transition:all 0.15s;}
-.tab-btn:hover{color:var(--ink);}
-.tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
+  .inline-form{display:none;background:rgba(255,255,255,0.4);border:1px solid rgba(140,36,36,0.2);padding:14px 16px;margin-bottom:14px;}
+  .inline-form.open{display:block;}
+  .form-group{margin-bottom:12px;}
+  .form-group label{display:block;font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .form-group input,.form-group select{font-family:Georgia,serif;font-size:13px;color:var(--ink);width:100%;background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);border-radius:3px;padding:6px 9px;}
+  .form-group input:focus,.form-group select:focus{outline:1px solid var(--gold);background:rgba(255,255,255,0.9);}
+  .form-row{display:flex;gap:10px;}.form-row .form-group{flex:1;}
+  .rank-checkboxes{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+  .rank-check{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;}
+  .rank-check input{width:auto;margin:0;}
 
-/* LEADERBOARD TABLE */
-.lb-table{width:100%;border-collapse:collapse;}
-.lb-table thead tr{background:rgba(154,112,48,0.12);border-bottom:2px solid var(--border-gold);}
-.lb-table th{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.22em;color:var(--ink-faded);padding:10px 12px;text-align:left;font-weight:400;white-space:nowrap;}
-.lb-table th.r,.lb-table td.r{text-align:right;}
-.lb-table td{padding:9px 12px;border-bottom:1px solid rgba(154,112,48,0.12);font-size:0.95rem;vertical-align:middle;}
-.lb-table tbody tr:last-child td{border-bottom:none;}
-.lb-table tbody tr:hover{background:rgba(154,112,48,0.04);}
-.lb-table tbody tr.is-me{background:rgba(154,112,48,0.1);border-left:3px solid var(--gold-bright);}
-.lb-table tbody tr.is-me td:first-child{padding-left:9px;}
+  .gold-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;border-radius:3px;padding:8px 18px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.2);transition:transform 0.08s;}
+  .gold-btn:hover{transform:translateY(-1px);}
+  .ghost-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:rgba(255,255,255,0.4);color:var(--ink-soft);border:1px solid rgba(46,32,20,0.25);border-radius:3px;padding:7px 14px;cursor:pointer;transition:all 0.1s;}
+  .ghost-btn:hover{background:rgba(255,255,255,0.6);}
+  .red-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:rgba(140,36,36,0.08);color:var(--seal-red);border:1px solid rgba(140,36,36,0.3);border-radius:3px;padding:5px 10px;cursor:pointer;transition:all 0.1s;}
+  .red-btn:hover{background:rgba(140,36,36,0.15);}
+  .approve-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;border-radius:3px;padding:5px 12px;cursor:pointer;transition:transform 0.08s;}
+  .approve-btn:hover{transform:translateY(-1px);}
 
-.rank-num{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--ink-faded);}
-.rank-1{color:var(--gold);font-weight:700;}.rank-2{color:#7a8a90;}.rank-3{color:#9a6630;}
-.member-name{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--ink);}
-.member-name.leader{color:var(--gold);}
-.me-tag{font-size:0.55rem;background:rgba(154,112,48,0.15);border:1px solid var(--border-gold);padding:1px 5px;margin-left:5px;font-family:'Cinzel',serif;letter-spacing:0.1em;color:var(--gold);border-radius:2px;vertical-align:middle;}
-.tier-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border:1px solid;border-radius:2px;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.1em;white-space:nowrap;}
-.tier-pill .dot{width:6px;height:6px;border-radius:50%;}
-.family-tag{display:inline-block;padding:1px 7px;font-size:0.78rem;color:var(--ink-faded);border:1px solid var(--border-gold);border-radius:2px;font-style:italic;}
-.pts-cell{font-family:'Cinzel',serif;font-size:0.88rem;color:var(--gold);}
+  /* ADMIN PENDING ROW */
+  .pending-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(120,90,50,0.12);flex-wrap:wrap;}
+  .pending-row:last-child{border-bottom:none;}
+  .pending-name{font-size:14px;color:var(--ink);flex:1;}
+  .pending-email{font-size:12px;font-style:italic;color:var(--ink-soft);}
+  .rank-select{font-family:Georgia,serif;font-size:13px;color:var(--ink);background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);border-radius:3px;padding:5px 8px;}
 
-/* FAMILY CARDS */
-.family-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
-.family-card{background:rgba(255,255,255,0.25);border:1.5px solid var(--border-gold);padding:16px;position:relative;transition:all 0.18s;}
-.family-card:hover{background:rgba(255,255,255,0.36);border-color:var(--gold-bright);}
-.family-card.is-mine{border-color:var(--gold-bright);background:rgba(154,112,48,0.08);}
-.family-card-rank{position:absolute;top:10px;right:12px;font-family:'Cinzel',serif;font-size:1.2rem;color:rgba(154,112,48,0.18);font-weight:700;}
-.family-name{font-family:'Cinzel',serif;font-size:0.95rem;color:var(--ink);margin-bottom:3px;}
-.family-meta{font-size:0.76rem;color:var(--ink-faded);font-style:italic;margin-bottom:12px;}
-.score-row{display:flex;gap:12px;margin-bottom:8px;}
-.score-block{flex:1;}
-.score-lbl{font-family:'Cinzel',serif;font-size:0.53rem;letter-spacing:0.2em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:2px;}
-.score-val{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);}
-.score-val.bonus{color:#4a90a8;}
-.score-total{font-size:0.74rem;color:var(--ink-faded);padding-top:7px;border-top:1px solid var(--border-gold);display:flex;justify-content:space-between;}
-.score-total span:last-child{color:var(--gold);font-family:'Cinzel',serif;}
+  /* MEMBER EDIT ROW */
+  .edit-row{display:none;background:rgba(255,255,255,0.35);border:1px solid rgba(140,36,36,0.18);padding:12px 14px;margin-top:4px;}
+  .edit-row.open{display:block;}
 
-/* FAMILY MINI LEADERBOARD */
-.family-mini-lb{margin-top:10px;border-top:1px solid var(--border-gold);padding-top:8px;}
-.family-mini-lb-title{font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.25em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:6px;}
-.fam-member-row{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(154,112,48,0.07);}
-.fam-member-row:last-child{border-bottom:none;}
-.fam-member-rank{font-family:'Cinzel',serif;font-size:0.63rem;color:var(--ink-faded);min-width:14px;text-align:center;}
-.fam-member-rank.r1{color:var(--gold);}
-.fam-member-name{font-size:0.8rem;color:var(--ink);flex:1;}
-.fam-member-name.is-me{color:var(--gold);font-style:italic;}
-.fam-leader-tag{font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.1em;color:var(--red-wax);border:1px solid rgba(139,26,26,0.35);padding:1px 4px;border-radius:2px;flex-shrink:0;}
-.fam-member-pts{font-family:'Cinzel',serif;font-size:0.73rem;color:var(--gold);min-width:42px;text-align:right;}
+  /* TIER ADMIN */
+  .tier-admin-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,90,50,0.08);}
+  .tier-admin-row:last-child{border-bottom:none;}
+  .tier-swatch{width:10px;height:10px;border-radius:50%;border:1px solid rgba(46,32,20,0.2);}
+  .tier-admin-name{font-size:13px;flex:1;color:var(--ink);}
+  .tier-admin-pts{font-size:12px;color:var(--ink-soft);}
 
-/* ADMIN INLINE FORMS */
-.admin-edit-row{background:rgba(139,26,26,0.04);border:1px solid rgba(139,26,26,0.2);padding:10px 12px;margin-top:6px;display:none;}
-.admin-edit-row.open{display:block;}
-label{display:block;font-family:'Cinzel',serif;font-size:0.56rem;letter-spacing:0.22em;color:var(--ink-faded);margin-bottom:3px;text-transform:uppercase;}
-input[type=text],input[type=number],select{width:100%;background:rgba(255,255,255,0.6);border:1px solid var(--border-gold);border-bottom:2px solid var(--border-gold);color:var(--ink);font-family:'EB Garamond',serif;font-size:0.92rem;padding:6px 9px;margin-bottom:8px;outline:none;-moz-appearance:textfield;}
-input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
-input:focus,select:focus{border-color:var(--gold);}
-select option{background:var(--parchment);}
-.form-row{display:flex;gap:10px;}
-.form-row>*{flex:1;}
-.rank-checkboxes{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
-.rank-check{display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;}
-.rank-check input{width:auto;margin:0;}
+  /* ADMIN SECTION */
+  .admin-section{display:none;background:rgba(140,36,36,0.04);border:1px solid rgba(140,36,36,0.18);padding:16px;margin-top:20px;}
+  .admin-section.visible{display:block;}
+  .admin-section h3{font-size:12px;font-variant:small-caps;letter-spacing:2.5px;color:rgba(140,36,36,0.7);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid rgba(140,36,36,0.15);}
+  .admin-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media(max-width:640px){.admin-section-grid{grid-template-columns:1fr;}}
 
-/* ADMIN SECTION CARD */
-.admin-section{display:none;background:rgba(139,26,26,0.04);border:1px solid rgba(139,26,26,0.2);padding:18px;margin-top:20px;}
-.admin-section.visible{display:block;}
-.admin-section h3{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.25em;color:rgba(139,26,26,0.8);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(139,26,26,0.2);}
-.admin-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:640px){.admin-section-grid{grid-template-columns:1fr;}}
-
-/* TIER ADMIN */
-.tier-admin-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(154,112,48,0.08);}
-.tier-admin-row:last-child{border-bottom:none;}
-.tier-swatch{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.tier-admin-name{font-family:'Cinzel',serif;font-size:0.78rem;flex:1;}
-.tier-admin-pts{font-size:0.75rem;color:var(--ink-faded);}
-
-/* BUTTONS */
-.btn{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.18em;padding:7px 16px;border:1px solid;cursor:pointer;transition:all 0.15s;white-space:nowrap;text-decoration:none;display:inline-block;}
-.btn-ink{background:var(--ink);border-color:var(--ink);color:var(--parchment);}
-.btn-ink:hover{background:var(--ink-light);}
-.btn-gold{background:rgba(154,112,48,0.1);border-color:var(--gold);color:var(--gold);}
-.btn-gold:hover{background:rgba(154,112,48,0.2);}
-.btn-ghost{background:transparent;border-color:rgba(44,30,15,0.3);color:var(--ink-faded);}
-.btn-ghost:hover{border-color:var(--gold);color:var(--ink);}
-.btn-sm{font-size:0.58rem;padding:4px 10px;}
-.btn-danger{background:rgba(139,26,26,0.08);border-color:var(--red-wax);color:var(--red-wax);font-size:0.58rem;padding:4px 9px;}
-.btn-danger:hover{background:rgba(139,26,26,0.18);}
-.btn-approve{background:rgba(39,120,60,0.08);border-color:rgba(39,120,60,0.7);color:#27783c;font-size:0.58rem;padding:4px 9px;}
-.btn-approve:hover{background:rgba(39,120,60,0.18);}
-
-/* MISC */
-.empty{text-align:center;padding:40px 20px;color:var(--ink-faded);font-style:italic;}
-.loading{text-align:center;padding:36px;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.25em;color:var(--ink-faded);animation:pulse 1.4s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
-.parchment-footer{text-align:center;margin-top:20px;font-size:0.75rem;color:var(--ink-faded);font-style:italic;}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--parchment);font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.15em;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;}
-#toast.show{transform:translateX(-50%) translateY(0);}
-@media(max-width:560px){.parchment{padding:18px 13px 22px;}.lb-table th:nth-child(4),.lb-table td:nth-child(4){display:none;}.tabs{justify-content:stretch;}.tab-btn{flex:1;padding:8px 6px 10px;font-size:0.62rem;}}
+  /* MISC */
+  .empty{text-align:center;padding:40px;font-style:italic;color:var(--ink-soft);font-size:14px;}
+  .loading{text-align:center;padding:36px;font-variant:small-caps;font-size:12px;letter-spacing:3px;color:var(--ink-soft);animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
+  .section-eyebrow{text-align:center;font-size:11px;font-variant:small-caps;letter-spacing:3px;color:var(--ink-soft);margin:20px 0 14px;}
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--gold-bright);font-variant:small-caps;letter-spacing:2px;font-size:12px;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;border:1px solid var(--gold);}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  @media(max-width:600px){.parchment-wrap{padding:22px 16px 26px;}.lb-table th:nth-child(4),.lb-table td:nth-child(4){display:none;}.tabs{justify-content:stretch;}.tab-btn{flex:1;padding:8px 6px 10px;font-size:12px;}}
 </style>
 </head>
 <body>
-<div class="board-frame">
-  <span class="bolt-bl">✦</span><span class="bolt-br">✦</span>
-  <div class="parchment">
 
-    <!-- USER BAR -->
-    <div class="user-bar" id="userBar" style="display:none">
-      <div class="user-greeting">Signed in as <span id="userBarName"></span></div>
-      <div class="user-actions">
-        <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
-          <div class="admin-toggle-dot"></div>
-          <span class="admin-toggle-label">ADMIN MODE</span>
-        </div>
-        <a href="../" class="btn btn-ghost btn-sm">← Guild Hall</a>
-      </div>
+<!-- User bar -->
+<div class="user-bar" id="userBar" style="display:none">
+  <div class="user-bar-name">Adventurer: <span id="userBarName">—</span></div>
+  <div class="user-bar-actions">
+    <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
+      <div class="admin-toggle-dot"></div>
+      Admin Mode
     </div>
-
-    <!-- PENDING BANNER (admin mode) -->
-    <div class="pending-banner" id="pendingBanner">
-      <span class="pending-banner-text">⚠ <span id="pendingCount">0</span> membership request(s) awaiting approval</span>
-      <button class="btn btn-sm" style="border-color:var(--red-wax);color:var(--red-wax);background:transparent;font-family:'Cinzel',serif;font-size:0.58rem;" onclick="switchTab('admin')">Review</button>
-    </div>
-
-    <!-- ADMIN TOOLBAR -->
-    <div class="admin-toolbar" id="adminToolbar">
-      <span class="admin-toolbar-label">ADMIN —</span>
-      <button class="btn btn-sm" style="border-color:var(--red-wax);color:var(--red-wax);background:transparent;font-family:'Cinzel',serif;font-size:0.58rem;" onclick="toggleAddMember()">+ Member</button>
-      <button class="btn btn-sm" style="border-color:var(--red-wax);color:var(--red-wax);background:transparent;font-family:'Cinzel',serif;font-size:0.58rem;" onclick="toggleAddFamily()">+ Family</button>
-    </div>
-
-    <!-- ADD MEMBER (collapsible) -->
-    <div class="admin-edit-row" id="addMemberRow" style="margin-bottom:14px;">
-      <div class="form-row">
-        <div><label>In-Game Name</label><input type="text" id="newMName" placeholder="Character name"></div>
-        <div><label>Family</label><select id="newMFamily"><option value="">— None —</option></select></div>
-        <div><label>Points</label><input type="number" id="newMPoints" value="0" min="0"></div>
-      </div>
-      <label>Ranks</label>
-      <div class="rank-checkboxes" id="newMRanks">
-        <label class="rank-check"><input type="checkbox" value="serf"> Serf</label>
-        <label class="rank-check"><input type="checkbox" value="commoner"> Commoner</label>
-        <label class="rank-check"><input type="checkbox" value="knight"> Knight</label>
-        <label class="rank-check"><input type="checkbox" value="lord"> Lord</label>
-        <label class="rank-check"><input type="checkbox" value="councillor"> Councillor</label>
-        <label class="rank-check"><input type="checkbox" value="hand"> Hand</label>
-        <label class="rank-check"><input type="checkbox" value="sovereign"> Sovereign</label>
-      </div>
-      <div class="form-row">
-        <div><label>Custom Title</label><input type="text" id="newMCustomTitle" placeholder="e.g. Master of Coin"></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ink btn-sm" onclick="addPrestigeMember()">Record Member</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleAddMember()">Cancel</button>
-      </div>
-    </div>
-
-    <!-- ADD FAMILY (collapsible) -->
-    <div class="admin-edit-row" id="addFamilyRow" style="margin-bottom:14px;">
-      <div class="form-row">
-        <div><label>Family Name</label><input type="text" id="newFName" placeholder="e.g. House Ravenmoor"></div>
-        <div><label>Bonus Points</label><input type="number" id="newFBonus" value="0" min="0"></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ink btn-sm" onclick="addFamily()">Establish Family</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleAddFamily()">Cancel</button>
-      </div>
-    </div>
-
-    <!-- HEADER -->
-    <div class="header">
-      <a href="../" class="back-link" id="backLink">← Guild Hall</a>
-      <p class="eyebrow">Guild of Laxtania · Hall of Honours</p>
-      <h1>Prestige Registry</h1>
-      <p class="subtitle">Records of Valour, kept by the Siankael Treasury</p>
-    </div>
-
-    <div class="ornament"><div class="ornament-inner"><div class="gem"></div><span>HONOURS</span><div class="gem"></div></div></div>
-
-    <!-- MY PRESTIGE CARD -->
-    <div id="myPrestigeCard" style="display:none" class="my-prestige-card">
-      <div class="my-rank" id="myRank">—</div>
-      <div class="my-info">
-        <div class="my-name" id="myName">—</div>
-        <div class="my-meta" id="myMeta">—</div>
-      </div>
-      <div>
-        <div class="my-pts" id="myPts">—</div>
-        <span class="my-pts-lbl">Prestige Points</span>
-      </div>
-    </div>
-
-    <!-- TIER LEGEND -->
-    <div class="tier-legend" id="tierLegend"><div class="loading" style="padding:6px">…</div></div>
-
-    <!-- TABS -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('members')">Members</button>
-      <button class="tab-btn" onclick="switchTab('families')">Families</button>
-      <button class="tab-btn" id="adminTab" style="display:none" onclick="switchTab('admin')">
-        ⚔ Admin <span id="adminBadge" style="display:none;background:var(--red-wax);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle">0</span>
-      </button>
-    </div>
-
-    <div id="tab-members" class="tab-panel active"><div id="membersContainer"><div class="loading">Consulting the Archives…</div></div></div>
-    <div id="tab-families" class="tab-panel"><div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div></div>
-    <div id="tab-admin" class="tab-panel"><div id="adminContainer"></div></div>
-
-    <p class="parchment-footer">By decree of the Sovereign of Laxtania &nbsp;·&nbsp; Decree No. III</p>
+    <a href="../" class="user-bar-btn">← Guild Hall</a>
   </div>
 </div>
+
+<!-- Header -->
+<div class="board-header">
+  <div class="banner">
+    <span class="banner-eyebrow">Hall of Honours</span>
+    <h1>Prestige Registry</h1>
+    <span class="banner-sub">Records of Valour — Laxtania Guild</span>
+  </div>
+</div>
+
+<!-- Admin toolbar -->
+<div class="admin-toolbar" id="adminToolbar" style="max-width:980px;margin:0 auto 0;">
+  <span class="admin-toolbar-lbl">Admin —</span>
+  <button class="admin-toolbar-btn" onclick="toggleInline('addMemberForm')">+ Member</button>
+  <button class="admin-toolbar-btn" onclick="toggleInline('addFamilyForm')">+ Family</button>
+</div>
+
+<!-- Add Member form -->
+<div class="inline-form" id="addMemberForm" style="max-width:980px;margin:0 auto;">
+  <div class="form-row">
+    <div class="form-group"><label>In-Game Name</label><input type="text" id="newMName" placeholder="Character name"></div>
+    <div class="form-group"><label>Family</label><select id="newMFamily"><option value="">— None —</option></select></div>
+    <div class="form-group"><label>Points</label><input type="number" id="newMPoints" value="0" min="0"></div>
+  </div>
+  <label style="font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);display:block;margin-bottom:6px;">Ranks</label>
+  <div class="rank-checkboxes" id="newMRanks">
+    <label class="rank-check"><input type="checkbox" value="serf"> Serf</label>
+    <label class="rank-check"><input type="checkbox" value="commoner"> Commoner</label>
+    <label class="rank-check"><input type="checkbox" value="knight"> Knight</label>
+    <label class="rank-check"><input type="checkbox" value="lord"> Lord</label>
+    <label class="rank-check"><input type="checkbox" value="councillor"> Councillor</label>
+    <label class="rank-check"><input type="checkbox" value="hand"> Hand</label>
+    <label class="rank-check"><input type="checkbox" value="sovereign"> Sovereign</label>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Custom Title</label><input type="text" id="newMTitle" placeholder="e.g. Master of Coin"></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="gold-btn" onclick="addMember()">Record Member</button>
+    <button class="ghost-btn" onclick="toggleInline('addMemberForm')">Cancel</button>
+  </div>
+</div>
+
+<!-- Add Family form -->
+<div class="inline-form" id="addFamilyForm" style="max-width:980px;margin:0 auto;">
+  <div class="form-row">
+    <div class="form-group"><label>Family Name</label><input type="text" id="newFName" placeholder="e.g. House Ravenmoor"></div>
+    <div class="form-group"><label>Bonus Points</label><input type="number" id="newFBonus" value="0" min="0"></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="gold-btn" onclick="addFamily()">Establish Family</button>
+    <button class="ghost-btn" onclick="toggleInline('addFamilyForm')">Cancel</button>
+  </div>
+</div>
+
+<!-- Parchment -->
+<div class="parchment-wrap">
+  <div class="pin"></div>
+
+  <!-- My prestige card -->
+  <div id="myCard" style="display:none" class="my-card">
+    <div class="my-rank-num" id="myRank">—</div>
+    <div class="my-info">
+      <div class="my-name-disp" id="myName">—</div>
+      <div class="my-meta-disp" id="myMeta">—</div>
+    </div>
+    <div>
+      <div class="my-pts-disp" id="myPts">—</div>
+      <span class="my-pts-lbl">Prestige Points</span>
+    </div>
+  </div>
+
+  <!-- Tier legend -->
+  <div class="tier-legend" id="tierLegend"><div class="loading" style="padding:6px">…</div></div>
+
+  <div class="divider"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('members')">Members</button>
+    <button class="tab-btn" onclick="switchTab('families')">Families</button>
+    <button class="tab-btn" id="adminTabBtn" style="display:none" onclick="switchTab('admin')">
+      ⚔ Admin <span id="adminBadge" style="display:none;background:var(--seal-red);color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle">0</span>
+    </button>
+  </div>
+
+  <div id="tab-members" class="tab-panel active"><div id="membersContainer"><div class="loading">Consulting the Archives…</div></div></div>
+  <div id="tab-families" class="tab-panel"><div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div></div>
+  <div id="tab-admin" class="tab-panel"><div id="adminContainer"></div></div>
+
+</div><!-- /parchment-wrap -->
 <div id="toast"></div>
 
 <script type="module">
@@ -306,40 +286,19 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getDatabase, ref, set, get, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
-const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5,admin:null},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
+const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
 const DEFAULT_TIERS=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"},{name:"Sovereign",minPts:2000,color:"#8a3050"}];
 
-const app=initializeApp(FC);
-const auth=getAuth(app);
-const db=getDatabase(app);
-
+const app=initializeApp(FC); const auth=getAuth(app); const db=getDatabase(app);
 let tiers=DEFAULT_TIERS,members={},families={},pendingUsers={};
-let currentUserData=null,currentPrestigeMember=null;
-let adminMode=false,isAdmin=false;
+let currentUserData=null,currentPM=null,isAdmin=false,adminMode=false;
 
 function getTier(pts){let t=tiers[0];for(const x of tiers){if(pts>=x.minPts)t=x;}return t;}
-function isSovereign(d){return(d.ranks||[]).includes('sovereign');}
+function isSov(d){return(d.ranks||[]).includes('sovereign');}
 function isHand(d){return(d.ranks||[]).includes('hand');}
-function resolveIsAdmin(d){
-  const ranks=d.ranks||['serf'];
-  const highest=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);
-  let a=RANKS[highest]?.admin===true;
-  if(highest==='councillor'&&d.adminAccess===true)a=true;
-  return a;
-}
-function assignableRanks(){
-  if(!currentUserData)return[];
-  if(isSovereign(currentUserData))return['serf','commoner','knight','lord','councillor','hand','sovereign'];
-  if(isHand(currentUserData))return['serf','commoner','knight','lord','councillor','hand'];
-  return[];
-}
-function canEditUser(targetRanks){
-  if(!currentUserData)return false;
-  if(isSovereign(currentUserData))return true;
-  if(isHand(currentUserData))return!(targetRanks||[]).includes('sovereign');
-  return false;
-}
-
+function resolveIsAdmin(d){const ranks=d.ranks||['serf'];const h=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);let a=RANKS[h]?.admin===true;if(h==='councillor'&&d.adminAccess===true)a=true;return a;}
+function assignableRanks(){if(!currentUserData)return[];if(isSov(currentUserData))return['serf','commoner','knight','lord','councillor','hand','sovereign'];if(isHand(currentUserData))return['serf','commoner','knight','lord','councillor','hand'];return[];}
+function canEdit(targetRanks){if(!currentUserData)return false;if(isSov(currentUserData))return true;if(isHand(currentUserData))return!(targetRanks||[]).includes('sovereign');return false;}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ── AUTH ──
@@ -349,185 +308,156 @@ onAuthStateChanged(auth,async user=>{
   if(!snap.exists()||snap.val().status!=='approved')return;
   currentUserData=snap.val();
   isAdmin=resolveIsAdmin(currentUserData);
-
   document.getElementById('userBar').style.display='flex';
   document.getElementById('userBarName').textContent=currentUserData.name||'';
-  document.getElementById('backLink').style.display='none';
-
   if(isAdmin){
     document.getElementById('adminToggle').style.display='flex';
-    document.getElementById('adminTab').style.display='inline-block';
-    // Listen for pending users
+    document.getElementById('adminTabBtn').style.display='inline-block';
     onValue(ref(db,'users'),snap=>{
       const all=snap.val()||{};
       pendingUsers=Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
-      const count=Object.keys(pendingUsers).length;
-      document.getElementById('pendingCount').textContent=count;
-      document.getElementById('adminBadge').textContent=count;
-      document.getElementById('adminBadge').style.display=count>0?'inline':'none';
-      if(adminMode&&count>0)document.getElementById('pendingBanner').classList.add('visible');
-      else document.getElementById('pendingBanner').classList.remove('visible');
-      if(adminMode)renderAdminPanel();
+      const c=Object.keys(pendingUsers).length;
+      document.getElementById('adminBadge').textContent=c;
+      document.getElementById('adminBadge').style.display=c>0?'inline':'none';
+      if(adminMode)renderAdminTab();
     });
   }
-
-  matchPrestigeMember(currentUserData.name);
+  if(currentUserData.name)matchPM(currentUserData.name);
 });
 
-// ── ADMIN MODE TOGGLE ──
+// ── ADMIN TOGGLE ──
 window.toggleAdminMode=function(){
   adminMode=!adminMode;
   document.getElementById('adminToggle').classList.toggle('active',adminMode);
   document.getElementById('adminToolbar').classList.toggle('visible',adminMode);
-  const pending=Object.keys(pendingUsers).length;
-  if(adminMode&&pending>0)document.getElementById('pendingBanner').classList.add('visible');
-  else document.getElementById('pendingBanner').classList.remove('visible');
-  // Re-render to show/hide edit buttons
-  renderMembers();
-  renderFamilies();
-  if(adminMode)renderAdminPanel();
+  renderMembers();renderFamilies();
+  if(adminMode)renderAdminTab();
 };
-
-window.toggleAddMember=function(){const r=document.getElementById('addMemberRow');r.classList.toggle('open');};
-window.toggleAddFamily=function(){const r=document.getElementById('addFamilyRow');r.classList.toggle('open');};
+window.toggleInline=function(id){const el=document.getElementById(id);el.classList.toggle('open');};
 
 // ── FIREBASE LISTENERS ──
-onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();if(adminMode)renderAdminPanel();});
-onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPrestigeMember)matchPrestigeMember(currentPrestigeMember.name);else if(currentUserData)matchPrestigeMember(currentUserData.name);renderMembers();renderFamilies();populateFamilyDropdowns();});
-onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();populateFamilyDropdowns();});
+onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();if(adminMode)renderAdminTab();});
+onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();populateFamilyDDs();});
+onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();populateFamilyDDs();});
 
-function populateFamilyDropdowns(){
+function populateFamilyDDs(){
   const opts='<option value="">— None —</option>'+Object.entries(families).map(([id,f])=>`<option value="${id}">${f.name}</option>`).join('');
-  document.querySelectorAll('.family-select-dd').forEach(s=>{const v=s.value;s.innerHTML=opts;s.value=v;});
+  document.querySelectorAll('.family-dd').forEach(s=>{const v=s.value;s.innerHTML=opts;s.value=v;});
   const nf=document.getElementById('newMFamily');if(nf){const v=nf.value;nf.innerHTML=opts;nf.value=v;}
 }
 
-// ── MATCH USER TO PRESTIGE MEMBER ──
-function matchPrestigeMember(name){
+function matchPM(name){
   if(!name)return;
-  const match=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===name.toLowerCase());
-  if(match){currentPrestigeMember={id:match[0],...match[1]};renderMyCard();}
+  const m=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===name.toLowerCase());
+  if(m){currentPM={id:m[0],...m[1]};renderMyCard();}
 }
 
 function renderMyCard(){
-  if(!currentPrestigeMember)return;
+  if(!currentPM)return;
   const sorted=Object.entries(members).map(([id,m])=>({id,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
-  const rank=sorted.findIndex(m=>m.id===currentPrestigeMember.id)+1;
-  const tier=getTier(currentPrestigeMember.points||0);
-  const famName=currentPrestigeMember.familyId&&families[currentPrestigeMember.familyId]?families[currentPrestigeMember.familyId].name:'No Family';
+  const rank=sorted.findIndex(m=>m.id===currentPM.id)+1;
+  const tier=getTier(currentPM.points||0);
+  const fam=currentPM.familyId&&families[currentPM.familyId]?families[currentPM.familyId].name:'No Family';
   document.getElementById('myRank').textContent='#'+rank;
-  document.getElementById('myName').textContent=currentPrestigeMember.name||'';
-  document.getElementById('myMeta').innerHTML=`<span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span> &nbsp;·&nbsp; ${famName}`;
-  document.getElementById('myPts').textContent=(currentPrestigeMember.points||0).toLocaleString();
-  document.getElementById('myPrestigeCard').style.display='flex';
+  document.getElementById('myName').textContent=currentPM.name||'';
+  document.getElementById('myMeta').innerHTML=`<span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span> &nbsp;·&nbsp; ${fam}`;
+  document.getElementById('myPts').textContent=(currentPM.points||0).toLocaleString();
+  document.getElementById('myCard').style.display='flex';
 }
 
 function renderTierLegend(){
-  document.getElementById('tierLegend').innerHTML=tiers.map(t=>`<div class="tier-badge"><div class="tier-dot" style="background:${t.color}"></div><span>${t.name}</span><span style="opacity:0.5;font-size:0.56rem">${t.minPts}+</span></div>`).join('');
+  document.getElementById('tierLegend').innerHTML=tiers.map(t=>`<div class="tier-badge"><div class="tier-dot" style="background:${t.color}"></div>${t.name} <span style="opacity:0.5;font-size:10px">${t.minPts}+</span></div>`).join('');
 }
 
 // ── MEMBERS ──
 function renderMembers(){
   const c=document.getElementById('membersContainer');
-  const myName=currentPrestigeMember?.name?.toLowerCase();
+  const myName=currentPM?.name?.toLowerCase();
   const list=Object.entries(members).map(([id,m])=>({id,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
   if(!list.length){c.innerHTML='<div class="empty">No members recorded yet.</div>';return;}
-
+  const allowed=assignableRanks();
   const rows=list.map((m,i)=>{
     const tier=getTier(m.points||0);
     const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const fName=m.familyId&&families[m.familyId]?families[m.familyId].name:'—';
-    const isLeader=( m.ranks||[] ).includes('sovereign')||( m.ranks||[] ).includes('hand');
+    const isLeader=(m.ranks||[]).includes('sovereign')||(m.ranks||[]).includes('hand');
     const isMe=myName&&m.name?.toLowerCase()===myName;
-    const allowed=assignableRanks();
-    const canEdit=adminMode&&canEditUser(m.ranks||[]);
-
+    const ce=adminMode&&canEdit(m.ranks||[]);
     const rankChecks=['serf','commoner','knight','lord','councillor','hand','sovereign'].map(r=>{
       const checked=(m.ranks||[]).includes(r);
-      const canAssign=allowed.includes(r);
-      if(canAssign) return `<label class="rank-check"><input type="checkbox" data-rank="${r}" ${checked?'checked':''}> ${RANKS[r].label}</label>`;
-      return checked?`<span style="font-size:0.78rem;color:var(--ink-faded);opacity:0.7;font-style:italic">${RANKS[r].label} 🔒</span>`:'';
+      const ca=allowed.includes(r);
+      if(ca)return`<label class="rank-check"><input type="checkbox" data-rank="${r}" ${checked?'checked':''}> ${RANKS[r].label}</label>`;
+      return checked?`<span style="font-size:13px;color:var(--ink-soft);opacity:0.7;font-style:italic">${RANKS[r].label} 🔒</span>`:'';
     }).join('');
-
-    return `<tr class="${isMe?'is-me':''}">
+    return`<tr class="${isMe?'is-me':''}">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
-      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">YOU</span>':''}</span></td>
+      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">You</span>':''}</span></td>
       <td><span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span></td>
       <td><span class="family-tag">${fName}</span></td>
       <td class="pts-cell r">${(m.points||0).toLocaleString()}</td>
-      ${canEdit?`<td><button class="btn btn-sm" style="border-color:var(--red-wax);color:var(--red-wax);background:transparent;font-family:'Cinzel',serif;font-size:0.55rem;" onclick="toggleMemberEdit('medit-${m.id}')">Edit</button></td>`:''}
+      ${ce?`<td><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('edit-${m.id}')">Edit</button></td>`:''}
     </tr>
-    ${canEdit?`<tr id="medit-${m.id}" style="display:none"><td colspan="6" style="padding:0">
-      <div class="admin-edit-row open">
+    ${ce?`<tr id="edit-${m.id}" style="display:none"><td colspan="6" style="padding:0">
+      <div class="edit-row open">
         <div class="form-row">
-          <div><label>Name</label><input type="text" id="mn-${m.id}" value="${m.name||''}"></div>
-          <div><label>Family</label><select id="mf-${m.id}" class="family-select-dd"><option value="">— None —</option>${Object.entries(families).map(([fid,f])=>`<option value="${fid}" ${m.familyId===fid?'selected':''}>${f.name}</option>`).join('')}</select></div>
-          <div><label>Points</label><input type="number" id="mp-${m.id}" value="${m.points||0}" min="0"></div>
+          <div class="form-group"><label>Name</label><input type="text" id="mn-${m.id}" value="${m.name||''}"></div>
+          <div class="form-group"><label>Family</label><select id="mf-${m.id}" class="family-dd"><option value="">— None —</option>${Object.entries(families).map(([fid,f])=>`<option value="${fid}" ${m.familyId===fid?'selected':''}>${f.name}</option>`).join('')}</select></div>
+          <div class="form-group"><label>Points</label><input type="number" id="mp-${m.id}" value="${m.points||0}" min="0"></div>
         </div>
-        <label>Ranks</label><div class="rank-checkboxes">${rankChecks}</div>
-        <div class="form-row"><div><label>Custom Title</label><input type="text" id="mct-${m.id}" value="${m.customTitle||''}" placeholder="e.g. Master of Coin"></div></div>
-        <label style="display:flex;align-items:center;gap:5px;margin-bottom:10px"><input type="checkbox" id="madmin-${m.id}" ${m.adminAccess?'checked':''}> Grant admin access (Councillors)</label>
-        <div style="display:flex;gap:7px">
-          <button class="btn btn-ink btn-sm" onclick="saveMember('${m.id}')">Save</button>
-          <button class="btn btn-ghost btn-sm" onclick="toggleMemberEdit('medit-${m.id}')">Cancel</button>
-          <button class="btn btn-danger" onclick="deleteMember('${m.id}','${(m.name||m.id).replace(/'/g,"\\'")}')">Remove</button>
+        <div class="rank-checkboxes">${rankChecks}</div>
+        <div class="form-row">
+          <div class="form-group"><label>Custom Title</label><input type="text" id="mct-${m.id}" value="${m.customTitle||''}" placeholder="e.g. Master of Coin"></div>
+        </div>
+        <label class="rank-check" style="margin-bottom:10px"><input type="checkbox" id="madmin-${m.id}" ${m.adminAccess?'checked':''}> Grant admin access (Councillors)</label>
+        <div style="display:flex;gap:8px">
+          <button class="gold-btn" style="font-size:12px;padding:7px 14px" onclick="saveMember('${m.id}')">Save</button>
+          <button class="ghost-btn" onclick="toggleEdit('edit-${m.id}')">Cancel</button>
+          <button class="red-btn" onclick="deleteMember('${m.id}','${(m.name||m.id).replace(/'/g,"\\'")}')">Remove</button>
         </div>
       </div>
     </td></tr>`:''}`;
   }).join('');
-
-  const editHeader=adminMode?'<th></th>':'';
-  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th>${editHeader}</tr></thead><tbody>${rows}</tbody></table>`;
+  const editTh=adminMode?'<th></th>':'';
+  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-window.toggleMemberEdit=function(id){
-  const row=document.getElementById(id);
-  if(!row)return;
-  row.style.display=row.style.display==='none'?'table-row':'none';
-};
-
+window.toggleEdit=function(id){const r=document.getElementById(id);if(r)r.style.display=r.style.display==='none'?'table-row':'none';};
 window.saveMember=async function(id){
   const name=document.getElementById('mn-'+id).value.trim();
   const fam=document.getElementById('mf-'+id).value;
   const pts=parseInt(document.getElementById('mp-'+id).value)||0;
   const customTitle=document.getElementById('mct-'+id).value.trim();
   const adminAccess=document.getElementById('madmin-'+id).checked;
-  const ranks=[...document.querySelectorAll(`#medit-${id} input[data-rank]:checked`)].map(c=>c.dataset.rank);
+  const ranks=[...document.querySelectorAll(`#edit-${id} input[data-rank]:checked`)].map(c=>c.dataset.rank);
   if(!ranks.length)ranks.push('serf');
   await update(ref(db,'prestige/members/'+id),{name,familyId:fam,points:pts,ranks,customTitle,adminAccess});
-  toast(`${name} updated.`);
-  document.getElementById('medit-'+id).style.display='none';
+  toast(`${name} updated.`);document.getElementById('edit-'+id).style.display='none';
 };
-
 window.deleteMember=async function(id,name){
   if(!confirm(`Remove ${name}?`))return;
-  await remove(ref(db,'prestige/members/'+id));
-  toast(`${name} removed.`);
+  await remove(ref(db,'prestige/members/'+id));toast(`${name} removed.`);
 };
-
-window.addPrestigeMember=async function(){
+window.addMember=async function(){
   const name=document.getElementById('newMName').value.trim();
   if(!name){toast('Enter a name.');return;}
   const fam=document.getElementById('newMFamily').value;
   const pts=parseInt(document.getElementById('newMPoints').value)||0;
-  const customTitle=document.getElementById('newMCustomTitle').value.trim();
+  const customTitle=document.getElementById('newMTitle').value.trim();
   const ranks=[...document.querySelectorAll('#newMRanks input:checked')].map(c=>c.value);
   if(!ranks.length)ranks.push('serf');
   await set(push(ref(db,'prestige/members')),{name,familyId:fam,points:pts,ranks,customTitle,adminAccess:false});
   toast(`${name} recorded.`);
-  document.getElementById('newMName').value='';
-  document.getElementById('newMPoints').value='0';
-  document.getElementById('newMCustomTitle').value='';
-  document.querySelectorAll('#newMRanks input').forEach(c=>c.checked=false);
-  document.getElementById('addMemberRow').classList.remove('open');
+  document.getElementById('newMName').value='';document.getElementById('newMPoints').value='0';
+  document.getElementById('newMTitle').value='';document.querySelectorAll('#newMRanks input').forEach(c=>c.checked=false);
+  document.getElementById('addMemberForm').classList.remove('open');
 };
 
 // ── FAMILIES ──
 function renderFamilies(){
   const c=document.getElementById('familiesContainer');
-  const myFamId=currentPrestigeMember?.familyId;
+  const myFamId=currentPM?.familyId;
+  const myName=currentPM?.name?.toLowerCase();
   const mList=Object.entries(members).map(([id,m])=>({id,...m}));
-  const myName=currentPrestigeMember?.name?.toLowerCase();
   const list=Object.entries(families).map(([id,f])=>{
     const fams=mList.filter(m=>m.familyId===id).sort((a,b)=>(b.points||0)-(a.points||0));
     const mTotal=fams.reduce((s,m)=>s+(m.points||0),0);
@@ -535,64 +465,52 @@ function renderFamilies(){
     return{id,...f,mTotal,bonus,total:mTotal+bonus,fams};
   }).sort((a,b)=>b.total-a.total);
   if(!list.length){c.innerHTML='<div class="empty">No families established yet.</div>';return;}
-
   c.innerHTML=`<div class="family-grid">${list.map((f,i)=>{
     const isMine=myFamId===f.id;
-    const lbRows=f.fams.map((m,mi)=>{
-      const isMe=myName&&m.name?.toLowerCase()===myName;
-      const isLord=(m.ranks||[]).includes('lord');
-      return `<div class="fam-member-row">
+    const lbRows=f.fams.map((m,mi)=>`
+      <div class="fam-member-row">
         <span class="fam-member-rank ${mi===0?'r1':''}">${mi+1}</span>
-        <span class="fam-member-name ${isMe?'is-me':''}">${m.name||m.id}</span>
-        ${isLord?'<span class="fam-leader-tag">Lord</span>':''}
+        <span class="fam-member-name ${myName&&m.name?.toLowerCase()===myName?'is-me':''}">${m.name||m.id}</span>
+        ${(m.ranks||[]).includes('lord')?'<span class="fam-lord-tag">Lord</span>':''}
         <span class="fam-member-pts">${(m.points||0).toLocaleString()}</span>
-      </div>`;
-    }).join('');
-
-    const adminBonusEdit=adminMode?`
-      <div class="admin-edit-row" id="fedit-${f.id}" style="margin-top:8px">
-        <div class="form-row">
-          <div><label>Family Name</label><input type="text" id="fn-${f.id}" value="${f.name||''}"></div>
-          <div><label>Bonus Points</label><input type="number" id="fb-${f.id}" value="${f.bonusPoints||0}" min="0"></div>
-        </div>
-        <div style="display:flex;gap:7px">
-          <button class="btn btn-ink btn-sm" onclick="saveFamily('${f.id}')">Save</button>
-          <button class="btn btn-ghost btn-sm" onclick="toggleFamilyEdit('fedit-${f.id}')">Cancel</button>
-          <button class="btn btn-danger" onclick="deleteFamily('${f.id}','${(f.name||'').replace(/'/g,"\\'")}')">Dissolve</button>
-        </div>
-      </div>`:'';
-
-    const adminEditBtn=adminMode?`<button class="btn btn-sm" style="position:absolute;top:10px;left:10px;border-color:var(--red-wax);color:var(--red-wax);background:transparent;font-family:'Cinzel',serif;font-size:0.52rem;" onclick="toggleFamilyEdit('fedit-${f.id}')">Edit</button>`:'';
-
-    return `<div class="family-card ${isMine?'is-mine':''}">
-      ${adminEditBtn}
+      </div>`).join('');
+    const editBtn=adminMode?`<button class="red-btn" style="position:absolute;top:8px;left:8px;font-size:10px;padding:2px 7px" onclick="toggleInline('fedit-${f.id}')">Edit</button>`:'';
+    const editForm=adminMode?`<div class="inline-form" id="fedit-${f.id}" style="margin-top:10px">
+      <div class="form-row">
+        <div class="form-group"><label>Name</label><input type="text" id="fn-${f.id}" value="${f.name||''}"></div>
+        <div class="form-group"><label>Bonus Points</label><input type="number" id="fb-${f.id}" value="${f.bonusPoints||0}" min="0"></div>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="gold-btn" style="font-size:12px;padding:7px 14px" onclick="saveFamily('${f.id}')">Save</button>
+        <button class="ghost-btn" onclick="toggleInline('fedit-${f.id}')">Cancel</button>
+        <button class="red-btn" onclick="deleteFamily('${f.id}','${(f.name||'').replace(/'/g,"\\'")}')">Dissolve</button>
+      </div>
+    </div>`:'';
+    return`<div class="family-card ${isMine?'is-mine':''}">
+      ${editBtn}
       <div class="family-card-rank">${i+1}</div>
-      <div class="family-name" style="${adminMode?'padding-left:44px':''}">${f.name||f.id}${isMine?' ✦':''}</div>
+      <div class="family-name" style="${adminMode?'padding-left:46px':''}">${f.name||f.id}${isMine?' ✦':''}</div>
       <div class="family-meta">${f.fams.length} member${f.fams.length!==1?'s':''}</div>
       <div class="score-row">
         <div class="score-block"><div class="score-lbl">Member Points</div><div class="score-val">${f.mTotal.toLocaleString()}</div></div>
         <div class="score-block"><div class="score-lbl">Bonus</div><div class="score-val bonus">${f.bonus>0?'+':''}${f.bonus.toLocaleString()}</div></div>
       </div>
-      <div class="score-total"><span>Total Prestige</span><span>${f.total.toLocaleString()} pts</span></div>
+      <div class="score-total"><span>Total Prestige</span><span>${f.total.toLocaleString()}</span></div>
       ${f.fams.length?`<div class="family-mini-lb"><div class="family-mini-lb-title">Members</div>${lbRows}</div>`:''}
-      ${adminBonusEdit}
+      ${editForm}
     </div>`;
   }).join('')}</div>`;
 }
-
-window.toggleFamilyEdit=function(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');};
 window.saveFamily=async function(id){
   const name=document.getElementById('fn-'+id).value.trim();
   const bonus=parseInt(document.getElementById('fb-'+id).value)||0;
   await update(ref(db,'prestige/families/'+id),{name,bonusPoints:bonus});
-  toast(`${name} updated.`);
-  document.getElementById('fedit-'+id).classList.remove('open');
+  toast(`${name} updated.`);document.getElementById('fedit-'+id).classList.remove('open');
 };
 window.deleteFamily=async function(id,name){
   if(!confirm(`Dissolve ${name}?`))return;
   await remove(ref(db,'prestige/families/'+id));
-  const upd={};
-  Object.entries(members).forEach(([mid,m])=>{if(m.familyId===id)upd[`prestige/members/${mid}/familyId`]='';});
+  const upd={};Object.entries(members).forEach(([mid,m])=>{if(m.familyId===id)upd[`prestige/members/${mid}/familyId`]='';});
   if(Object.keys(upd).length)await update(ref(db),upd);
   toast(`${name} dissolved.`);
 };
@@ -602,73 +520,49 @@ window.addFamily=async function(){
   const bonus=parseInt(document.getElementById('newFBonus').value)||0;
   await set(push(ref(db,'prestige/families')),{name,bonusPoints:bonus});
   toast(`${name} established.`);
-  document.getElementById('newFName').value='';
-  document.getElementById('newFBonus').value='0';
-  document.getElementById('addFamilyRow').classList.remove('open');
+  document.getElementById('newFName').value='';document.getElementById('newFBonus').value='0';
+  document.getElementById('addFamilyForm').classList.remove('open');
 };
 
-// ── ADMIN PANEL TAB ──
-function renderAdminPanel(){
+// ── ADMIN TAB ──
+function renderAdminTab(){
   const c=document.getElementById('adminContainer');
   const allowed=assignableRanks();
-  const pendingList=Object.entries(pendingUsers);
-
-  // Pending section
-  const pendingHTML=pendingList.length?pendingList.map(([uid,u])=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(154,112,48,0.1);flex-wrap:wrap">
-      <div style="flex:1">
-        <div style="font-family:'Cinzel',serif;font-size:0.86rem">${u.name||'Unknown'}</div>
-        <div style="font-size:0.75rem;color:var(--ink-faded);font-style:italic">${u.email||''}</div>
-      </div>
-      <select id="prank-${uid}" style="width:auto;margin-bottom:0;font-size:0.8rem;padding:5px 8px">
-        ${allowed.map(r=>`<option value="${r}">${RANKS[r].label}</option>`).join('')}
-      </select>
-      <button class="btn btn-approve" onclick="approveUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Approve</button>
-      <button class="btn btn-danger" onclick="rejectUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Reject</button>
+  const pList=Object.entries(pendingUsers);
+  const pendingHTML=pList.length?pList.map(([uid,u])=>`
+    <div class="pending-row">
+      <div style="flex:1"><div class="pending-name">${u.name||'Unknown'}</div><div class="pending-email">${u.email||''}</div></div>
+      <select class="rank-select" id="apr-${uid}">${allowed.map(r=>`<option value="${r}">${RANKS[r].label}</option>`).join('')}</select>
+      <button class="approve-btn" onclick="approveUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Approve</button>
+      <button class="red-btn" onclick="rejectUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Reject</button>
     </div>`).join('')
-    :'<p style="color:var(--ink-faded);font-style:italic;padding:16px 0">No pending requests.</p>';
-
-  // Tier section
-  const tierList=tiers.map(t=>`
-    <div class="tier-admin-row">
-      <div class="tier-swatch" style="background:${t.color}"></div>
-      <span class="tier-admin-name">${t.name}</span>
-      <span class="tier-admin-pts">${t.minPts}+ pts</span>
-    </div>`).join('');
-
+    :'<p style="font-style:italic;color:var(--ink-soft);font-size:13px">No pending requests.</p>';
+  const tierHTML=tiers.map(t=>`<div class="tier-admin-row"><div class="tier-swatch" style="background:${t.color}"></div><span class="tier-admin-name">${t.name}</span><span class="tier-admin-pts">${t.minPts}+ pts</span></div>`).join('');
   c.innerHTML=`
-    <div class="admin-section visible">
-      <h3>PENDING MEMBERSHIP REQUESTS</h3>
-      ${pendingHTML}
-    </div>
-    <div class="admin-section-grid" style="margin-top:14px">
-      <div class="admin-section visible">
-        <h3>TIER THRESHOLDS</h3>
-        ${tierList}
-        <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(139,26,26,0.2)">
+    <div class="admin-section visible"><h3>Pending Membership Requests</h3>${pendingHTML}</div>
+    <div class="admin-section-grid">
+      <div class="admin-section visible"><h3>Tier Thresholds</h3>${tierHTML}
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(140,36,36,0.15)">
           <div class="form-row">
-            <div><label>Name</label><input type="text" id="newTierName" placeholder="Diamond"></div>
-            <div><label>Min Pts</label><input type="number" id="newTierMin" placeholder="2500" min="0"></div>
-            <div><label>Colour</label><input type="text" id="newTierColor" placeholder="#aabbcc"></div>
+            <div class="form-group"><label>Name</label><input type="text" id="newTierName" placeholder="Diamond"></div>
+            <div class="form-group"><label>Min Pts</label><input type="number" id="newTierMin" placeholder="2500" min="0"></div>
+            <div class="form-group"><label>Colour</label><input type="text" id="newTierColor" placeholder="#aabbcc"></div>
           </div>
-          <button class="btn btn-sm" style="border-color:var(--red-wax);color:var(--red-wax);background:transparent;font-family:'Cinzel',serif;font-size:0.58rem;" onclick="addTier()">Add Tier</button>
+          <button class="red-btn" style="font-size:12px;padding:6px 14px" onclick="addTier()">Add Tier</button>
         </div>
       </div>
     </div>`;
 }
-
 window.approveUser=async function(uid,name){
-  const sel=document.getElementById('prank-'+uid);
+  const sel=document.getElementById('apr-'+uid);
   const rank=sel?sel.value:'serf';
   await update(ref(db,'users/'+uid),{status:'approved',ranks:[rank],adminAccess:false});
   toast(`${name} approved as ${RANKS[rank]?.label||rank}.`);
 };
 window.rejectUser=async function(uid,name){
-  if(!confirm(`Reject ${name}'s application?`))return;
-  await remove(ref(db,'users/'+uid));
-  toast(`${name} rejected.`);
+  if(!confirm(`Reject ${name}?`))return;
+  await remove(ref(db,'users/'+uid));toast(`${name} rejected.`);
 };
-
 window.addTier=async function(){
   const name=document.getElementById('newTierName').value.trim();
   const min=parseInt(document.getElementById('newTierMin').value);
@@ -676,9 +570,7 @@ window.addTier=async function(){
   if(!name||isNaN(min)||!color){toast('Fill all fields.');return;}
   await push(ref(db,'prestige/tiers'),{name,minPts:min,color});
   toast(`Tier "${name}" added.`);
-  document.getElementById('newTierName').value='';
-  document.getElementById('newTierMin').value='';
-  document.getElementById('newTierColor').value='';
+  ['newTierName','newTierMin','newTierColor'].forEach(id=>document.getElementById(id).value='');
 };
 
 window.switchTab=function(tab){
@@ -688,7 +580,7 @@ window.switchTab=function(tab){
   });
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='admin')renderAdminPanel();
+  if(tab==='admin')renderAdminTab();
 };
 </script>
 </body>

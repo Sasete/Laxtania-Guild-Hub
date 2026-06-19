@@ -5,620 +5,472 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Laxtania — Guild Hall</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+  :root {
+    --wood-dark: #3a2718;
+    --wood-mid:  #4f3622;
+    --wood-light:#6b4a30;
+    --parchment: #f1e4c4;
+    --parchment-shadow:#ddc69a;
+    --ink:       #2e2014;
+    --ink-soft:  #5a4632;
+    --gold:      #c8a04a;
+    --gold-bright:#e6c878;
+    --navy:      #1c2a40;
+    --seal-red:  #8c2424;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:Georgia,'Times New Roman',serif;
+    background-color:var(--wood-dark);
+    background-image:
+      repeating-linear-gradient(90deg,var(--wood-dark) 0px,var(--wood-mid) 18px,var(--wood-dark) 36px,var(--wood-light) 54px),
+      radial-gradient(ellipse at center,rgba(0,0,0,0) 0%,rgba(0,0,0,0.45) 100%);
+    color:var(--ink);
+    min-height:100vh;
+    padding:40px 20px 60px;
+  }
 
-:root {
-  --parchment:  #f2e8d5;
-  --ink:        #2c1e0f;
-  --ink-light:  #4a3520;
-  --ink-faded:  #7a6040;
-  --gold:       #9a7030;
-  --gold-bright:#c9a84c;
-  --red-wax:    #8b1a1a;
-  --wood:       #3d2010;
-  --wood-mid:   #5c3318;
-  --border-gold:rgba(154,112,48,0.5);
-  --shadow:     0 6px 40px rgba(30,15,5,0.55);
-}
+  /* ── BANNER ── */
+  .board-header{max-width:860px;margin:0 auto 36px;text-align:center;}
+  .banner{
+    background:linear-gradient(180deg,#233754 0%,var(--navy) 100%);
+    border:2px solid var(--gold);border-radius:4px;
+    padding:22px 30px 26px;
+    box-shadow:0 0 0 5px rgba(0,0,0,0.25),0 12px 30px rgba(0,0,0,0.5);
+    position:relative;
+  }
+  .banner::before,.banner::after{content:"";position:absolute;top:50%;width:60px;height:1px;background:var(--gold);opacity:0.6;transform:translateY(-50%);}
+  .banner::before{left:18px;}.banner::after{right:18px;}
+  .banner-eyebrow{display:block;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--gold-bright);font-variant:small-caps;margin-bottom:8px;}
+  .banner h1{font-size:38px;font-weight:400;letter-spacing:3px;color:var(--parchment);text-shadow:0 2px 4px rgba(0,0,0,0.6);}
+  .banner-sub{display:block;margin-top:8px;font-size:13px;letter-spacing:2px;color:rgba(241,228,196,0.65);font-style:italic;}
 
-*{margin:0;padding:0;box-sizing:border-box;}
+  /* ── PARCHMENT CARD ── */
+  .parchment-card{
+    max-width:860px;margin:0 auto;
+    background-color:var(--parchment);
+    background-image:
+      radial-gradient(ellipse at 25% 20%,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0) 50%),
+      radial-gradient(ellipse at 80% 85%,rgba(120,90,50,0.18) 0%,rgba(120,90,50,0) 55%);
+    border-radius:3px 9px 4px 10px / 9px 4px 10px 3px;
+    padding:36px 42px 40px;
+    box-shadow:inset 0 0 0 1px rgba(120,90,50,0.25),inset 0 0 40px rgba(120,90,50,0.18),0 14px 28px rgba(0,0,0,0.45);
+    position:relative;
+  }
+  .pin{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--gold-bright),var(--gold) 55%,#8a6a28 100%);box-shadow:0 3px 5px rgba(0,0,0,0.5),inset 0 0 2px rgba(255,255,255,0.6);}
 
-body {
-  min-height:100vh;
-  background-color:var(--wood);
-  background-image:
-    repeating-linear-gradient(90deg,transparent,transparent 38px,rgba(0,0,0,0.07) 38px,rgba(0,0,0,0.07) 40px),
-    repeating-linear-gradient(180deg,transparent,transparent 6px,rgba(255,255,255,0.015) 6px,rgba(255,255,255,0.015) 7px),
-    radial-gradient(ellipse at 50% 0%,rgba(92,51,24,0.9) 0%,rgba(30,12,4,0.98) 100%);
-  font-family:'EB Garamond',Georgia,serif;
-  color:var(--ink);
-  display:flex;flex-direction:column;align-items:center;
-  padding:32px 16px 60px;
-}
+  /* ── DIVIDER ── */
+  .divider{border:none;height:1px;background:linear-gradient(to right,transparent,var(--gold) 15%,var(--gold) 85%,transparent);margin:18px 0;opacity:0.7;}
 
-/* ── BOARD FRAME ── */
-.board-frame {
-  width:100%;max-width:860px;
-  background:var(--wood-mid);
-  border:6px solid var(--wood);
-  border-radius:4px;
-  box-shadow:var(--shadow),inset 0 0 0 2px rgba(255,255,255,0.04),inset 0 2px 8px rgba(0,0,0,0.4);
-  padding:10px;position:relative;
-}
-.board-frame::before{content:'✦';position:absolute;top:16px;left:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
-.board-frame::after {content:'✦';position:absolute;top:16px;right:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
-.bolt-bl{position:absolute;bottom:16px;left:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;pointer-events:none;}
-.bolt-br{position:absolute;bottom:16px;right:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;pointer-events:none;}
+  /* ── GUILD INFO STRIP ── */
+  .guild-info{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin:16px 0;}
+  .info-item{text-align:center;}
+  .info-label{display:block;font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:2px;}
+  .info-value{font-size:14px;color:var(--ink);font-style:italic;}
 
-/* ── PARCHMENT ── */
-.parchment {
-  background:var(--parchment);
-  background-image:
-    radial-gradient(ellipse at 30% 20%,rgba(255,255,255,0.35) 0%,transparent 60%),
-    radial-gradient(ellipse at 70% 80%,rgba(180,140,80,0.18) 0%,transparent 50%),
-    repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(154,112,48,0.06) 28px,rgba(154,112,48,0.06) 29px);
-  border:2px solid var(--border-gold);
-  padding:32px 36px 36px;
-  position:relative;
-  min-height:400px;
-}
-.parchment::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:
-    radial-gradient(circle at 0% 0%,rgba(120,80,20,0.25) 0%,transparent 25%),
-    radial-gradient(circle at 100% 0%,rgba(120,80,20,0.2) 0%,transparent 20%),
-    radial-gradient(circle at 0% 100%,rgba(120,80,20,0.2) 0%,transparent 20%),
-    radial-gradient(circle at 100% 100%,rgba(120,80,20,0.25) 0%,transparent 25%);
-}
+  /* ── LIVE STATS ── */
+  .live-strip{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin:18px 0 6px;}
+  .live-stat{text-align:center;}
+  .live-num{display:block;font-size:28px;font-weight:400;color:var(--navy);letter-spacing:1px;line-height:1;}
+  .live-lbl{font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);}
 
-/* ── HEADER ── */
-.guild-header{text-align:center;margin-bottom:4px;}
-.eyebrow{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.45em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:10px;}
-h1{font-family:'Cinzel',serif;font-size:clamp(1.9rem,5vw,3rem);font-weight:700;color:var(--ink);letter-spacing:0.08em;text-shadow:1px 1px 0 rgba(255,255,255,0.4);}
-.subtitle{margin-top:6px;font-style:italic;font-size:1.05rem;color:var(--ink-faded);}
+  /* ── PORTAL CARDS ── */
+  .section-eyebrow{text-align:center;font-size:11px;font-variant:small-caps;letter-spacing:3px;color:var(--ink-soft);margin:22px 0 16px;}
+  .portals{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  .portal-card{
+    display:block;text-decoration:none;color:inherit;
+    background:rgba(255,255,255,0.3);
+    border:1px solid rgba(120,90,50,0.3);
+    border-radius:3px;padding:20px 18px;
+    transition:all 0.15s;
+    box-shadow:0 2px 8px rgba(46,32,20,0.1);
+    position:relative;
+  }
+  .portal-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.25) 0%,transparent 60%);pointer-events:none;border-radius:3px;}
+  .portal-card:hover{background:rgba(255,255,255,0.5);border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 18px rgba(46,32,20,0.18);}
+  .portal-card:hover .portal-arrow{opacity:1;transform:translateX(3px);}
+  .portal-icon{font-size:22px;margin-bottom:8px;display:block;}
+  .portal-title{font-size:15px;font-weight:400;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
+  .portal-arrow{font-size:14px;color:var(--gold);opacity:0.35;transition:all 0.15s;}
+  .portal-desc{font-size:13px;font-style:italic;color:var(--ink-soft);line-height:1.5;}
+  .portal-tag{display:inline-block;margin-top:10px;font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--gold);border:1px solid rgba(200,160,74,0.4);padding:2px 8px;border-radius:2px;}
+  .portal-card.admin-card{border-color:rgba(140,36,36,0.3);}
+  .portal-card.admin-card:hover{border-color:var(--seal-red);}
+  .portal-card.admin-card .portal-tag{color:var(--seal-red);border-color:rgba(140,36,36,0.4);}
 
-/* ── ORNAMENT ── */
-.ornament{display:flex;align-items:center;gap:12px;margin:18px 0;}
-.ornament::before,.ornament::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-gold),transparent);}
-.ornament-inner{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.3em;color:var(--ink-faded);display:flex;align-items:center;gap:8px;}
-.gem{width:6px;height:6px;background:var(--gold-bright);transform:rotate(45deg);flex-shrink:0;}
+  /* ── AUTH PANEL ── */
+  .auth-wrap{max-width:400px;margin:0 auto;}
+  .auth-tabs{display:flex;border-bottom:1px solid rgba(120,90,50,0.3);margin-bottom:20px;}
+  .auth-tab{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;color:var(--ink-soft);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:8px 18px 10px;cursor:pointer;transition:all 0.15s;}
+  .auth-tab:hover{color:var(--ink);}
+  .auth-tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+  .auth-form{display:none;}
+  .auth-form.active{display:block;}
+  .form-group{margin-bottom:14px;}
+  .form-group label{display:block;font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .form-group input{font-family:Georgia,serif;font-size:14px;color:var(--ink);width:100%;background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);border-radius:3px;padding:7px 10px;}
+  .form-group input:focus{outline:1px solid var(--gold);background:rgba(255,255,255,0.9);}
+  .auth-hint{font-size:13px;font-style:italic;color:var(--ink-soft);margin-bottom:16px;line-height:1.6;}
+  .auth-error{font-size:12px;font-style:italic;color:var(--seal-red);margin-bottom:10px;min-height:1.2em;}
+  .auth-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:14px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;border-radius:3px;padding:10px 24px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.2);width:100%;transition:transform 0.08s;}
+  .auth-btn:hover{transform:translateY(-1px);}
 
-/* ── USER BAR ── */
-.user-bar {
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(44,30,15,0.06);
-  border:1px solid var(--border-gold);
-  padding:8px 14px;
-  margin-bottom:20px;
-  flex-wrap:wrap;gap:8px;
-}
-.user-greeting{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--ink);letter-spacing:0.05em;}
-.user-greeting span{color:var(--gold);}
-.user-ranks{display:flex;gap:5px;flex-wrap:wrap;}
-.rank-badge{
-  font-family:'Cinzel',serif;font-size:0.56rem;letter-spacing:0.1em;
-  padding:2px 8px;border:1px solid var(--border-gold);
-  color:var(--ink-faded);border-radius:2px;
-}
-.rank-badge.admin-rank{border-color:var(--red-wax);color:var(--red-wax);}
-.user-bar-actions{display:flex;gap:8px;}
+  /* ── USER BAR ── */
+  .user-bar{
+    max-width:860px;margin:0 auto 24px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(28,42,64,0.9);border:1px solid var(--gold);
+    padding:8px 16px;flex-wrap:wrap;gap:8px;
+  }
+  .user-bar-name{font-variant:small-caps;letter-spacing:2px;font-size:13px;color:var(--gold-bright);}
+  .user-bar-name span{color:var(--parchment);}
+  .user-bar-actions{display:flex;gap:8px;align-items:center;}
+  .user-bar-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:transparent;border:1px solid rgba(200,160,74,0.4);color:rgba(230,200,120,0.75);padding:5px 12px;cursor:pointer;transition:all 0.15s;text-decoration:none;display:inline-block;}
+  .user-bar-btn:hover{border-color:var(--gold);color:var(--gold-bright);}
+  .admin-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 12px;border:1px solid rgba(140,36,36,0.5);background:rgba(140,36,36,0.1);transition:all 0.15s;user-select:none;font-variant:small-caps;font-size:12px;letter-spacing:1.5px;color:var(--seal-red);}
+  .admin-toggle:hover{background:rgba(140,36,36,0.2);}
+  .admin-toggle.active{background:rgba(140,36,36,0.22);border-color:var(--seal-red);}
+  .admin-toggle-dot{width:7px;height:7px;border-radius:50%;background:rgba(140,36,36,0.35);transition:background 0.2s;}
+  .admin-toggle.active .admin-toggle-dot{background:var(--seal-red);box-shadow:0 0 5px rgba(140,36,36,0.6);}
 
-/* ── PENDING NOTICE ── */
-.pending-notice {
-  text-align:center;padding:32px 20px;
-  background:rgba(154,112,48,0.06);
-  border:1px solid var(--border-gold);
-  margin-bottom:20px;
-}
-.pending-notice .p-icon{font-size:2rem;margin-bottom:10px;}
-.pending-notice h3{font-family:'Cinzel',serif;font-size:1rem;color:var(--ink);margin-bottom:6px;}
-.pending-notice p{font-style:italic;color:var(--ink-faded);font-size:0.9rem;}
+  /* ── PENDING NOTICE (inside parchment card) ── */
+  .pending-notice{
+    background:rgba(140,36,36,0.07);
+    border:1px solid rgba(140,36,36,0.25);
+    padding:12px 16px;margin-bottom:18px;
+    display:none;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .pending-notice.visible{display:flex;}
+  .pending-notice-text{font-size:13px;font-variant:small-caps;letter-spacing:1.5px;color:var(--seal-red);}
+  .pending-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(120,90,50,0.15);flex-wrap:wrap;}
+  .pending-row:last-child{border-bottom:none;}
+  .pending-name{font-size:14px;color:var(--ink);flex:1;}
+  .pending-email{font-size:12px;font-style:italic;color:var(--ink-soft);}
+  .approve-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;border-radius:3px;padding:6px 14px;cursor:pointer;transition:transform 0.08s;}
+  .approve-btn:hover{transform:translateY(-1px);}
+  .reject-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:rgba(255,255,255,0.35);color:var(--seal-red);border:1px solid rgba(140,36,36,0.4);border-radius:3px;padding:6px 12px;cursor:pointer;transition:background 0.1s;}
+  .reject-btn:hover{background:rgba(140,36,36,0.1);}
+  .rank-select{font-family:Georgia,serif;font-size:13px;color:var(--ink);background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);border-radius:3px;padding:5px 8px;}
 
-/* ── GUILD INFO ── */
-.guild-info{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:4px;}
-.info-item{text-align:center;}
-.info-label{font-family:'Cinzel',serif;font-size:0.57rem;letter-spacing:0.3em;color:var(--ink-faded);text-transform:uppercase;display:block;margin-bottom:2px;}
-.info-value{font-size:0.92rem;color:var(--ink-light);font-style:italic;}
+  /* ── PENDING SCREEN ── */
+  .pending-screen{text-align:center;padding:36px 20px;}
+  .pending-screen h3{font-size:20px;font-weight:400;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:8px;}
+  .pending-screen p{font-size:14px;font-style:italic;color:var(--ink-soft);line-height:1.7;}
 
-/* ── LIVE STATS ── */
-.live-strip{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin:4px 0 18px;}
-.live-stat{text-align:center;}
-.live-num{font-family:'Cinzel',serif;font-size:1.4rem;color:var(--gold);display:block;line-height:1;}
-.live-lbl{font-size:0.65rem;color:var(--ink-faded);letter-spacing:0.15em;font-family:'Cinzel',serif;text-transform:uppercase;}
+  /* ── WAX SEAL ── */
+  .wax-row{display:flex;justify-content:center;margin-top:28px;}
+  .wax-seal{width:56px;height:56px;background:var(--seal-red);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 3px 10px rgba(140,36,36,0.45),inset 0 1px 3px rgba(255,255,255,0.15);font-variant:small-caps;font-size:10px;color:rgba(255,210,190,0.85);letter-spacing:0.5px;line-height:1.5;}
 
-/* ── PORTAL CARDS ── */
-.section-heading{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.35em;color:var(--ink-faded);text-align:center;margin:22px 0 16px;text-transform:uppercase;}
-.portals{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:8px;}
-.portal-card{
-  display:block;text-decoration:none;color:inherit;
-  background:rgba(255,255,255,0.25);border:1.5px solid var(--border-gold);
-  padding:22px 20px;position:relative;transition:all 0.2s;
-  box-shadow:0 2px 10px rgba(44,30,15,0.1);
-}
-.portal-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 60%);pointer-events:none;}
-.portal-card:hover{background:rgba(255,255,255,0.38);border-color:var(--gold-bright);transform:translateY(-2px);box-shadow:0 6px 20px rgba(44,30,15,0.16);}
-.portal-card:hover .portal-arrow{opacity:1;transform:translateX(4px);}
-.portal-icon{font-size:1.9rem;margin-bottom:9px;display:block;line-height:1;}
-.portal-title{font-family:'Cinzel',serif;font-size:0.95rem;font-weight:600;color:var(--ink);letter-spacing:0.05em;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
-.portal-arrow{font-size:0.8rem;color:var(--gold);opacity:0.4;transition:all 0.2s;}
-.portal-desc{font-size:0.86rem;color:var(--ink-faded);line-height:1.5;font-style:italic;}
-.portal-tag{display:inline-block;margin-top:10px;font-family:'Cinzel',serif;font-size:0.56rem;letter-spacing:0.2em;color:var(--gold);border:1px solid var(--border-gold);padding:2px 8px;}
-.portal-card.admin-card{border-color:rgba(139,26,26,0.4);}
-.portal-card.admin-card:hover{border-color:var(--red-wax);}
-.portal-card.admin-card .portal-tag{color:var(--red-wax);border-color:rgba(139,26,26,0.4);}
+  /* ── LOADING ── */
+  .page-loading{text-align:center;padding:60px;font-variant:small-caps;font-size:13px;letter-spacing:3px;color:var(--ink-soft);animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
 
-/* ── FORMS (login/register) ── */
-.auth-panel{max-width:420px;margin:0 auto;}
-.auth-panel h2{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--ink);letter-spacing:0.06em;margin-bottom:4px;text-align:center;}
-.auth-panel .auth-sub{font-style:italic;color:var(--ink-faded);font-size:0.88rem;text-align:center;margin-bottom:20px;}
-.auth-tabs{display:flex;border-bottom:2px solid var(--border-gold);margin-bottom:20px;}
-.auth-tab{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.18em;color:var(--ink-faded);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:8px 20px 10px;cursor:pointer;transition:all 0.15s;}
-.auth-tab:hover{color:var(--ink);}
-.auth-tab.active{color:var(--ink);border-bottom-color:var(--gold);}
-.auth-form{display:none;}
-.auth-form.active{display:block;}
-label{display:block;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.22em;color:var(--ink-faded);margin-bottom:4px;text-transform:uppercase;}
-input[type=text],input[type=email],input[type=password]{
-  width:100%;background:rgba(255,255,255,0.5);
-  border:1px solid var(--border-gold);border-bottom:2px solid var(--border-gold);
-  color:var(--ink);font-family:'EB Garamond',serif;font-size:1rem;
-  padding:8px 11px;margin-bottom:12px;outline:none;
-}
-input:focus{border-color:var(--gold);border-bottom-color:var(--gold);}
-.auth-error{color:var(--red-wax);font-style:italic;font-size:0.82rem;margin-bottom:10px;min-height:1.2em;}
-.auth-hint{font-size:0.8rem;color:var(--ink-faded);font-style:italic;margin-bottom:14px;line-height:1.5;}
-
-/* ── BUTTONS ── */
-.btn{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.18em;padding:9px 20px;border:1px solid;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
-.btn-ink{background:var(--ink);border-color:var(--ink);color:var(--parchment);width:100%;}
-.btn-ink:hover{background:var(--ink-light);}
-.btn-ghost{background:transparent;border-color:rgba(44,30,15,0.3);color:var(--ink-faded);}
-.btn-ghost:hover{border-color:var(--gold);color:var(--ink);}
-.btn-sm{font-size:0.6rem;padding:5px 12px;}
-.btn-danger-sm{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.1em;padding:5px 10px;border:1px solid var(--red-wax);background:rgba(139,26,26,0.08);color:var(--red-wax);cursor:pointer;transition:all 0.15s;}
-.btn-danger-sm:hover{background:rgba(139,26,26,0.18);}
-
-/* ── WAX SEAL ── */
-.wax-row{display:flex;justify-content:center;margin-top:28px;}
-.wax-seal{width:60px;height:60px;background:var(--red-wax);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 3px 12px rgba(139,26,26,0.45),inset 0 1px 3px rgba(255,255,255,0.15),inset 0 -2px 4px rgba(0,0,0,0.3);font-family:'Cinzel',serif;font-size:0.52rem;color:rgba(255,220,200,0.85);letter-spacing:0.05em;line-height:1.4;}
-
-/* ── LOADING ── */
-.page-loading{text-align:center;padding:60px 20px;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.25em;color:var(--ink-faded);animation:pulse 1.4s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
-
-/* ── TOAST ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--parchment);font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.15em;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;}
-#toast.show{transform:translateX(-50%) translateY(0);}
-
-/* ── ADMIN TOGGLE ── */
-.admin-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 12px;border:1px solid rgba(139,26,26,0.4);background:rgba(139,26,26,0.06);transition:all 0.15s;user-select:none;}
-.admin-toggle:hover{background:rgba(139,26,26,0.12);}
-.admin-toggle.active{background:rgba(139,26,26,0.15);border-color:#8b1a1a;}
-.admin-toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(139,26,26,0.3);transition:background 0.2s;}
-.admin-toggle.active .admin-toggle-dot{background:#8b1a1a;box-shadow:0 0 6px rgba(139,26,26,0.5);}
-.admin-toggle-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.15em;color:#8b1a1a;}
-
-/* ── ADMIN PANEL (hub) ── */
-.hub-admin-panel{display:none;background:rgba(139,26,26,0.04);border:1px solid rgba(139,26,26,0.25);padding:18px;margin-top:16px;}
-.hub-admin-panel.visible{display:block;}
-.hub-admin-panel h3{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.25em;color:rgba(139,26,26,0.8);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(139,26,26,0.2);}
-.pending-row-hub{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(154,112,48,0.1);flex-wrap:wrap;}
-.pending-row-hub:last-child{border-bottom:none;}
-.pending-info-hub{flex:1;}
-.pending-name-hub{font-family:'Cinzel',serif;font-size:0.86rem;color:var(--ink);}
-.pending-email-hub{font-size:0.75rem;color:var(--ink-faded);font-style:italic;}
-
-/* ── FOOTER ── */
-.parchment-footer{text-align:center;margin-top:20px;font-size:0.76rem;color:var(--ink-faded);font-style:italic;}
-
-@media(max-width:520px){
-  .parchment{padding:22px 16px 26px;}
-  .guild-info{gap:14px;}
-  .portals{grid-template-columns:1fr;}
-  .user-bar{flex-direction:column;align-items:flex-start;}
-}
+  @media(max-width:520px){
+    .parchment-card{padding:24px 18px 28px;}
+    .guild-info{gap:14px;}
+    .portals{grid-template-columns:1fr;}
+    .live-strip{gap:20px;}
+  }
 </style>
 </head>
 <body>
 
-<div class="board-frame">
-  <span class="bolt-bl">✦</span>
-  <span class="bolt-br">✦</span>
-  <div class="parchment">
+<!-- User bar (logged in) -->
+<div class="user-bar" id="userBar" style="display:none">
+  <div class="user-bar-name">Welcome, <span id="userBarName">—</span></div>
+  <div class="user-bar-actions">
+    <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
+      <div class="admin-toggle-dot"></div>
+      Admin Mode
+    </div>
+    <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
+  </div>
+</div>
 
-    <!-- Loading state -->
-    <div id="pageLoading" class="page-loading">Consulting the Archives…</div>
+<!-- Main parchment card -->
+<div class="board-header">
+  <div class="banner">
+    <span class="banner-eyebrow">Official Notice Board</span>
+    <h1>Laxtania</h1>
+    <span class="banner-sub">Guild Hall — EU Server — Lymhurst</span>
+  </div>
+</div>
 
-    <!-- AUTH SCREEN (logged out) -->
-    <div id="authScreen" style="display:none">
-      <div class="guild-header">
-        <p class="eyebrow">Official Notice Board</p>
-        <h1>LAXTANIA</h1>
-        <p class="subtitle">Guild of the Realm · EU Server · Lymhurst</p>
+<div class="parchment-card" id="mainCard">
+  <div class="pin"></div>
+
+  <!-- Loading -->
+  <div id="viewLoading" class="page-loading">Consulting the Archives…</div>
+
+  <!-- Auth screen -->
+  <div id="viewAuth" style="display:none">
+    <div class="auth-wrap">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Enter the Hall</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Seek Membership</button>
       </div>
-      <div class="ornament"><div class="ornament-inner"><div class="gem"></div><span>IDENTIFY YOURSELF</span><div class="gem"></div></div></div>
-
-      <div class="auth-panel">
-        <div class="auth-tabs">
-          <button class="auth-tab active" onclick="switchAuthTab('login')">Enter the Hall</button>
-          <button class="auth-tab" onclick="switchAuthTab('register')">Seek Membership</button>
-        </div>
-
-        <!-- LOGIN -->
-        <div class="auth-form active" id="loginForm">
-          <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email">
-          <label>Password</label>
-          <input type="password" id="loginPassword" placeholder="· · · · · · · ·" autocomplete="current-password">
-          <div class="auth-error" id="loginError"></div>
-          <button class="btn btn-ink" onclick="doLogin()">Enter the Hall</button>
-        </div>
-
-        <!-- REGISTER -->
-        <div class="auth-form" id="registerForm">
-          <p class="auth-hint">Register your character. Once submitted, a Council member will review and approve your membership.</p>
-          <label>In-Game Name</label>
-          <input type="text" id="regName" placeholder="Your character name">
-          <label>Email</label>
-          <input type="email" id="regEmail" placeholder="your@email.com" autocomplete="email">
-          <label>Password</label>
-          <input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password">
-          <div class="auth-error" id="registerError"></div>
-          <button class="btn btn-ink" onclick="doRegister()">Submit for Review</button>
-        </div>
+      <div class="auth-form active" id="loginForm">
+        <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="· · · · · · · ·" autocomplete="current-password"></div>
+        <div class="auth-error" id="loginError"></div>
+        <button class="auth-btn" onclick="doLogin()">Enter the Hall</button>
+      </div>
+      <div class="auth-form" id="registerForm">
+        <p class="auth-hint">Register your character. A Council member will review and approve your membership.</p>
+        <div class="form-group"><label>In-Game Name</label><input type="text" id="regName" placeholder="Your character name"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="your@email.com" autocomplete="email"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Choose a password" autocomplete="new-password"></div>
+        <div class="auth-error" id="registerError"></div>
+        <button class="auth-btn" onclick="doRegister()">Submit for Review</button>
       </div>
     </div>
+  </div>
 
-    <!-- PENDING SCREEN -->
-    <div id="pendingScreen" style="display:none">
-      <div class="guild-header">
-        <p class="eyebrow">Official Notice Board</p>
-        <h1>LAXTANIA</h1>
-        <p class="subtitle">Guild of the Realm · EU Server · Lymhurst</p>
-      </div>
-      <div class="ornament"><div class="ornament-inner"><div class="gem"></div><div class="gem"></div></div></div>
-      <div class="pending-notice">
-        <div class="p-icon">⏳</div>
-        <h3>Awaiting Council Review</h3>
-        <p>Your membership request has been received, <strong id="pendingName"></strong>. A Council member will review and approve your access shortly.</p>
-        <br>
-        <button class="btn btn-ghost btn-sm" onclick="doSignOut()" style="margin-top:8px">Sign Out</button>
-      </div>
+  <!-- Pending screen -->
+  <div id="viewPending" style="display:none" class="pending-screen">
+    <hr class="divider">
+    <h3>Awaiting Council Review</h3>
+    <p>Your membership request has been received, <strong id="pendingName"></strong>.<br>A Council member will review and approve your access shortly.</p>
+    <hr class="divider">
+    <button class="auth-btn" style="max-width:200px;margin:16px auto 0;display:block" onclick="doSignOut()">Sign Out</button>
+  </div>
+
+  <!-- Main hall -->
+  <div id="viewHall" style="display:none">
+
+    <!-- Pending admin notice -->
+    <div class="pending-notice" id="pendingNotice">
+      <span class="pending-notice-text" id="pendingNoticeText">0 requests awaiting review</span>
+      <button class="reject-btn" onclick="scrollToPending()">Review ↓</button>
     </div>
 
-    <!-- MAIN HALL (approved user) -->
-    <div id="mainHall" style="display:none">
-
-      <!-- User bar -->
-      <div class="user-bar">
-        <div>
-          <div class="user-greeting">Welcome, <span id="userDisplayName"></span></div>
-          <div class="user-ranks" id="userRankBadges"></div>
-        </div>
-        <div class="user-bar-actions">
-          <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
-            <div class="admin-toggle-dot"></div>
-            <span class="admin-toggle-label">ADMIN MODE</span>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign Out</button>
-        </div>
-      </div>
-
-      <!-- Guild header -->
-      <div class="guild-header">
-        <p class="eyebrow">Official Notice Board</p>
-        <h1>LAXTANIA</h1>
-        <p class="subtitle">Guild of the Realm · EU Server · Lymhurst</p>
-      </div>
-
-      <div class="ornament"><div class="ornament-inner"><div class="gem"></div><span>GUILD HALL</span><div class="gem"></div></div></div>
-
-      <div class="guild-info">
-        <div class="info-item"><span class="info-label">Sovereign</span><span class="info-value">Sasete</span></div>
-        <div class="info-item"><span class="info-label">Hand of Laxtania</span><span class="info-value">Stolker</span></div>
-        <div class="info-item"><span class="info-label">Home City</span><span class="info-value">Lymhurst</span></div>
-        <div class="info-item"><span class="info-label">Server</span><span class="info-value">EU · Albion Online</span></div>
-      </div>
-
-      <div class="ornament" style="margin:16px 0 8px"><div class="ornament-inner"><div class="gem"></div></div></div>
-
-      <div class="live-strip">
-        <div class="live-stat"><span class="live-num" id="statMembers">—</span><span class="live-lbl">Members</span></div>
-        <div class="live-stat"><span class="live-num" id="statQuests">—</span><span class="live-lbl">Active Contracts</span></div>
-        <div class="live-stat"><span class="live-num" id="statTopPrestige">—</span><span class="live-lbl">Top Prestige</span></div>
-      </div>
-
-      <p class="section-heading">— Select Your Destination —</p>
-
-      <div class="portals" id="portalGrid">
-        <a class="portal-card" href="quest-board/">
-          <span class="portal-icon">📜</span>
-          <div class="portal-title">Quest Board <span class="portal-arrow">→</span></div>
-          <p class="portal-desc">Browse active contracts, claim your next mission, and collect your silver reward.</p>
-          <span class="portal-tag">Open to All</span>
-        </a>
-        <a class="portal-card" href="prestige/">
-          <span class="portal-icon">🏆</span>
-          <div class="portal-title">Prestige Registry <span class="portal-arrow">→</span></div>
-          <p class="portal-desc">View the Honour Leaderboard, your Family's standing, and your Prestige tier.</p>
-          <span class="portal-tag">Open to All</span>
-        </a>
-        <!-- Admin portal injected by JS if applicable -->
-      </div>
-
-      <!-- HUB ADMIN PANEL -->
-      <div class="hub-admin-panel" id="hubAdminPanel">
-        <h3>PENDING MEMBERSHIP REQUESTS</h3>
-        <div id="hubPendingList"><p style="color:var(--ink-faded);font-style:italic">Loading…</p></div>
-      </div>
-
-      <div class="wax-row">
-        <div class="wax-seal"><span>✦</span><span>LXT</span><span>✦</span></div>
-      </div>
-      <p class="parchment-footer">By decree of the Sovereign of Laxtania &nbsp;·&nbsp; Records maintained by the Siankael Treasury</p>
+    <!-- Guild info -->
+    <div class="guild-info">
+      <div class="info-item"><span class="info-label">Sovereign</span><span class="info-value">Sasete</span></div>
+      <div class="info-item"><span class="info-label">Hand of Laxtania</span><span class="info-value">Stolker</span></div>
+      <div class="info-item"><span class="info-label">Home City</span><span class="info-value">Lymhurst</span></div>
+      <div class="info-item"><span class="info-label">Server</span><span class="info-value">EU · Albion Online</span></div>
     </div>
 
-  </div><!-- /parchment -->
-</div><!-- /board-frame -->
+    <hr class="divider">
 
-<div id="toast"></div>
+    <!-- Live stats -->
+    <div class="live-strip">
+      <div class="live-stat"><span class="live-num" id="statMembers">—</span><span class="live-lbl">Members</span></div>
+      <div class="live-stat"><span class="live-num" id="statQuests">—</span><span class="live-lbl">Active Contracts</span></div>
+      <div class="live-stat"><span class="live-num" id="statPrestige">—</span><span class="live-lbl">Top Prestige</span></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Portals -->
+    <p class="section-eyebrow">— Select Your Destination —</p>
+    <div class="portals" id="portalGrid">
+      <a class="portal-card" href="quest-board/">
+        <span class="portal-icon">📜</span>
+        <div class="portal-title">Quest Board <span class="portal-arrow">→</span></div>
+        <p class="portal-desc">Browse active contracts, claim your next mission, collect your silver reward.</p>
+        <span class="portal-tag">Open to All</span>
+      </a>
+      <a class="portal-card" href="prestige/">
+        <span class="portal-icon">🏆</span>
+        <div class="portal-title">Prestige Registry <span class="portal-arrow">→</span></div>
+        <p class="portal-desc">View the Honour Leaderboard, your Family's standing, and your Prestige tier.</p>
+        <span class="portal-tag">Open to All</span>
+      </a>
+    </div>
+
+    <!-- Admin panel (toggle) -->
+    <div id="adminPanel" style="display:none">
+      <hr class="divider" style="margin-top:28px">
+      <p class="section-eyebrow">— Pending Membership Requests —</p>
+      <div id="pendingList"><p style="text-align:center;font-style:italic;color:var(--ink-soft);font-size:13px">No pending requests.</p></div>
+    </div>
+
+    <div class="wax-row">
+      <div class="wax-seal">✦<br>LXT<br>✦</div>
+    </div>
+  </div><!-- /viewHall -->
+
+</div><!-- /parchment-card -->
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, set, get, onValue }
+import { getDatabase, ref, set, get, update, remove, onValue, push }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",
-  authDomain: "laxtania-albion-quest-board.firebaseapp.com",
-  databaseURL: "https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "laxtania-albion-quest-board",
-  storageBucket: "laxtania-albion-quest-board.firebasestorage.app",
-  messagingSenderId: "636241022279",
-  appId: "1:636241022279:web:42d7af06401d9cdda89062"
-};
+const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
+const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
 
-const RANKS = {
-  serf:      {label:"Serf",      weight:1, admin:false},
-  commoner:  {label:"Commoner",  weight:2, admin:false},
-  knight:    {label:"Knight",    weight:3, admin:false},
-  lord:      {label:"Lord",      weight:4, admin:false},
-  councillor:{label:"Councillor",weight:5, admin:null},
-  hand:      {label:"Hand",      weight:6, admin:true},
-  sovereign: {label:"Sovereign", weight:7, admin:true},
-};
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getDatabase(app);
 
-const app  = initializeApp(FIREBASE_CONFIG);
-const auth = getAuth(app);
-const db   = getDatabase(app);
+let currentUserData=null,isAdmin=false,adminMode=false,pendingUsers={};
 
-function toast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+function resolveIsAdmin(d){
+  const ranks=d.ranks||['serf'];
+  const highest=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);
+  let a=RANKS[highest]?.admin===true;
+  if(highest==='councillor'&&d.adminAccess===true)a=true;
+  return a;
+}
+function assignableRanks(){
+  if(!currentUserData)return[];
+  const ranks=currentUserData.ranks||['serf'];
+  const isSov=ranks.includes('sovereign');
+  const isHand=ranks.includes('hand');
+  if(isSov)return['serf','commoner','knight','lord','councillor','hand','sovereign'];
+  if(isHand)return['serf','commoner','knight','lord','councillor','hand'];
+  return[];
 }
 
-function show(id) {
-  ['pageLoading','authScreen','pendingScreen','mainHall'].forEach(s=>
-    document.getElementById(s).style.display = s===id ? 'block' : 'none'
-  );
-}
-
-function resolveUser(data) {
-  const ranks = data.ranks || ['serf'];
-  const highest = ranks.reduce((b,r)=>(RANKS[r]?.weight||0)>(RANKS[b]?.weight||0)?r:b, ranks[0]);
-  const def = RANKS[highest] || RANKS.serf;
-  let admin = def.admin === true;
-  if (highest==='councillor' && data.adminAccess===true) admin = true;
-  return { ...data, highest, admin,
-    displayTitle: data.customTitle || def.label,
-    rankLabels: [...ranks].sort((a,b)=>(RANKS[b]?.weight||0)-(RANKS[a]?.weight||0)).map(r=>RANKS[r]?.label||r)
-  };
+function show(id){
+  ['viewLoading','viewAuth','viewPending','viewHall'].forEach(s=>{
+    document.getElementById(s).style.display=s===id?'block':'none';
+  });
 }
 
 // ── AUTH STATE ──
-onAuthStateChanged(auth, async user => {
-  if (!user) { show('authScreen'); return; }
-
-  const snap = await get(ref(db, 'users/' + user.uid));
-  if (!snap.exists()) {
-    // Edge case: account exists in Auth but no DB record
-    show('authScreen'); return;
+onAuthStateChanged(auth,async user=>{
+  if(!user){show('viewAuth');return;}
+  const snap=await get(ref(db,'users/'+user.uid));
+  if(!snap.exists()){show('viewAuth');return;}
+  const data=snap.val();
+  if(data.status==='pending'){
+    document.getElementById('pendingName').textContent=data.name||'Adventurer';
+    show('viewPending');return;
   }
-
-  const data = snap.val();
-  if (data.status === 'pending') {
-    document.getElementById('pendingName').textContent = data.name || 'Adventurer';
-    show('pendingScreen'); return;
-  }
-
-  // Approved — render main hall
-  const resolved = resolveUser(data);
-  renderMainHall(resolved);
-  show('mainHall');
-  loadLiveStats();
-});
-
-function renderMainHall(resolved) {
-  document.getElementById('userDisplayName').textContent = resolved.name || 'Adventurer';
-
-  const badgeEl = document.getElementById('userRankBadges');
-  badgeEl.innerHTML = resolved.rankLabels.map(r => {
-    const isAdmin = r==='Sovereign'||r==='Hand';
-    return `<span class="rank-badge ${isAdmin?'admin-rank':''}">${r}${resolved.customTitle && r===resolved.displayTitle?' · '+resolved.customTitle:''}</span>`;
-  }).join('');
-
-  // Custom title badge if different from rank
-  if (resolved.customTitle && !resolved.rankLabels.includes(resolved.customTitle)) {
-    badgeEl.innerHTML += `<span class="rank-badge" style="color:var(--gold);border-color:var(--border-gold)">${resolved.customTitle}</span>`;
-  }
-
-  // Admin quick-link in user bar
-  if (resolved.admin) {
-    document.getElementById('adminQuickLink').style.display = 'inline-block';
-  }
-
-  // Show admin toggle if applicable
-  if (resolved.admin) {
-    document.getElementById('adminToggle').style.display = 'flex';
-    // Inject admin portal card
-    const grid = document.getElementById('portalGrid');
-    if (!document.getElementById('adminPortalCard')) {
-      const card = document.createElement('a');
-      card.id = 'adminPortalCard';
-      card.href = 'prestige/';
-      card.className = 'portal-card admin-card';
-      card.innerHTML = `
-        <span class="portal-icon">⚔</span>
-        <div class="portal-title">Admin Panel <span class="portal-arrow">→</span></div>
-        <p class="portal-desc">Manage members, prestige, pending requests, families and tiers.</p>
-        <span class="portal-tag">Council Only</span>
-      `;
-      // clicking admin card goes to prestige page (which has admin toggle)
+  currentUserData=data;
+  isAdmin=resolveIsAdmin(data);
+  document.getElementById('userBar').style.display='flex';
+  document.getElementById('userBarName').textContent=data.name||user.email;
+  if(isAdmin){
+    document.getElementById('adminToggle').style.display='flex';
+    // Admin portal card
+    if(!document.getElementById('adminPortalCard')){
+      const grid=document.getElementById('portalGrid');
+      const card=document.createElement('a');
+      card.id='adminPortalCard';card.href='prestige/';card.className='portal-card admin-card';
+      card.innerHTML=`<span class="portal-icon">⚔</span><div class="portal-title">Admin Panel <span class="portal-arrow">→</span></div><p class="portal-desc">Manage members, prestige records, pending requests, families and tiers.</p><span class="portal-tag">Council Only</span>`;
       grid.appendChild(card);
     }
+    // Listen for pending users
+    onValue(ref(db,'users'),snap=>{
+      const all=snap.val()||{};
+      pendingUsers=Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
+      const count=Object.keys(pendingUsers).length;
+      const notice=document.getElementById('pendingNotice');
+      document.getElementById('pendingNoticeText').textContent=`${count} membership request${count!==1?'s':''} awaiting review`;
+      if(adminMode&&count>0)notice.classList.add('visible');
+      else notice.classList.remove('visible');
+      document.getElementById('adminToggle').querySelector('.admin-toggle-dot').title=count>0?`${count} pending`:'';
+      if(adminMode)renderPendingList();
+    });
   }
+  loadLiveStats();
+  show('viewHall');
+});
+
+// ── ADMIN TOGGLE ──
+window.toggleAdminMode=function(){
+  adminMode=!adminMode;
+  document.getElementById('adminToggle').classList.toggle('active',adminMode);
+  document.getElementById('adminPanel').style.display=adminMode?'block':'none';
+  const count=Object.keys(pendingUsers).length;
+  if(adminMode&&count>0)document.getElementById('pendingNotice').classList.add('visible');
+  else document.getElementById('pendingNotice').classList.remove('visible');
+  if(adminMode)renderPendingList();
+};
+window.scrollToPending=function(){document.getElementById('adminPanel').scrollIntoView({behavior:'smooth'});};
+
+function renderPendingList(){
+  const el=document.getElementById('pendingList');
+  const list=Object.entries(pendingUsers);
+  const allowed=assignableRanks();
+  if(!list.length){el.innerHTML='<p style="text-align:center;font-style:italic;color:var(--ink-soft);font-size:13px">No pending requests.</p>';return;}
+  el.innerHTML=list.map(([uid,u])=>`
+    <div class="pending-row">
+      <div style="flex:1">
+        <div class="pending-name">${u.name||'Unknown'}</div>
+        <div class="pending-email">${u.email||''}</div>
+      </div>
+      <select class="rank-select" id="pr-${uid}">
+        ${allowed.map(r=>`<option value="${r}">${RANKS[r].label}</option>`).join('')}
+      </select>
+      <button class="approve-btn" onclick="approveUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Approve</button>
+      <button class="reject-btn" onclick="rejectUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Reject</button>
+    </div>`).join('');
 }
 
-function loadLiveStats() {
-  // Listen for pending users (admin only)
-  onValue(ref(db,'users'), snap=>{
-    const all = snap.val() || {};
-    hubPendingUsers = Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
-    if (hubAdminMode) renderHubPending();
-    // Badge on toggle
-    const count = Object.keys(hubPendingUsers).length;
-    const tog = document.getElementById('adminToggle');
-    if (tog && tog.style.display !== 'none') {
-      tog.querySelector('.admin-toggle-label').textContent = count > 0 ? `ADMIN MODE (${count})` : 'ADMIN MODE';
-    }
-  });
-  onValue(ref(db,'prestige/members'), snap=>{
+window.approveUser=async function(uid,name){
+  const sel=document.getElementById('pr-'+uid);
+  const rank=sel?sel.value:'serf';
+  await update(ref(db,'users/'+uid),{status:'approved',ranks:[rank],adminAccess:false});
+  alert(`${name} approved as ${RANKS[rank]?.label||rank}.`);
+};
+window.rejectUser=async function(uid,name){
+  if(!confirm(`Reject ${name}'s application?`))return;
+  await remove(ref(db,'users/'+uid));
+};
+
+// ── LIVE STATS ──
+function loadLiveStats(){
+  onValue(ref(db,'prestige/members'),snap=>{
     const d=snap.val()||{};
     document.getElementById('statMembers').textContent=Object.keys(d).length||'—';
     const top=Object.values(d).reduce((m,v)=>Math.max(m,v.points||0),0);
-    document.getElementById('statTopPrestige').textContent=top>0?top.toLocaleString():'—';
+    document.getElementById('statPrestige').textContent=top>0?top.toLocaleString():'—';
   });
-  onValue(ref(db,'quests'), snap=>{
+  onValue(ref(db,'questDefs'),snap=>{
     const d=snap.val()||{};
-    const active=Object.values(d).filter(q=>q.active&&!q.completed).length;
+    const active=Object.values(d).filter(q=>q.active!==false&&(!q.deadline||new Date(q.deadline)>new Date())).length;
     document.getElementById('statQuests').textContent=active||'—';
   });
 }
 
-// ── ADMIN MODE (HUB) ──
-let hubAdminMode = false;
-let hubPendingUsers = {};
-
-window.toggleAdminMode = function() {
-  hubAdminMode = !hubAdminMode;
-  document.getElementById('adminToggle').classList.toggle('active', hubAdminMode);
-  document.getElementById('hubAdminPanel').classList.toggle('visible', hubAdminMode);
-  if (hubAdminMode) renderHubPending();
-};
-
-function renderHubPending() {
-  const el = document.getElementById('hubPendingList');
-  const list = Object.entries(hubPendingUsers);
-  if (!list.length) { el.innerHTML = '<p style="color:var(--ink-faded);font-style:italic">No pending requests.</p>'; return; }
-
-  const RANKS = {serf:'Serf',commoner:'Commoner',knight:'Knight',lord:'Lord',councillor:'Councillor',hand:'Hand',sovereign:'Sovereign'};
-  el.innerHTML = list.map(([uid, u]) => `
-    <div class="pending-row-hub">
-      <div class="pending-info-hub">
-        <div class="pending-name-hub">${u.name||'Unknown'}</div>
-        <div class="pending-email-hub">${u.email||''}</div>
-      </div>
-      <select id="hprank-${uid}" style="width:auto;margin-bottom:0;font-size:0.8rem;padding:5px 8px;background:rgba(255,255,255,0.5);border:1px solid rgba(154,112,48,0.5);color:var(--ink);font-family:'EB Garamond',serif">
-        ${Object.entries(RANKS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
-      </select>
-      <button class="btn btn-approve" onclick="hubApproveUser('${uid}','${(u.name||'').replace(/'/g,"\'")}')">Approve</button>
-      <button class="btn btn-danger" onclick="hubRejectUser('${uid}','${(u.name||'').replace(/'/g,"\'")}')">Reject</button>
-    </div>`).join('');
-}
-
-window.hubApproveUser = async function(uid, name) {
-  const sel = document.getElementById('hprank-' + uid);
-  const rank = sel ? sel.value : 'serf';
-  const RANK_LABELS = {serf:'Serf',commoner:'Commoner',knight:'Knight',lord:'Lord',councillor:'Councillor',hand:'Hand',sovereign:'Sovereign'};
-  await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(async ({update, ref}) => {
-    await update(ref(db, 'users/' + uid), {status:'approved', ranks:[rank], adminAccess:false});
-  });
-  toast(`${name} approved as ${RANK_LABELS[rank]||rank}.`);
-};
-
-window.hubRejectUser = async function(uid, name) {
-  if (!confirm(`Reject ${name}'s application?`)) return;
-  await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(async ({remove, ref}) => {
-    await remove(ref(db, 'users/' + uid));
-  });
-  toast(`${name} rejected.`);
-};
-
 // ── AUTH ACTIONS ──
-window.doLogin = async function() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPassword').value;
+window.doLogin=async function(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value;
   document.getElementById('loginError').textContent='';
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch(e) {
-    document.getElementById('loginError').textContent = friendlyError(e.code);
-  }
+  try{await signInWithEmailAndPassword(auth,email,pass);}
+  catch(e){document.getElementById('loginError').textContent=friendlyError(e.code);}
 };
-
-window.doRegister = async function() {
-  const name  = document.getElementById('regName').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const pass  = document.getElementById('regPassword').value;
+window.doRegister=async function(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pass=document.getElementById('regPassword').value;
   document.getElementById('registerError').textContent='';
-  if (!name) { document.getElementById('registerError').textContent='Enter your in-game name.'; return; }
-  if (pass.length < 6) { document.getElementById('registerError').textContent='Password must be at least 6 characters.'; return; }
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await set(ref(db,'users/'+cred.user.uid), {
-      name,
-      email,
-      ranks: ['serf'],
-      status: 'pending',
-      adminAccess: false,
-      registeredAt: Date.now()
-    });
-    toast('Membership request submitted — awaiting Council approval.');
-  } catch(e) {
-    document.getElementById('registerError').textContent = friendlyError(e.code);
-  }
+  if(!name){document.getElementById('registerError').textContent='Enter your in-game name.';return;}
+  if(pass.length<6){document.getElementById('registerError').textContent='Password must be at least 6 characters.';return;}
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await set(ref(db,'users/'+cred.user.uid),{name,email,ranks:['serf'],status:'pending',adminAccess:false,registeredAt:Date.now()});
+  }catch(e){document.getElementById('registerError').textContent=friendlyError(e.code);}
 };
-
-window.doSignOut = async function() {
-  await signOut(auth);
-  show('authScreen');
-};
-
-window.switchAuthTab = function(tab) {
+window.doSignOut=async function(){await signOut(auth);show('viewAuth');document.getElementById('userBar').style.display='none';};
+window.switchAuthTab=function(tab){
   document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',['login','register'][i]===tab));
   document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
   document.getElementById(tab==='login'?'loginForm':'registerForm').classList.add('active');
 };
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
+document.getElementById('regPassword').addEventListener('keydown',e=>{if(e.key==='Enter')window.doRegister();});
 
-function friendlyError(code) {
-  const map = {
+function friendlyError(code){
+  return({
     'auth/invalid-email':'Invalid email address.',
     'auth/user-not-found':'No account found with that email.',
     'auth/wrong-password':'Incorrect password.',
     'auth/email-already-in-use':'An account already exists with that email.',
     'auth/weak-password':'Password must be at least 6 characters.',
     'auth/invalid-credential':'Email or password is incorrect.',
-    'auth/too-many-requests':'Too many attempts. Please try again later.',
-  };
-  return map[code] || 'Something went wrong. Please try again.';
+    'auth/too-many-requests':'Too many attempts — please try again later.',
+  })[code]||'Something went wrong. Please try again.';
 }
-
-// Enter key on login
-document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') window.doLogin(); });
-document.getElementById('regPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') window.doRegister(); });
 </script>
 </body>
 </html>
