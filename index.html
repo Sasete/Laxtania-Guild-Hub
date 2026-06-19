@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laxtania — Prestige Registry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+  :root {
+    --navy: #0d1b2e;
+    --navy-mid: #132340;
+    --navy-light: #1a2f52;
+    --gold: #c9a84c;
+    --gold-light: #e4c97e;
+    --gold-dim: #8a6e30;
+    --parchment: #f5edd8;
+    --parchment-dim: #d4c4a0;
+    --text: #e8dfc8;
+    --text-dim: #9a8e70;
+    --border: rgba(201,168,76,0.25);
+    --border-bright: rgba(201,168,76,0.6);
+    --shadow: 0 4px 32px rgba(0,0,0,0.6);
+
+    /* Tier colors */
+    --tier-iron: #8a9bb0;
+    --tier-bronze: #cd7f32;
+    --tier-silver: #c0c0c0;
+    --tier-gold: #c9a84c;
+    --tier-platinum: #5fd4f4;
+    --tier-sovereign: #e85d8a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'EB Garamond', Georgia, serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(201,168,76,0.015) 60px, rgba(201,168,76,0.015) 61px);
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 48px 24px 32px;
+    position: relative;
+  }
+  .crest-line {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    margin-bottom: 12px;
+  }
+  .crest-ornament { color: var(--gold); font-size: 1.1rem; opacity: 0.7; letter-spacing: 4px; }
+  .guild-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.35em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+    text-shadow: 0 0 40px rgba(201,168,76,0.3);
+  }
+  .header-sub {
+    margin-top: 10px;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+  }
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 24px auto 0;
+    max-width: 480px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border-bright);
+  }
+  .divider-gem {
+    width: 8px; height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(201,168,76,0.5);
+  }
+
+  /* ── LAYOUT ── */
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin: 36px 0 28px;
+    border-bottom: 1px solid var(--border-bright);
+    justify-content: center;
+  }
+  .tab-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 28px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--gold-light); }
+  .tab-btn.active {
+    color: var(--gold-light);
+    border-bottom-color: var(--gold);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── TIER LEGEND ── */
+  .tier-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .tier-badge {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.08em;
+  }
+  .tier-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── MEMBER LEADERBOARD ── */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    background: var(--navy-mid);
+  }
+  .leaderboard-table thead tr {
+    background: rgba(201,168,76,0.08);
+    border-bottom: 1px solid var(--border-bright);
+  }
+  .leaderboard-table th {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  .leaderboard-table th.right, .leaderboard-table td.right { text-align: right; }
+  .leaderboard-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+  .leaderboard-table tbody tr:last-child td { border-bottom: none; }
+  .leaderboard-table tbody tr:hover { background: rgba(201,168,76,0.04); }
+
+  .rank-cell {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-width: 36px;
+  }
+  .rank-1 { color: var(--gold-light); font-weight: 700; }
+  .rank-2 { color: #c0c0c0; }
+  .rank-3 { color: #cd7f32; }
+
+  .member-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .member-name.is-leader { color: var(--gold-light); }
+
+  .tier-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 11px;
+    border-radius: 12px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .tier-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .family-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-style: italic;
+  }
+
+  .points-cell {
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    color: var(--gold-light);
+    white-space: nowrap;
+  }
+
+  /* ── FAMILY LEADERBOARD ── */
+  .family-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+  }
+  .family-card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .family-card:hover { border-color: var(--border-bright); }
+  .family-card-rank {
+    position: absolute; top: 14px; right: 16px;
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    color: rgba(201,168,76,0.15);
+    font-weight: 700;
+  }
+  .family-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .family-meta {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+  .family-score-row {
+    display: flex; gap: 20px;
+    margin-bottom: 12px;
+  }
+  .score-block { flex: 1; }
+  .score-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .score-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
+    color: var(--gold-light);
+  }
+  .score-value.bonus { color: var(--tier-platinum); }
+  .score-total {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+  }
+  .score-total span:last-child { color: var(--gold); }
+
+  .family-members-list {
+    margin-top: 10px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .family-member-chip {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-style: italic;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  .empty-state-icon { font-size: 2rem; margin-bottom: 12px; opacity: 0.4; }
+
+  /* ── LOADING ── */
+  .loading {
+    text-align: center; padding: 48px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 28px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+  footer a {
+    color: var(--gold-dim);
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+  }
+  footer a:hover { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .leaderboard-table th:nth-child(4),
+    .leaderboard-table td:nth-child(4) { display: none; }
+    .tabs { justify-content: stretch; }
+    .tab-btn { flex: 1; padding: 10px 8px 12px; font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="guild-eyebrow">Guild of Laxtania · EU Server · Lymhurst</p>
+  <div class="crest-line">
+    <span class="crest-ornament">⸻ ✦ ⸻</span>
+  </div>
+  <h1>Prestige Registry</h1>
+  <p class="header-sub">Honours of the Realm, recorded by the Council</p>
+  <div class="divider"><div class="divider-gem"></div></div>
+</header>
+
+<div class="page-wrap">
+
+  <!-- Tier Legend -->
+  <div class="tier-legend" id="tierLegend">
+    <!-- Populated from Firebase -->
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('members')">Members</button>
+    <button class="tab-btn" onclick="switchTab('families')">Families</button>
+  </div>
+
+  <!-- Members Panel -->
+  <div id="tab-members" class="tab-panel active">
+    <div id="membersContainer"><div class="loading">Consulting the Archives…</div></div>
+  </div>
+
+  <!-- Families Panel -->
+  <div id="tab-families" class="tab-panel">
+    <div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Records maintained by the Siankael Treasury &nbsp;·&nbsp; <a href="admin.html">Council Access</a></p>
+</footer>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",
+  authDomain: "laxtania-albion-quest-board.firebaseapp.com",
+  databaseURL: "https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "laxtania-albion-quest-board",
+  storageBucket: "laxtania-albion-quest-board.firebasestorage.app",
+  messagingSenderId: "636241022279",
+  appId: "1:636241022279:web:42d7af06401d9cdda89062"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── TIER CONFIG (default, overridable from Firebase) ──
+const DEFAULT_TIERS = [
+  { name: "Iron",     minPts: 0,    color: "#8a9bb0" },
+  { name: "Bronze",   minPts: 100,  color: "#cd7f32" },
+  { name: "Silver",   minPts: 300,  color: "#c0c0c0" },
+  { name: "Gold",     minPts: 600,  color: "#c9a84c" },
+  { name: "Platinum", minPts: 1000, color: "#5fd4f4" },
+  { name: "Sovereign",minPts: 2000, color: "#e85d8a" },
+];
+
+let tiers = DEFAULT_TIERS;
+let members = {};
+let families = {};
+
+function getTier(pts) {
+  let t = tiers[0];
+  for (const tier of tiers) { if (pts >= tier.minPts) t = tier; }
+  return t;
+}
+
+function renderTierLegend() {
+  const el = document.getElementById('tierLegend');
+  el.innerHTML = tiers.map(t => `
+    <div class="tier-badge">
+      <div class="tier-dot" style="background:${t.color}"></div>
+      <span>${t.name}</span>
+      <span style="opacity:0.5;font-size:0.65rem">${t.minPts}+ pts</span>
+    </div>
+  `).join('');
+}
+
+function renderMembers() {
+  const container = document.getElementById('membersContainer');
+  const list = Object.entries(members)
+    .map(([id, m]) => ({ id, ...m }))
+    .sort((a, b) => b.points - a.points);
+
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚔</div><p>No members recorded yet.</p></div>`;
+    return;
+  }
+
+  const rows = list.map((m, i) => {
+    const tier = getTier(m.points || 0);
+    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+    const isLeader = m.role === 'leader' || m.role === 'co-leader';
+    const familyName = m.familyId && families[m.familyId] ? families[m.familyId].name : '—';
+    return `
+      <tr>
+        <td class="rank-cell ${rankClass}">${i + 1}</td>
+        <td><span class="member-name ${isLeader ? 'is-leader' : ''}">${m.name || m.id}${isLeader ? ' ✦' : ''}</span></td>
+        <td>
+          <span class="tier-pill" style="color:${tier.color};border-color:${tier.color}40;background:${tier.color}12">
+            <span class="dot" style="background:${tier.color}"></span>${tier.name}
+          </span>
+        </td>
+        <td><span class="family-tag">${familyName}</span></td>
+        <td class="points-cell right">${(m.points || 0).toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <table class="leaderboard-table">
+      <thead><tr>
+        <th>#</th>
+        <th>Member</th>
+        <th>Tier</th>
+        <th>Family</th>
+        <th class="right">Prestige Points</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderFamilies() {
+  const container = document.getElementById('familiesContainer');
+  const memberList = Object.entries(members).map(([id, m]) => ({ id, ...m }));
+
+  const list = Object.entries(families).map(([id, f]) => {
+    const fams = memberList.filter(m => m.familyId === id);
+    const memberTotal = fams.reduce((s, m) => s + (m.points || 0), 0);
+    const bonus = f.bonusPoints || 0;
+    return { id, ...f, memberTotal, bonus, total: memberTotal + bonus, members: fams };
+  }).sort((a, b) => b.total - a.total);
+
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚔</div><p>No families established yet.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="family-grid">${list.map((f, i) => `
+    <div class="family-card">
+      <div class="family-card-rank">${i + 1}</div>
+      <div class="family-name">${f.name || f.id}</div>
+      <div class="family-meta">${f.members.length} member${f.members.length !== 1 ? 's' : ''}</div>
+      <div class="family-score-row">
+        <div class="score-block">
+          <div class="score-label">Member Points</div>
+          <div class="score-value">${f.memberTotal.toLocaleString()}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">Bonus Points</div>
+          <div class="score-value bonus">${f.bonus > 0 ? '+' : ''}${f.bonus.toLocaleString()}</div>
+        </div>
+      </div>
+      <div class="score-total">
+        <span>Total Prestige</span>
+        <span>${f.total.toLocaleString()} pts</span>
+      </div>
+      ${f.members.length ? `
+        <div class="family-members-list">
+          ${f.members.sort((a,b)=>b.points-a.points).map(m => `<span class="family-member-chip">${m.name || m.id}</span>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `).join('')}</div>`;
+}
+
+// ── FIREBASE LISTENERS ──
+onValue(ref(db, 'prestige/tiers'), snap => {
+  const data = snap.val();
+  if (data) tiers = Object.values(data).sort((a,b) => a.minPts - b.minPts);
+  renderTierLegend();
+  renderMembers();
+  renderFamilies();
+});
+
+onValue(ref(db, 'prestige/members'), snap => {
+  members = snap.val() || {};
+  renderMembers();
+  renderFamilies();
+});
+
+onValue(ref(db, 'prestige/families'), snap => {
+  families = snap.val() || {};
+  renderMembers();
+  renderFamilies();
+});
+
+window.switchTab = function(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['members','families'][i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+};
+</script>
+</body>
+</html>
