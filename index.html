@@ -380,6 +380,7 @@ onAuthStateChanged(auth,async user=>{
     return;
   }
   const data=snap.val();
+  alert("My DB Record: " + JSON.stringify(data));
   if(data.status==='pending'){
     document.getElementById('pendingName').textContent=data.name||'Adventurer';
     document.getElementById('guildNav').style.display='none';
