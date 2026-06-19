@@ -422,8 +422,9 @@ onAuthStateChanged(auth,async user=>{
     show('viewAuth');
     document.getElementById('userBar').style.display='none';
     document.getElementById('guildNav').style.display='none';
-    // New user: auto-switch to Register tab
-    switchAuthTab('register');
+    // New user: show register form, hide sign-in button
+    document.getElementById('authEntry').style.display = 'none';
+    document.getElementById('authRegister').style.display = 'block';
     return;
   }
   const data=snap.val();
