@@ -342,6 +342,9 @@
   <div id="tab-families" class="tab-panel"><div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div></div>
   <div id="tab-admin" class="tab-panel"><div id="adminContainer"></div></div>
 
+  <!-- My Family Section -->
+  <div id="myFamilyContainer" style="display:none; margin-top: 24px;"></div>
+
 </div><!-- /parchment-wrap -->
 <div id="toast"></div>
 
@@ -402,9 +405,9 @@ window.toggleAdminMode=function(){
 window.toggleInline=function(id){const el=document.getElementById(id);el.classList.toggle('open');};
 
 // ── FIREBASE LISTENERS ──
-onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();if(adminMode)renderAdminTab();});
-onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();populateFamilyDDs();});
-onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();populateFamilyDDs();});
+onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();renderMyFamilySection();if(adminMode)renderAdminTab();});
+onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
+onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
 
 function populateFamilyDDs(){
   const opts='<option value="">— None —</option>'+Object.entries(families).map(([id,f])=>`<option value="${id}">${f.name}</option>`).join('');
@@ -415,7 +418,7 @@ function populateFamilyDDs(){
 function matchPM(name){
   if(!name)return;
   const m=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===name.toLowerCase());
-  if(m){currentPM={id:m[0],...m[1]};renderMyCard();}
+  if(m){currentPM={id:m[0],...m[1]};renderMyCard();renderMyFamilySection();}
 }
 
 function renderMyCard(){
@@ -521,57 +524,199 @@ window.addMember=async function(){
 // ── FAMILIES ──
 function renderFamilies(){
   const c=document.getElementById('familiesContainer');
-  const myFamId=currentPM?.familyId;
-  const myName=currentPM?.name?.toLowerCase();
   const mList=Object.entries(members).map(([id,m])=>({id,...m}));
   const list=Object.entries(families).map(([id,f])=>{
     const fams=mList.filter(m=>m.familyId===id).sort((a,b)=>(b.points||0)-(a.points||0));
     const mTotal=fams.reduce((s,m)=>s+(m.points||0),0);
     const bonus=f.bonusPoints||0;
-    return{id,...f,mTotal,bonus,total:mTotal+bonus,fams};
+    const lordMember=fams.find(m=>(m.ranks||[]).includes('lord'));
+    const lordName=lordMember?lordMember.name:'—';
+    return{id,...f,mTotal,bonus,total:mTotal+bonus,lordName,fams};
   }).sort((a,b)=>b.total-a.total);
+  
   if(!list.length){c.innerHTML='<div class="empty">No families established yet.</div>';return;}
-  c.innerHTML=`<div class="family-grid">${list.map((f,i)=>{
-    const isMine=myFamId===f.id;
-    const lbRows=f.fams.map((m,mi)=>`
-      <div class="fam-member-row">
-        <span class="fam-member-rank ${mi===0?'r1':''}">${mi+1}</span>
-        <span class="fam-member-name ${myName&&m.name?.toLowerCase()===myName?'is-me':''}">${m.name||m.id}</span>
-        ${(m.ranks||[]).includes('lord')?'<span class="fam-lord-tag">Lord</span>':''}
-        <span class="fam-member-pts">${(m.points||0).toLocaleString()}</span>
-      </div>`).join('');
-    const editBtn=adminMode?`<button class="red-btn" style="position:absolute;top:8px;left:8px;font-size:10px;padding:2px 7px" onclick="toggleInline('fedit-${f.id}')">Edit</button>`:'';
-    const editForm=adminMode?`<div class="inline-form" id="fedit-${f.id}" style="margin-top:10px">
-      <div class="form-row">
-        <div class="form-group"><label>Name</label><input type="text" id="fn-${f.id}" value="${f.name||''}"></div>
-        <div class="form-group"><label>Bonus Points</label><input type="number" id="fb-${f.id}" value="${f.bonusPoints||0}" min="0"></div>
+  
+  const rows=list.map((f,i)=>{
+    const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    const isMine=currentPM?.familyId===f.id;
+    const ce=adminMode;
+    return`<tr class="${isMine?'is-me':''}">
+      <td><span class="rank-num ${rk}">${i+1}</span></td>
+      <td><span class="member-name" style="font-weight:bold">${f.name||f.id}${isMine?'<span class="me-tag">Mine</span>':''}</span></td>
+      <td><span class="member-name leader">${f.lordName}</span></td>
+      <td><span class="family-tag">${f.fams.length} members</span></td>
+      <td class="pts-cell r">${(f.bonusPoints||0).toLocaleString()}</td>
+      <td class="pts-cell r" style="font-weight:bold">${f.total.toLocaleString()}</td>
+      ${ce?`<td><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('fedit-${f.id}')">Edit</button></td>`:''}
+    </tr>
+    ${ce?`<tr id="fedit-${f.id}" style="display:none"><td colspan="7" style="padding:0">
+      <div class="edit-row open">
+        <div class="form-row">
+          <div class="form-group"><label>Family Name</label><input type="text" id="fn-${f.id}" value="${f.name||''}"></div>
+          <div class="form-group"><label>Bonus Points</label><input type="number" id="fb-${f.id}" value="${f.bonusPoints||0}" min="0"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="gold-btn" style="font-size:12px;padding:7px 14px" onclick="saveFamily('${f.id}')">Save</button>
+          <button class="ghost-btn" onclick="toggleEdit('fedit-${f.id}')">Cancel</button>
+          <button class="red-btn" onclick="deleteFamily('${f.id}','${(f.name||'').replace(/'/g,"\\'")}')">Dissolve</button>
+        </div>
       </div>
-      <div style="display:flex;gap:7px">
-        <button class="gold-btn" style="font-size:12px;padding:7px 14px" onclick="saveFamily('${f.id}')">Save</button>
-        <button class="ghost-btn" onclick="toggleInline('fedit-${f.id}')">Cancel</button>
-        <button class="red-btn" onclick="deleteFamily('${f.id}','${(f.name||'').replace(/'/g,"\\'")}')">Dissolve</button>
-      </div>
-    </div>`:'';
-    return`<div class="family-card ${isMine?'is-mine':''}">
-      ${editBtn}
-      <div class="family-card-rank">${i+1}</div>
-      <div class="family-name" style="${adminMode?'padding-left:46px':''}">${f.name||f.id}${isMine?' ✦':''}</div>
-      <div class="family-meta">${f.fams.length} member${f.fams.length!==1?'s':''}</div>
-      <div class="score-row">
-        <div class="score-block"><div class="score-lbl">Member Points</div><div class="score-val">${f.mTotal.toLocaleString()}</div></div>
-        <div class="score-block"><div class="score-lbl">Bonus</div><div class="score-val bonus">${f.bonus>0?'+':''}${f.bonus.toLocaleString()}</div></div>
-      </div>
-      <div class="score-total"><span>Total Prestige</span><span>${f.total.toLocaleString()}</span></div>
-      ${f.fams.length?`<div class="family-mini-lb"><div class="family-mini-lb-title">Members</div>${lbRows}</div>`:''}
-      ${editForm}
-    </div>`;
-  }).join('')}</div>`;
+    </td></tr>`:''}`;
+  }).join('');
+  
+  const editTh=adminMode?'<th></th>':'';
+  c.innerHTML=`<table class="lb-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Family</th>
+        <th>Lord</th>
+        <th>Members</th>
+        <th class="r">Own Prestige</th>
+        <th class="r">Total Prestige</th>
+        ${editTh}
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
+
+// ── MY FAMILY SECTION & MANAGEMENT ──
+function renderMyFamilySection(){
+  const c = document.getElementById('myFamilyContainer');
+  if(!currentPM) {
+    c.style.display = 'none';
+    return;
+  }
+  
+  const isKnight = (currentPM.ranks || []).includes('knight');
+  const myFamId = currentPM.familyId;
+  const showMyFamily = myFamId && !isKnight && families[myFamId];
+  
+  if(!showMyFamily) {
+    c.style.display = 'none';
+    return;
+  }
+  
+  const fam = families[myFamId];
+  const mList = Object.entries(members).map(([id,m])=>({id,...m}));
+  const fams = mList.filter(m=>m.familyId===myFamId).sort((a,b)=>(b.points||0)-(a.points||0));
+  const mTotal = fams.reduce((s,m)=>s+(m.points||0),0);
+  const bonus = fam.bonusPoints||0;
+  const totalPoints = mTotal + bonus;
+  
+  // Calculate family rank
+  const allFamsSorted = Object.entries(families).map(([id,f])=>{
+    const fMembers = mList.filter(m=>m.familyId===id);
+    const fTotal = fMembers.reduce((s,m)=>s+(m.points||0),0) + (f.bonusPoints||0);
+    return {id, total: fTotal};
+  }).sort((a,b)=>b.total-a.total);
+  const famRankIndex = allFamsSorted.findIndex(f => f.id === myFamId) + 1;
+  
+  const isLordOfFamily = (currentPM.ranks || []).includes('lord');
+  
+  // Build Roster rows
+  const rosterRows = fams.map((m, idx)=>{
+    const isMemberLord = (m.ranks || []).includes('lord');
+    const isMe = m.name?.toLowerCase() === currentPM.name?.toLowerCase();
+    const showDischarge = isLordOfFamily && !isMemberLord;
+    
+    return `<div class="fam-member-row" style="padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(120,90,50,0.1);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="fam-member-rank ${idx===0?'r1':''}" style="font-size: 13px; font-weight: bold; width: 20px;">${idx+1}</span>
+        <span class="fam-member-name ${isMe?'is-me':''}" style="font-size: 14px; ${isMe?'font-weight: bold; color: var(--navy);':''}">${m.name || m.id}${isMe?' <span class="me-tag">You</span>':''}</span>
+        ${isMemberLord?'<span class="fam-lord-tag" style="background: var(--seal-red); color: white; border: none; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 2px; margin-left: 6px;">Lord 👑</span>':''}
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="fam-member-pts" style="font-size: 14px; font-weight: bold; color: var(--navy);">${(m.points||0).toLocaleString()} pts</span>
+        ${showDischarge?`<button class="red-btn" style="font-size:11px; padding:4px 10px;" onclick="removeMemberFromFamily('${m.id}')">Discharge</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Lord management invite box
+  let inviteBoxHTML = '';
+  if (isLordOfFamily) {
+    const nonFamilyMembers = mList.filter(m => !m.familyId && !(m.ranks || []).includes('knight') && !(m.ranks || []).includes('lord'));
+    const options = nonFamilyMembers.map(m => `<option value="${m.id}">${m.name || m.id}</option>`).join('');
+    
+    if (nonFamilyMembers.length > 0) {
+      inviteBoxHTML = `
+        <div class="family-invite-box" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(120,90,50,0.3);">
+          <label style="font-size:11px; font-variant:small-caps; letter-spacing:1.5px; color:var(--ink-soft); display:block; margin-bottom:6px;">Add Member to Family</label>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <select id="inviteMemberSelect" class="rank-select" style="font-family:Georgia,serif; font-size:13px; padding:6px 9px; flex:1;">
+              ${options}
+            </select>
+            <button class="gold-btn" style="font-size:12px; padding:8px 18px;" onclick="inviteMember()">Add Member</button>
+          </div>
+        </div>`;
+    } else {
+      inviteBoxHTML = `
+        <div class="family-invite-box" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(120,90,50,0.3); text-align: center; font-style: italic; color: var(--ink-soft); font-size: 13px;">
+          No unaligned members available to invite.
+        </div>`;
+    }
+  }
+
+  c.innerHTML = `
+    <h3 class="section-eyebrow" style="margin-top: 24px; margin-bottom: 12px;">— My Family —</h3>
+    <div class="family-card my-family-highlight" style="border: 2px solid var(--gold); background: rgba(200, 160, 74, 0.08); box-shadow: 0 8px 24px rgba(46,32,20,0.15); padding: 20px; border-radius: 4px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <div class="family-name" style="font-size: 20px; font-weight: bold; color: var(--navy); margin-bottom: 4px;">${fam.name || myFamId}</div>
+          <div class="family-meta" style="font-size: 13px; font-style: italic; color: var(--ink-soft);">Ranked #${famRankIndex} &nbsp;·&nbsp; ${fams.length} member${fams.length!==1?'s':''}</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="score-lbl" style="font-size: 10px; font-variant: small-caps; letter-spacing: 1.5px; color: var(--ink-soft); margin-bottom: 2px;">Total Prestige</div>
+          <div class="score-val" style="font-size: 24px; font-weight: bold; color: var(--navy);">${totalPoints.toLocaleString()}</div>
+        </div>
+      </div>
+      
+      <div class="score-row" style="display: flex; gap: 14px; margin-bottom: 18px; background: rgba(255,255,255,0.4); padding: 8px 12px; border-radius: 2px; border: 1px solid rgba(120,90,50,0.15);">
+        <div class="score-block"><div class="score-lbl" style="font-size: 9px; font-variant: small-caps; letter-spacing: 1px; color: var(--ink-soft);">Member Points</div><div class="score-val" style="font-size: 15px; color: var(--navy);">${mTotal.toLocaleString()}</div></div>
+        <div class="score-block"><div class="score-lbl" style="font-size: 9px; font-variant: small-caps; letter-spacing: 1px; color: var(--ink-soft);">Family Own Prestige</div><div class="score-val bonus" style="font-size: 15px; color: #4a7a90;">${bonus.toLocaleString()}</div></div>
+      </div>
+      
+      <div class="family-mini-lb" style="margin-top: 10px;">
+        <div class="family-mini-lb-title" style="font-size: 11px; font-variant: small-caps; letter-spacing: 2px; color: var(--ink-soft); margin-bottom: 8px; font-weight: bold;">Family Roster</div>
+        <div style="background: rgba(255,255,255,0.25); border: 1px solid rgba(120,90,50,0.15); border-radius: 2px;">
+          ${rosterRows}
+        </div>
+      </div>
+      
+      ${inviteBoxHTML}
+    </div>`;
+  c.style.display = 'block';
+}
+
+window.inviteMember = async function() {
+  const sel = document.getElementById('inviteMemberSelect');
+  if(!sel) return;
+  const mid = sel.value;
+  if(!mid) {
+    toast("No member selected.");
+    return;
+  }
+  const myFamId = currentPM?.familyId;
+  if(!myFamId) return;
+  const memberName = members[mid]?.name || "Adventurer";
+  await update(ref(db, 'prestige/members/' + mid), { familyId: myFamId });
+  toast(`${memberName} joined your family.`);
+};
+
+window.removeMemberFromFamily = async function(mid) {
+  const memberName = members[mid]?.name || "Adventurer";
+  if(!confirm(`Remove ${memberName} from the family?`)) return;
+  await update(ref(db, 'prestige/members/' + mid), { familyId: "" });
+  toast(`${memberName} removed from family.`);
+};
+
 window.saveFamily=async function(id){
   const name=document.getElementById('fn-'+id).value.trim();
   const bonus=parseInt(document.getElementById('fb-'+id).value)||0;
   await update(ref(db,'prestige/families/'+id),{name,bonusPoints:bonus});
-  toast(`${name} updated.`);document.getElementById('fedit-'+id).classList.remove('open');
+  toast(`${name} updated.`);document.getElementById('fedit-'+id).style.display='none';
 };
 window.deleteFamily=async function(id,name){
   if(!confirm(`Dissolve ${name}?`))return;
