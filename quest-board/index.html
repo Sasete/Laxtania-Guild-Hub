@@ -1618,6 +1618,8 @@
     article.className = 'quest-card';
     article.dataset.questId = id;
     article.dataset.slots = def.slots;
+    article.dataset.ownerUid = def.ownerUid || '';
+    article.dataset.ownerName = def.ownerName || '';
     article.style.setProperty('--tilt', `${(Math.random() * 2.4 - 1.2).toFixed(2)}deg`);
 
     const rewardsHtml = (def.rewards || []).filter(r => r).map(r => {
@@ -1655,6 +1657,10 @@
         <div class="claimants"></div>
         <div class="claim-controls">
           <button class="claim-btn">Claim Contract</button>
+        </div>
+        <div class="owner-controls" style="display:none;margin-top:8px;display:none;gap:6px;flex-wrap:wrap;">
+          <button class="owner-complete-btn" style="font-family:Georgia,serif;font-size:11px;padding:4px 10px;background:#2a5a2a;color:var(--parchment);border:none;border-radius:2px;cursor:pointer;">✓ Complete</button>
+          <button class="owner-cancel-btn" style="font-family:Georgia,serif;font-size:11px;padding:4px 10px;background:var(--seal-red);color:var(--parchment);border:none;border-radius:2px;cursor:pointer;">✕ Cancel</button>
         </div>
       </div>
       <img class="card-seal" src="${STAMP_DATA_URI}" alt="Fully claimed" style="display:none; transform: rotate(${sealAngle}deg);">
@@ -1711,7 +1717,27 @@
       claimRefs[id] = ref;
 
       card.querySelector('.claim-btn').addEventListener('click', () => claimQuest(card));
+
+      const isOwner = currentUserData && def.ownerUid && currentUserData.uid === def.ownerUid;
+      if (isOwner || adminMode) {
+        const ownerControls = card.querySelector('.owner-controls');
+        ownerControls.style.display = 'flex';
+        card.querySelector('.owner-complete-btn').addEventListener('click', () => ownerCompleteQuest(id, def.name));
+        card.querySelector('.owner-cancel-btn').addEventListener('click', () => ownerCancelQuest(id, def.name));
+      }
     });
+  }
+
+  async function ownerCompleteQuest(id, name) {
+    if (!confirm(`Mark "${name}" as completed and remove it from the board?`)) return;
+    await db.ref('questDefs/' + id).remove();
+    await db.ref('quests/' + id).remove();
+  }
+
+  async function ownerCancelQuest(id, name) {
+    if (!confirm(`Cancel "${name}" and remove it from the board?`)) return;
+    await db.ref('questDefs/' + id).remove();
+    await db.ref('quests/' + id).remove();
   }
 
   let currentQuestDefs = {};
@@ -1816,14 +1842,26 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting…';
 
-    const request = {
-      submittedAt: new Date().toISOString(),
-      issuer, name, level, slots, description, guildGain,
-      silver,
-      status: 'pending'
+    const orders = Object.values(currentQuestDefs).map(d => d.order || 0);
+    const order = orders.length ? Math.max(...orders) + 1 : 1;
+    let baseId = slugify(name) || 'contract';
+    let uniqueId = baseId, suffix = 2;
+    while (currentQuestDefs[uniqueId]) { uniqueId = `${baseId}-${suffix}`; suffix++; }
+
+    const def = {
+      order, active: true, level, slots,
+      name, issuer,
+      description: escapeHtml(description), guildGain,
+      deadline: null,
+      ownerName: issuer,
+      ownerUid: currentUserData?.uid || '',
+      rewards: [
+        { icon: '♦', text: '0 Prestige' },
+        { icon: '⛀', text: `${Number(silver).toLocaleString('en-US')} Silver` }
+      ]
     };
 
-    await db.ref('questRequests').push(request);
+    await db.ref('questDefs/' + uniqueId).set(def);
 
     // Show success screen
     modalForm.style.display = 'none';
