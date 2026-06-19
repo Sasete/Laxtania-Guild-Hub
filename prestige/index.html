@@ -606,14 +606,14 @@ function renderFamilies(){
     const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const isMine=currentPM?.familyId===f.id;
     const ce=adminMode;
-    return`<tr class="${isMine?'is-me':''}" style="cursor:pointer" onclick="showFamilyDetail('${f.id}')">
+    return`<tr class="${isMine?'is-me':''}" style="cursor:pointer" data-famid="${f.id}">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
       <td><span class="member-name" style="font-weight:bold;text-decoration:underline dotted;text-underline-offset:3px">${f.name||f.id}${isMine?'<span class="me-tag">Mine</span>':''}</span></td>
       <td><span class="member-name leader">${f.lordName}</span></td>
       <td><span class="family-tag">${f.fams.length} members</span></td>
       <td class="pts-cell r">${(f.bonusPoints||0).toLocaleString()}</td>
       <td class="pts-cell r" style="font-weight:bold">${f.total.toLocaleString()}</td>
-      ${ce?`<td onclick="event.stopPropagation()"><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('fedit-${f.id}')">Edit</button></td>`:''}
+      ${ce?`<td data-noprop="1"><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('fedit-${f.id}')">Edit</button></td>`:''}
     </tr>
     ${ce?`<tr id="fedit-${f.id}" style="display:none"><td colspan="7" style="padding:0">
       <div class="edit-row open">
@@ -653,8 +653,15 @@ function renderFamilies(){
         ${editTh}
       </tr>
     </thead>
-    <tbody>${rows}</tbody>
+    <tbody id="familiesTbody">${rows}</tbody>
   </table>`;
+
+  document.getElementById('familiesTbody').addEventListener('click', e => {
+    const editCell = e.target.closest('td[data-noprop]');
+    if (editCell) return;
+    const tr = e.target.closest('tr[data-famid]');
+    if (tr) showFamilyDetail(tr.dataset.famid);
+  });
 }
 
 // ── MY FAMILY SECTION & MANAGEMENT ──
