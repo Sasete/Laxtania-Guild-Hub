@@ -190,6 +190,56 @@
     height:18px;
   }
 
+  .message-box {
+    background: rgba(200, 160, 74, 0.08);
+    border: 1px dashed rgba(200, 160, 74, 0.4);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    position: relative;
+    text-align: left;
+  }
+  .message-eyebrow {
+    display: block;
+    font-size: 11px;
+    font-variant: small-caps;
+    letter-spacing: 2px;
+    color: var(--seal-red);
+    margin-bottom: 6px;
+    font-weight: bold;
+  }
+  .message-content {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .message-content[contenteditable="true"] {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--gold);
+    outline: none;
+    padding: 8px;
+    font-style: normal;
+  }
+  .edit-btn {
+    font-family: Georgia, serif;
+    font-variant: small-caps;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    background: transparent;
+    border: 1px solid rgba(120, 90, 50, 0.4);
+    color: var(--ink-soft);
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .edit-btn:hover {
+    border-color: var(--gold);
+    color: var(--ink);
+    background: rgba(255,255,255,0.4);
+  }
+
   @media(max-width:520px){
     .parchment-card{padding:24px 18px 28px;}
     .guild-info{gap:14px;}
@@ -204,10 +254,6 @@
 <div class="user-bar" id="userBar" style="display:none">
   <div class="user-bar-name">Welcome, <span id="userBarName">—</span></div>
   <div class="user-bar-actions">
-    <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
-      <div class="admin-toggle-dot"></div>
-      Admin Mode
-    </div>
     <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
   </div>
 </div>
@@ -253,7 +299,7 @@
           <input type="text" id="regName" placeholder="Your Albion Online Character Name">
         </div>
         <div class="auth-error" id="registerError"></div>
-        <button class="auth-btn" onclick="doGoogleRegister()">Submit for Review</button>
+        <button class="auth-btn" onclick="doGoogleRegister()">Register</button>
       </div>
     </div>
   </div>
@@ -269,12 +315,6 @@
 
   <!-- Main hall -->
   <div id="viewHall" style="display:none">
-
-    <!-- Pending admin notice -->
-    <div class="pending-notice" id="pendingNotice">
-      <span class="pending-notice-text" id="pendingNoticeText">0 requests awaiting review</span>
-      <button class="reject-btn" onclick="scrollToPending()">Review ↓</button>
-    </div>
 
     <!-- Guild info -->
     <div class="guild-info">
@@ -295,6 +335,17 @@
 
     <hr class="divider">
 
+    <!-- Guild Notice -->
+    <div id="guildMessageContainer" class="message-box">
+      <span class="message-eyebrow">Notice from the Sovereign</span>
+      <div id="guildMessageText" class="message-content">Consulting the Oracle for the daily notice…</div>
+      <div id="messageEditControls" style="display:none; text-align:right; margin-top:8px;">
+        <button id="editMessageBtn" class="edit-btn" onclick="toggleEditMessage()">Edit Notice</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
     <!-- Portals -->
     <p class="section-eyebrow">— Select Your Destination —</p>
     <div class="portals" id="portalGrid">
@@ -305,14 +356,14 @@
         <span class="portal-tag">Open to All</span>
       </a>
       <a class="portal-card" href="prestige/">
-        <span class="portal-icon">🏆</span>
-        <div class="portal-title">Prestige Registry <span class="portal-arrow">→</span></div>
-        <p class="portal-desc">View the Honour Leaderboard, your Family's standing, and your Prestige tier.</p>
+        <span class="portal-icon">👥</span>
+        <div class="portal-title">Members & Families <span class="portal-arrow">→</span></div>
+        <p class="portal-desc">View the guild roster, family alliances, and active member standings.</p>
         <span class="portal-tag">Open to All</span>
       </a>
     </div>
 
-    <!-- Admin panel (toggle) -->
+    <!-- Admin panel -->
     <div id="adminPanel" style="display:none">
       <hr class="divider" style="margin-top:28px">
       <p class="section-eyebrow">— Pending Membership Requests —</p>
@@ -340,7 +391,7 @@ const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getDatabase(app);
 
-let currentUserData=null,isAdmin=false,adminMode=false,pendingUsers={};
+let currentUserData=null,isAdmin=false,pendingUsers={},isEditingMessage=false,currentMessage="";
 
 function resolveIsAdmin(d){
   const ranks=d.ranks||['serf'];
@@ -390,43 +441,55 @@ onAuthStateChanged(auth,async user=>{
   document.getElementById('userBar').style.display='flex';
   document.getElementById('userBarName').textContent=data.name||user.email;
   if(isAdmin){
-    document.getElementById('adminToggle').style.display='flex';
-    // Admin portal card
-    if(!document.getElementById('adminPortalCard')){
-      const grid=document.getElementById('portalGrid');
-      const card=document.createElement('a');
-      card.id='adminPortalCard';card.href='prestige/';card.className='portal-card admin-card';
-      card.innerHTML=`<span class="portal-icon">⚔</span><div class="portal-title">Admin Panel <span class="portal-arrow">→</span></div><p class="portal-desc">Manage members, prestige records, pending requests, families and tiers.</p><span class="portal-tag">Council Only</span>`;
-      grid.appendChild(card);
-    }
+    document.getElementById('adminPanel').style.display='block';
+    document.getElementById('messageEditControls').style.display='block';
     // Listen for pending users
     onValue(ref(db,'users'),snap=>{
       const all=snap.val()||{};
       pendingUsers=Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
-      const count=Object.keys(pendingUsers).length;
-      const notice=document.getElementById('pendingNotice');
-      document.getElementById('pendingNoticeText').textContent=`${count} membership request${count!==1?'s':''} awaiting review`;
-      if(adminMode&&count>0)notice.classList.add('visible');
-      else notice.classList.remove('visible');
-      document.getElementById('adminToggle').querySelector('.admin-toggle-dot').title=count>0?`${count} pending`:'';
-      if(adminMode)renderPendingList();
+      renderPendingList();
     });
+  } else {
+    document.getElementById('adminPanel').style.display='none';
+    document.getElementById('messageEditControls').style.display='none';
   }
+
+  // Listen for Guild Notice
+  onValue(ref(db, 'guildMessage'), snap => {
+    currentMessage = snap.val() || "Welcome to the Laxtania Guild Hall. Check the Quest Board for new contracts.";
+    if (!isEditingMessage) {
+      document.getElementById('guildMessageText').textContent = currentMessage;
+    }
+  });
+
   loadLiveStats();
   show('viewHall');
 });
 
-// ── ADMIN TOGGLE ──
-window.toggleAdminMode=function(){
-  adminMode=!adminMode;
-  document.getElementById('adminToggle').classList.toggle('active',adminMode);
-  document.getElementById('adminPanel').style.display=adminMode?'block':'none';
-  const count=Object.keys(pendingUsers).length;
-  if(adminMode&&count>0)document.getElementById('pendingNotice').classList.add('visible');
-  else document.getElementById('pendingNotice').classList.remove('visible');
-  if(adminMode)renderPendingList();
+// ── EDIT NOTICE ACTION ──
+window.toggleEditMessage = async function() {
+  const textEl = document.getElementById('guildMessageText');
+  const btn = document.getElementById('editMessageBtn');
+  if (!isEditingMessage) {
+    isEditingMessage = true;
+    textEl.contentEditable = "true";
+    textEl.focus();
+    btn.textContent = "Save Notice";
+  } else {
+    const newMsg = textEl.innerText.trim();
+    btn.disabled = true;
+    try {
+      await set(ref(db, 'guildMessage'), newMsg);
+      isEditingMessage = false;
+      textEl.contentEditable = "false";
+      btn.textContent = "Edit Notice";
+    } catch(e) {
+      alert("Failed to save notice. Please try again.");
+    } finally {
+      btn.disabled = false;
+    }
+  }
 };
-window.scrollToPending=function(){document.getElementById('adminPanel').scrollIntoView({behavior:'smooth'});};
 
 function renderPendingList(){
   const el=document.getElementById('pendingList');
@@ -488,6 +551,9 @@ window.doGoogleRegister=async function(){
   if (!user) return;
   try{
     await set(ref(db,'users/'+user.uid),{name,email:user.email||'',ranks:['serf'],status:'pending',adminAccess:false,registeredAt:Date.now()});
+    alert('Registration submitted successfully! Awaiting Council review.');
+    document.getElementById('pendingName').textContent=name;
+    show('viewPending');
   }catch(e){document.getElementById('registerError').textContent='Failed to submit registration. Please try again.';}
 };
 window.doSignOut=async function(){await signOut(auth);document.getElementById('userBar').style.display='none';};
