@@ -584,7 +584,7 @@ function renderMyFamilySection(){
       <div style="display: flex; align-items: center; gap: 8px;">
         <span class="fam-member-rank ${idx===0?'r1':''}" style="font-size: 13px; font-weight: bold; width: 20px;">${idx+1}</span>
         <span class="fam-member-name ${isMe?'is-me':''}" style="font-size: 14px; ${isMe?'font-weight: bold; color: var(--navy);':''}">${m.name || m.id}${isMe?' <span class="me-tag">You</span>':''}</span>
-        ${isMemberLord?'<span class="fam-lord-tag" style="background: var(--seal-red); color: white; border: none; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 2px; margin-left: 6px;">Lord 👑</span>':''}
+        ${isMemberLord?'<span class="fam-lord-tag" style="background: #701515; color: white; border: none; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 2px; margin-left: 6px;">Lord</span>':''}
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
         <span class="fam-member-pts" style="font-size: 14px; font-weight: bold; color: var(--navy);">${(m.points||0).toLocaleString()} pts</span>
