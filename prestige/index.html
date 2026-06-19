@@ -172,6 +172,43 @@
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--gold-bright);font-variant:small-caps;letter-spacing:2px;font-size:12px;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;border:1px solid var(--gold);}
   #toast.show{transform:translateX(-50%) translateY(0);}
   @media(max-width:600px){.parchment-wrap{padding:22px 16px 26px;}.lb-table th:nth-child(4),.lb-table td:nth-child(4){display:none;}.tabs{justify-content:stretch;}.tab-btn{flex:1;padding:8px 6px 10px;font-size:12px;}}
+  .guild-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 980px;
+    margin: 0 auto 24px;
+    background: rgba(28, 42, 64, 0.9);
+    border: 1px solid var(--gold);
+    padding: 8px 16px;
+    border-radius: 4px;
+  }
+  .nav-item {
+    font-family: Georgia, serif;
+    font-variant: small-caps;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: rgba(230, 200, 120, 0.75);
+    text-decoration: none;
+    padding: 5px 16px;
+    border: 1px solid rgba(200, 160, 74, 0.4);
+    border-radius: 2px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-item:hover {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    background: rgba(255,255,255,0.05);
+  }
+  .nav-item.active {
+    color: var(--gold-bright);
+    border-color: var(--gold-bright);
+    background: rgba(200, 160, 74, 0.2);
+    font-weight: bold;
+  }
 </style>
 </head>
 <body>
@@ -184,9 +221,16 @@
       <div class="admin-toggle-dot"></div>
       Admin Mode
     </div>
-    <a href="../" class="user-bar-btn">← Guild Hall</a>
+    <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
   </div>
 </div>
+
+<!-- Guild Nav -->
+<nav class="guild-nav">
+  <a href="../" class="nav-item">🏰 Hall</a>
+  <a href="../quest-board/" class="nav-item">📜 Quests</a>
+  <a href="./" class="nav-item active">👥 Members</a>
+</nav>
 
 <!-- Header -->
 <div class="board-header">
@@ -282,7 +326,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, set, get, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
@@ -302,6 +346,7 @@ function canEdit(targetRanks){if(!currentUserData)return false;if(isSov(currentU
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ── AUTH ──
+window.doSignOut=async function(){await signOut(auth);window.location.href='../';};
 onAuthStateChanged(auth,async user=>{
   if(!user)return;
   const snap=await get(ref(db,'users/'+user.uid));

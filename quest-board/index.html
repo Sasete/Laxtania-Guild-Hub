@@ -642,6 +642,43 @@
   .qr-meta { font-size: 12px; color: rgba(230,200,120,0.6); font-style: italic; margin-bottom: 10px; }
   .qr-actions { display: flex; gap: 8px; }
 
+  .guild-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    max-width: 980px;
+    margin: 0 auto 24px;
+    background: rgba(28, 42, 64, 0.9);
+    border: 1px solid var(--gold);
+    padding: 8px 16px;
+    border-radius: 4px;
+  }
+  .nav-item {
+    font-family: Georgia, serif;
+    font-variant: small-caps;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: rgba(230, 200, 120, 0.75);
+    text-decoration: none;
+    padding: 5px 16px;
+    border: 1px solid rgba(200, 160, 74, 0.4);
+    border-radius: 2px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-item:hover {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+    background: rgba(255,255,255,0.05);
+  }
+  .nav-item.active {
+    color: var(--gold-bright);
+    border-color: var(--gold-bright);
+    background: rgba(200, 160, 74, 0.2);
+    font-weight: bold;
+  }
 </style>
 </head>
 <body>
@@ -667,7 +704,6 @@
       <div class="admin-toggle-dot"></div>
       Admin Mode
     </div>
-    <a href="../" class="user-bar-btn">← Guild Hall</a>
     <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
   </div>
 </div>
@@ -677,6 +713,13 @@
   <h3>Pending Contract Requests</h3>
   <div id="pendingRequestsContainer"><p style="color:rgba(241,228,196,0.4);font-style:italic">No pending requests.</p></div>
 </div>
+
+<!-- Guild Nav -->
+<nav class="guild-nav">
+  <a href="../" class="nav-item">🏰 Hall</a>
+  <a href="./" class="nav-item active">📜 Quests</a>
+  <a href="../prestige/" class="nav-item">👥 Members</a>
+</nav>
 
 <div class="board-header">
   <div class="banner">
