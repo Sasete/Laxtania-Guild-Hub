@@ -275,7 +275,10 @@
   </div>
 
   <div id="tab-members" class="tab-panel active"><div id="membersContainer"><div class="loading">Consulting the Archives…</div></div></div>
-  <div id="tab-families" class="tab-panel"><div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div></div>
+  <div id="tab-families" class="tab-panel">
+    <div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div>
+    <div id="familyDetailContainer" style="display:none;margin-top:24px;"></div>
+  </div>
 
   <!-- My Family Section -->
   <div id="myFamilyContainer" style="display:none; margin-top: 24px;"></div>
@@ -603,14 +606,14 @@ function renderFamilies(){
     const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const isMine=currentPM?.familyId===f.id;
     const ce=adminMode;
-    return`<tr class="${isMine?'is-me':''}">
+    return`<tr class="${isMine?'is-me':''}" style="cursor:pointer" onclick="showFamilyDetail('${f.id}')">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
-      <td><span class="member-name" style="font-weight:bold">${f.name||f.id}${isMine?'<span class="me-tag">Mine</span>':''}</span></td>
+      <td><span class="member-name" style="font-weight:bold;text-decoration:underline dotted;text-underline-offset:3px">${f.name||f.id}${isMine?'<span class="me-tag">Mine</span>':''}</span></td>
       <td><span class="member-name leader">${f.lordName}</span></td>
       <td><span class="family-tag">${f.fams.length} members</span></td>
       <td class="pts-cell r">${(f.bonusPoints||0).toLocaleString()}</td>
       <td class="pts-cell r" style="font-weight:bold">${f.total.toLocaleString()}</td>
-      ${ce?`<td><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('fedit-${f.id}')">Edit</button></td>`:''}
+      ${ce?`<td onclick="event.stopPropagation()"><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('fedit-${f.id}')">Edit</button></td>`:''}
     </tr>
     ${ce?`<tr id="fedit-${f.id}" style="display:none"><td colspan="7" style="padding:0">
       <div class="edit-row open">
@@ -909,6 +912,66 @@ window.removeMemberFromFamily = async function(mid) {
   if(!confirm(`Remove ${memberName} from the family?`)) return;
   await update(ref(db, 'prestige/members/' + mid), { familyId: "" });
   toast(`${memberName} removed from family.`);
+};
+
+window.showFamilyDetail=function(famId){
+  const c=document.getElementById('familyDetailContainer');
+  const fam=families[famId];
+  if(!fam){c.style.display='none';return;}
+
+  const mList=Object.entries(members).map(([id,m])=>({id,...m}));
+  const fams=mList.filter(m=>m.familyId===famId).sort((a,b)=>(b.points||0)-(a.points||0));
+  const mTotal=fams.reduce((s,m)=>s+(m.points||0),0);
+  const bonus=fam.bonusPoints||0;
+  const total=mTotal+bonus;
+  const isMine=currentPM?.familyId===famId;
+
+  // family rank
+  const allSorted=Object.entries(families).map(([id,f])=>{
+    const fMems=mList.filter(m=>m.familyId===id);
+    return{id,total:fMems.reduce((s,m)=>s+(m.points||0),0)+(f.bonusPoints||0)};
+  }).sort((a,b)=>b.total-a.total);
+  const famRank=allSorted.findIndex(f=>f.id===famId)+1;
+
+  const rosterRows=fams.map((m,idx)=>{
+    const tier=getTier(m.points||0);
+    const isMe=m.name?.toLowerCase()===currentPM?.name?.toLowerCase();
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(120,90,50,0.1);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:13px;color:var(--ink-soft);min-width:20px;font-weight:bold">${idx+1}</span>
+        <span style="font-size:14px;color:var(--ink);${isMe?'font-weight:bold':''}">${m.name||m.id}${isMe?' <span class="me-tag">You</span>':''}</span>
+        <span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span>
+      </div>
+      <span style="font-size:14px;font-weight:bold;color:var(--navy)">${(m.points||0).toLocaleString()} pts</span>
+    </div>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div style="border:${isMine?'2px solid var(--gold)':'1px solid rgba(120,90,50,0.3)'};background:${isMine?'rgba(200,160,74,0.07)':'rgba(255,255,255,0.3)'};padding:20px;border-radius:3px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:20px;font-weight:bold;color:var(--navy);margin-bottom:4px;">${fam.name||famId}${isMine?' <span class="me-tag">Mine</span>':''}</div>
+          <div style="font-size:13px;font-style:italic;color:var(--ink-soft);">Ranked #${famRank} &nbsp;·&nbsp; ${fams.length} member${fams.length!==1?'s':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="text-align:right;">
+            <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);">Total Prestige</div>
+            <div style="font-size:26px;font-weight:bold;color:var(--navy)">${total.toLocaleString()}</div>
+          </div>
+          <button class="ghost-btn" style="font-size:11px;padding:4px 10px;align-self:flex-start" onclick="document.getElementById('familyDetailContainer').style.display='none'">✕ Close</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;background:rgba(255,255,255,0.4);padding:8px 14px;border-radius:2px;border:1px solid rgba(120,90,50,0.15);margin-bottom:16px;">
+        <div><div style="font-size:9px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Member Points</div><div style="font-size:16px;color:var(--navy)">${mTotal.toLocaleString()}</div></div>
+        <div><div style="font-size:9px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Family Bonus</div><div style="font-size:16px;color:#4a7a90">${bonus.toLocaleString()}</div></div>
+      </div>
+      <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px;">Roster</div>
+      <div style="background:rgba(255,255,255,0.25);border:1px solid rgba(120,90,50,0.15);border-radius:2px;">
+        ${rosterRows||'<div style="padding:14px;font-style:italic;color:var(--ink-soft);font-size:13px;text-align:center">No members yet.</div>'}
+      </div>
+    </div>`;
+  c.style.display='block';
+  c.scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
 window.saveFamily=async function(id){

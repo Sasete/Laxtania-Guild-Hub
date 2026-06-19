@@ -1748,24 +1748,27 @@
       trimmedName = name.trim();
     }
 
+    const claimBtn = card.querySelector('.claim-btn');
+    if (claimBtn) { claimBtn.disabled = true; claimBtn.textContent = 'Claiming…'; }
+
     const ref = db.ref(`quests/${id}`);
-    let claimed = false;
     let result;
     try {
       result = await ref.transaction(current => {
         const claims = current || [];
         if (claims.length >= totalSlots) {
-          return current; // abort: full, no change
+          return; // undefined = abort, no write
         }
-        claimed = true;
         return [...claims, trimmedName];
       });
     } catch (e) {
+      if (claimBtn) { claimBtn.disabled = false; claimBtn.textContent = 'Claim Contract'; }
       alert('Could not save claim — please try again.');
       return;
     }
 
-    if (!claimed) {
+    if (!result.committed) {
+      if (claimBtn) { claimBtn.disabled = false; claimBtn.textContent = 'Claim Contract'; }
       alert('No contracts remaining for this quest.');
       return;
     }

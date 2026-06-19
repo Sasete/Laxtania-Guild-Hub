@@ -477,26 +477,9 @@ onAuthStateChanged(auth,async user=>{
     }
   });
 
-  // Listen for Sovereign and Hand dynamically
+  // Listen for invitations dynamically (auth-only)
   onValue(ref(db, 'prestige/members'), snap => {
     const members = snap.val() || {};
-    const sovereigns = [];
-    const hands = [];
-    
-    Object.values(members).forEach(m => {
-      const ranks = m.ranks || [];
-      if (ranks.includes('sovereign')) {
-        sovereigns.push(m.name);
-      }
-      if (ranks.includes('hand')) {
-        hands.push(m.name);
-      }
-    });
-    
-    document.getElementById('bannerSovereign').textContent = sovereigns.length ? sovereigns.join(', ') : '—';
-    document.getElementById('bannerHand').textContent = hands.length ? hands.join(', ') : '—';
-
-    // Listen for invitations dynamically
     if (currentUserData && currentUserData.name) {
       const myEntry = Object.entries(members).find(([mid, m]) => m.name?.toLowerCase() === currentUserData.name.toLowerCase());
       if (myEntry) {
@@ -673,6 +656,20 @@ function friendlyError(code){
     'auth/too-many-requests':'Too many attempts — please try again later.',
   })[code]||'Something went wrong. Please try again.';
 }
+
+// ── PUBLIC BANNER: Sovereign & Hand (no auth required) ──
+onValue(ref(db, 'prestige/members'), snap => {
+  const members = snap.val() || {};
+  const sovereigns = [];
+  const hands = [];
+  Object.values(members).forEach(m => {
+    const ranks = m.ranks || [];
+    if (ranks.includes('sovereign')) sovereigns.push(m.name);
+    if (ranks.includes('hand')) hands.push(m.name);
+  });
+  document.getElementById('bannerSovereign').textContent = sovereigns.length ? sovereigns.join(', ') : '—';
+  document.getElementById('bannerHand').textContent = hands.length ? hands.join(', ') : '—';
+});
 </script>
 </body>
 </html>
