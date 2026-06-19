@@ -298,9 +298,15 @@ function renderUserRoles(ranks) {
   }).join('');
 }
 onAuthStateChanged(auth,async user=>{
-  if(!user)return;
+  if(!user){
+    window.location.href='../';
+    return;
+  }
   const snap=await get(ref(db,'users/'+user.uid));
-  if(!snap.exists()||snap.val().status!=='approved')return;
+  if(!snap.exists()||snap.val().status!=='approved'){
+    window.location.href='../';
+    return;
+  }
   currentUserData=snap.val();
   isAdmin=resolveIsAdmin(currentUserData);
   document.getElementById('userBar').style.display='flex';

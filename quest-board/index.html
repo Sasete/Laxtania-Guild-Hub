@@ -743,9 +743,15 @@
   }
 
   auth.onAuthStateChanged(async user => {
-    if (!user) return;
+    if (!user) {
+      window.location.href = '../';
+      return;
+    }
     const snap = await db.ref('users/' + user.uid).get();
-    if (!snap.exists() || snap.val().status !== 'approved') return;
+    if (!snap.exists() || snap.val().status !== 'approved') {
+      window.location.href = '../';
+      return;
+    }
     currentUserData = snap.val();
     isAdmin = resolveIsAdmin(currentUserData);
 
