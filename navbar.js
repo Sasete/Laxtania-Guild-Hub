@@ -131,6 +131,7 @@
     <a href="${prefix}" class="nav-item ${page === 'hall' ? 'active' : ''}">🏰 Hall</a>
     <a href="${prefix}prestige/" class="nav-item ${page === 'members' ? 'active' : ''}">👥 Members</a>
     <a href="${prefix}quest-board/" class="nav-item ${page === 'quests' ? 'active' : ''}">📜 Quests</a>
+    <a href="${prefix}events/" class="nav-item ${page === 'events' ? 'active' : ''}">🗡️ Events</a>
   </div>
   <div class="nav-user-container">
     <div class="nav-sep"></div>

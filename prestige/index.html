@@ -139,6 +139,28 @@
   .edit-row{display:none;background:rgba(255,255,255,0.35);border:1px solid rgba(140,36,36,0.18);padding:12px 14px;margin-top:4px;}
   .edit-row.open{display:block;}
 
+  /* PRESTIGE ADJUST */
+  .pts-adjust{background:rgba(200,160,74,0.08);border:1px solid rgba(200,160,74,0.35);border-radius:3px;padding:10px 12px;margin-bottom:10px;}
+  .pts-adjust-label{font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:6px;display:block;}
+  .pts-adjust-current{font-size:15px;color:var(--navy);margin-bottom:8px;}
+  .pts-adjust-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+  .pts-adjust-row input[type=number]{width:70px;font-family:Georgia,serif;font-size:13px;padding:5px 7px;border:1px solid rgba(46,32,20,0.3);background:rgba(255,255,255,0.7);color:var(--navy);}
+  .pts-adjust-row input[type=text]{flex:1;min-width:140px;font-family:Georgia,serif;font-size:13px;padding:5px 8px;border:1px solid rgba(46,32,20,0.3);background:rgba(255,255,255,0.7);color:var(--ink);}
+  .add-pts-btn{font-family:Georgia,serif;font-variant:small-caps;font-size:11px;letter-spacing:1px;padding:5px 12px;background:rgba(40,100,40,0.12);border:1px solid rgba(40,100,40,0.4);color:#2a5a2a;cursor:pointer;}
+  .add-pts-btn:hover{background:rgba(40,100,40,0.2);}
+  .rem-pts-btn{font-family:Georgia,serif;font-variant:small-caps;font-size:11px;letter-spacing:1px;padding:5px 12px;background:rgba(140,36,36,0.08);border:1px solid rgba(140,36,36,0.35);color:var(--seal-red);cursor:pointer;}
+  .rem-pts-btn:hover{background:rgba(140,36,36,0.16);}
+
+  /* PRESTIGE LOG */
+  .pts-log{margin-top:8px;border-top:1px dashed rgba(120,90,50,0.25);padding-top:6px;}
+  .pts-log-title{font-size:10px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:4px;}
+  .pts-log-row{display:flex;align-items:baseline;gap:8px;padding:3px 0;border-bottom:1px solid rgba(120,90,50,0.08);font-size:12px;}
+  .pts-log-row:last-child{border-bottom:none;}
+  .pts-log-delta{font-weight:bold;min-width:40px;}
+  .pts-log-delta.pos{color:#2a5a2a;}.pts-log-delta.neg{color:var(--seal-red);}
+  .pts-log-reason{flex:1;color:var(--ink);}
+  .pts-log-meta{color:var(--ink-soft);font-style:italic;white-space:nowrap;}
+
   /* TIER ADMIN */
   .tier-admin-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,90,50,0.08);}
   .tier-admin-row:last-child{border-bottom:none;}
@@ -271,15 +293,15 @@ const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{lab
 const DEFAULT_TIERS=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"}];
 
 const app=initializeApp(FC); const auth=getAuth(app); const db=getDatabase(app);
-let tiers=DEFAULT_TIERS,members={},families={},pendingUsers={};
+let tiers=DEFAULT_TIERS,members={},families={},pendingUsers={},invites={};
 let currentUserData=null,currentPM=null,isAdmin=false,adminMode=false;
 
 function getTier(pts){let t=tiers[0];for(const x of tiers){if(pts>=x.minPts)t=x;}return t;}
 function isSov(d){return(d.ranks||[]).includes('sovereign');}
 function isHand(d){return(d.ranks||[]).includes('hand');}
 function resolveIsAdmin(d){const ranks=d.ranks||['serf'];const h=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);let a=RANKS[h]?.admin===true;if(h==='councillor'&&d.adminAccess===true)a=true;return a;}
-function assignableRanks(){if(!currentUserData)return[];if(isSov(currentUserData))return['serf','commoner','knight','lord','councillor','hand','sovereign'];if(isHand(currentUserData))return['serf','commoner','knight','lord','councillor','hand'];return[];}
-function canEdit(targetRanks){if(!currentUserData)return false;if(isSov(currentUserData))return true;if(isHand(currentUserData))return!(targetRanks||[]).includes('sovereign');return false;}
+function assignableRanks(){if(!currentUserData)return[];if(isSov(currentUserData))return['serf','commoner','knight','lord','councillor','hand','sovereign'];if(isHand(currentUserData))return['serf','commoner','knight','lord','councillor'];return[];}
+function canEdit(targetRanks){if(!currentUserData)return false;if(isSov(currentUserData))return true;if(isHand(currentUserData))return!(targetRanks||[]).includes('sovereign')&&!(targetRanks||[]).includes('hand');return false;}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
 // ── AUTH ──
@@ -340,6 +362,7 @@ window.toggleAdminMode=function(){
 };
 window.toggleInline=function(id){const el=document.getElementById(id);el.classList.toggle('open');};
 
+
 // ── FIREBASE LISTENERS (started after auth, see onAuthStateChanged) ──
 let _listenersStarted = false;
 function startDataListeners() {
@@ -347,7 +370,8 @@ function startDataListeners() {
   _listenersStarted = true;
   onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();renderMyFamilySection();});
   onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
-  onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
+  onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyCard();renderMyFamilySection();populateFamilyDDs();});
+  onValue(ref(db,'prestige/invites'),snap=>{invites=snap.val()||{};renderMyFamilySection();});
 }
 
 function populateFamilyDDs(){
@@ -412,7 +436,17 @@ function renderMembers(){
         <div class="form-row">
           <div class="form-group"><label>Name</label><input type="text" id="mn-${m.id}" value="${m.name||''}"></div>
           <div class="form-group"><label>Family</label><select id="mf-${m.id}" class="family-dd"><option value="">— None —</option>${Object.entries(families).map(([fid,f])=>`<option value="${fid}" ${m.familyId===fid?'selected':''}>${f.name}</option>`).join('')}</select></div>
-          <div class="form-group"><label>Points</label><input type="number" id="mp-${m.id}" value="${m.points||0}" min="0"></div>
+        </div>
+        <div class="pts-adjust">
+          <span class="pts-adjust-label">Prestige Points</span>
+          <div class="pts-adjust-current">Current: <strong>${(m.points||0).toLocaleString()}</strong> pts</div>
+          <div class="pts-adjust-row">
+            <input type="number" id="padj-${m.id}" value="10" min="1">
+            <input type="text" id="preason-${m.id}" placeholder="Reason (e.g. Quest: Dragon Slaying)">
+            <button class="add-pts-btn" onclick="adjustPrestige('${m.id}','${(m.name||'').replace(/'/g,"\\'")}',1)">+ Add</button>
+            <button class="rem-pts-btn" onclick="adjustPrestige('${m.id}','${(m.name||'').replace(/'/g,"\\'")}', -1)">− Remove</button>
+          </div>
+          <div class="pts-log" id="plog-${m.id}"><span class="pts-log-title">History</span><div style="font-size:12px;font-style:italic;color:var(--ink-soft);padding:4px 0">Loading…</div></div>
         </div>
         <div class="rank-checkboxes">${rankChecks}</div>
         <div class="form-row">
@@ -431,18 +465,88 @@ function renderMembers(){
   c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-window.toggleEdit=function(id){const r=document.getElementById(id);if(r)r.style.display=r.style.display==='none'?'table-row':'none';};
+window.toggleEdit=function(id){
+  const r=document.getElementById(id);
+  if(!r)return;
+  const opening=r.style.display==='none';
+  r.style.display=opening?'table-row':'none';
+  if(opening){
+    // load logs when edit row opens
+    const mid=id.startsWith('fedit-')?null:id.replace('edit-','');
+    const fid=id.startsWith('fedit-')?id.replace('fedit-',''):null;
+    if(mid)loadMemberLog(mid);
+    if(fid)loadFamilyLog(fid);
+  }
+};
+
+function renderLogRows(entries){
+  if(!entries.length)return'<div style="font-size:12px;font-style:italic;color:var(--ink-soft);padding:4px 0">No history yet.</div>';
+  return entries.slice(-15).reverse().map(e=>{
+    const sign=e.delta>0?'+':'';
+    const cls=e.delta>0?'pos':'neg';
+    const d=new Date(e.at);
+    const date=`${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+    return`<div class="pts-log-row"><span class="pts-log-delta ${cls}">${sign}${e.delta}</span><span class="pts-log-reason">${e.reason||'—'}</span><span class="pts-log-meta">${e.by||'?'} · ${date}</span></div>`;
+  }).join('');
+}
+
+function loadMemberLog(mid){
+  const c=document.getElementById('plog-'+mid);
+  if(!c)return;
+  get(ref(db,'prestige/members/'+mid+'/log')).then(snap=>{
+    const entries=snap.val()?Object.values(snap.val()):[];
+    c.innerHTML='<span class="pts-log-title">History</span>'+renderLogRows(entries);
+  });
+}
+
+function loadFamilyLog(fid){
+  const c=document.getElementById('flog-'+fid);
+  if(!c)return;
+  get(ref(db,'prestige/families/'+fid+'/log')).then(snap=>{
+    const entries=snap.val()?Object.values(snap.val()):[];
+    c.innerHTML='<span class="pts-log-title">History</span>'+renderLogRows(entries);
+  });
+}
+
+window.adjustPrestige=async function(id,name,sign){
+  const amount=parseInt(document.getElementById('padj-'+id)?.value)||0;
+  const reason=document.getElementById('preason-'+id)?.value.trim();
+  if(!amount||amount<1){toast('Enter a valid amount.');return;}
+  if(!reason){toast('Enter a reason.');return;}
+  const delta=sign*amount;
+  const current=members[id]?.points||0;
+  const newPts=Math.max(0,current+delta);
+  const entry={delta,reason,by:currentUserData?.name||'Admin',at:Date.now()};
+  await update(ref(db,'prestige/members/'+id),{points:newPts});
+  await push(ref(db,'prestige/members/'+id+'/log'),entry);
+  toast(`${name}: ${delta>0?'+':''}${delta} pts`);
+  loadMemberLog(id);
+};
+
+window.adjustFamilyBonus=async function(id,name,sign){
+  const amount=parseInt(document.getElementById('fadj-'+id)?.value)||0;
+  const reason=document.getElementById('freason-'+id)?.value.trim();
+  if(!amount||amount<1){toast('Enter a valid amount.');return;}
+  if(!reason){toast('Enter a reason.');return;}
+  const delta=sign*amount;
+  const current=families[id]?.bonusPoints||0;
+  const newPts=Math.max(0,current+delta);
+  const entry={delta,reason,by:currentUserData?.name||'Admin',at:Date.now()};
+  await update(ref(db,'prestige/families/'+id),{bonusPoints:newPts});
+  await push(ref(db,'prestige/families/'+id+'/log'),entry);
+  toast(`${name}: ${delta>0?'+':''}${delta} bonus pts`);
+  loadFamilyLog(id);
+};
 window.saveMember=async function(id){
   const name=document.getElementById('mn-'+id).value.trim();
   const fam=document.getElementById('mf-'+id).value;
-  const pts=parseInt(document.getElementById('mp-'+id).value)||0;
   const customTitle=document.getElementById('mct-'+id).value.trim();
   const adminAccess=document.getElementById('madmin-'+id).checked;
   const ranks=[...document.querySelectorAll(`#edit-${id} input[data-rank]:checked`)].map(c=>c.dataset.rank);
   if(!ranks.length)ranks.push('serf');
-  
-  // 1. Update prestige registry
-  await update(ref(db,'prestige/members/'+id),{name,familyId:fam,points:pts,ranks,customTitle,adminAccess});
+
+  // 1. Update prestige registry (points managed separately via adjustPrestige)
+  await update(ref(db,'prestige/members/'+id),{name,familyId:fam,ranks,customTitle,adminAccess});
   
   // 2. Sync to users table by finding matching name
   try {
@@ -512,7 +616,17 @@ function renderFamilies(){
       <div class="edit-row open">
         <div class="form-row">
           <div class="form-group"><label>Family Name</label><input type="text" id="fn-${f.id}" value="${f.name||''}"></div>
-          <div class="form-group"><label>Bonus Points</label><input type="number" id="fb-${f.id}" value="${f.bonusPoints||0}" min="0"></div>
+        </div>
+        <div class="pts-adjust">
+          <span class="pts-adjust-label">Family Own Prestige (Bonus)</span>
+          <div class="pts-adjust-current">Current: <strong>${(f.bonusPoints||0).toLocaleString()}</strong> pts</div>
+          <div class="pts-adjust-row">
+            <input type="number" id="fadj-${f.id}" value="10" min="1">
+            <input type="text" id="freason-${f.id}" placeholder="Reason (e.g. Guild Event Victory)">
+            <button class="add-pts-btn" onclick="adjustFamilyBonus('${f.id}','${(f.name||'').replace(/'/g,"\\'")}',1)">+ Add</button>
+            <button class="rem-pts-btn" onclick="adjustFamilyBonus('${f.id}','${(f.name||'').replace(/'/g,"\\'")}', -1)">− Remove</button>
+          </div>
+          <div class="pts-log" id="flog-${f.id}"><span class="pts-log-title">History</span><div style="font-size:12px;font-style:italic;color:var(--ink-soft);padding:4px 0">Loading…</div></div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="gold-btn" style="font-size:12px;padding:7px 14px" onclick="saveFamily('${f.id}')">Save</button>
@@ -553,7 +667,31 @@ function renderMyFamilySection(){
   const showMyFamily = myFamId && !isKnight && families[myFamId];
   
   if(!showMyFamily) {
-    c.style.display = 'none';
+    const myInvites = invites[currentPM.id] || {};
+    const inviteKeys = Object.keys(myInvites);
+    if (inviteKeys.length > 0 && !isKnight) {
+      const inviteCards = inviteKeys.map(fid => {
+        const inv = myInvites[fid];
+        return `
+        <div class="family-card" style="border: 1px dashed var(--gold); background: rgba(200, 160, 74, 0.03); padding: 15px; border-radius: 4px; text-align: center; margin-bottom: 12px;">
+          <div style="font-size: 15px; margin-bottom: 12px; color: var(--navy);">
+            You have been invited to join the family <strong>${inv.familyName}</strong> by Lord <strong>${inv.invitedBy}</strong>.
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="gold-btn" style="font-size: 11px; padding: 6px 16px;" onclick="acceptFamilyInvite('${fid}')">Accept</button>
+            <button class="ghost-btn" style="font-size: 11px; padding: 6px 16px;" onclick="rejectFamilyInvite('${fid}')">Decline</button>
+          </div>
+        </div>
+        `;
+      }).join('');
+      c.innerHTML = `
+        <h3 class="section-eyebrow" style="margin-top: 24px; margin-bottom: 12px;">— Family Invitations —</h3>
+        ${inviteCards}
+      `;
+      c.style.display = 'block';
+    } else {
+      c.style.display = 'none';
+    }
     return;
   }
   
@@ -596,9 +734,35 @@ function renderMyFamilySection(){
   // Lord management invite box
   let inviteBoxHTML = '';
   if (isLordOfFamily) {
-    const nonFamilyMembers = mList.filter(m => !m.familyId && !(m.ranks || []).includes('knight') && !(m.ranks || []).includes('lord'));
+    const nonFamilyMembers = mList.filter(m => !m.familyId && !(invites[m.id] && invites[m.id][myFamId]) && !(m.ranks || []).includes('knight') && !(m.ranks || []).includes('lord'));
     const options = nonFamilyMembers.map(m => `<option value="${m.id}">${m.name || m.id}</option>`).join('');
     
+    // Find sent invites by our family
+    const sentInvites = [];
+    Object.entries(invites).forEach(([mid, userInvites]) => {
+      if (userInvites && userInvites[myFamId]) {
+        sentInvites.push({ mid, ...userInvites[myFamId], memberName: members[mid]?.name || mid });
+      }
+    });
+    
+    let sentInvitesHTML = '';
+    if (sentInvites.length > 0) {
+      const inviteItems = sentInvites.map(inv => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 0; border-bottom: 1px dashed rgba(120,90,50,0.1); font-size:13px; color:var(--ink);">
+          <span>${inv.memberName} <span style="opacity:0.5; font-size:10px;">(Pending)</span></span>
+          <button class="red-btn" style="font-size:10px; padding:2px 8px;" onclick="cancelInvite('${inv.mid}')">Cancel</button>
+        </div>
+      `).join('');
+      sentInvitesHTML = `
+        <div style="margin-top:16px; padding-top:12px; border-top:1px dashed rgba(120,90,50,0.25);">
+          <div style="font-size:11px; font-variant:small-caps; letter-spacing:1.5px; color:var(--ink-soft); margin-bottom:6px; font-weight:bold;">Pending Invitations Sent</div>
+          <div style="background:rgba(255,255,255,0.2); padding:0 8px; border-radius:2px; border:1px solid rgba(120,90,50,0.1);">
+            ${inviteItems}
+          </div>
+        </div>
+      `;
+    }
+
     if (nonFamilyMembers.length > 0) {
       inviteBoxHTML = `
         <div class="family-invite-box" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(120,90,50,0.3);">
@@ -609,11 +773,15 @@ function renderMyFamilySection(){
             </select>
             <button class="gold-btn" style="font-size:12px; padding:8px 18px;" onclick="inviteMember()">Add Member</button>
           </div>
+          ${sentInvitesHTML}
         </div>`;
     } else {
       inviteBoxHTML = `
-        <div class="family-invite-box" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(120,90,50,0.3); text-align: center; font-style: italic; color: var(--ink-soft); font-size: 13px;">
-          No unaligned members available to invite.
+        <div class="family-invite-box" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(120,90,50,0.3);">
+          <div style="text-align: center; font-style: italic; color: var(--ink-soft); font-size: 13px;">
+            No unaligned members available to invite.
+          </div>
+          ${sentInvitesHTML}
         </div>`;
     }
   }
@@ -663,9 +831,60 @@ window.inviteMember = async function() {
   }
   const myFamId = currentPM?.familyId;
   if(!myFamId) return;
+
+  // Check if this family already invited this member
+  if (invites[mid] && invites[mid][myFamId]) {
+    toast("You have already invited this member.");
+    return;
+  }
+
+  const fam = families[myFamId];
+  const familyName = fam?.name || myFamId;
   const memberName = members[mid]?.name || "Adventurer";
-  await update(ref(db, 'prestige/members/' + mid), { familyId: myFamId });
-  toast(`${memberName} joined your family.`);
+  await set(ref(db, 'prestige/invites/' + mid + '/' + myFamId), {
+    familyId: myFamId,
+    familyName: familyName,
+    invitedBy: currentPM.name || 'A Lord'
+  });
+  toast(`Invitation sent to ${memberName}.`);
+};
+
+window.cancelInvite = async function(mid) {
+  const myFamId = currentPM?.familyId;
+  if (!myFamId) return;
+  const memberName = members[mid]?.name || "Adventurer";
+  if (!confirm(`Cancel invitation sent to ${memberName}?`)) return;
+  try {
+    await remove(ref(db, 'prestige/invites/' + mid + '/' + myFamId));
+    toast("Invitation cancelled.");
+  } catch(e) {
+    toast("Failed to cancel invitation.");
+  }
+};
+
+window.acceptFamilyInvite = async function(fid) {
+  if (!currentPM) return;
+  const myInvites = invites[currentPM.id] || {};
+  const myInvite = myInvites[fid];
+  if (!myInvite) return;
+  try {
+    await update(ref(db, 'prestige/members/' + currentPM.id), { familyId: myInvite.familyId });
+    await remove(ref(db, 'prestige/invites/' + currentPM.id));
+    toast(`Joined ${myInvite.familyName}!`);
+  } catch(e) {
+    toast("Failed to join family.");
+  }
+};
+
+window.rejectFamilyInvite = async function(fid) {
+  if (!currentPM) return;
+  if (!confirm("Decline this family invitation?")) return;
+  try {
+    await remove(ref(db, 'prestige/invites/' + currentPM.id + '/' + fid));
+    toast("Invitation declined.");
+  } catch(e) {
+    toast("Failed to decline invitation.");
+  }
 };
 
 window.toggleFamRename = function() {
@@ -694,8 +913,7 @@ window.removeMemberFromFamily = async function(mid) {
 
 window.saveFamily=async function(id){
   const name=document.getElementById('fn-'+id).value.trim();
-  const bonus=parseInt(document.getElementById('fb-'+id).value)||0;
-  await update(ref(db,'prestige/families/'+id),{name,bonusPoints:bonus});
+  await update(ref(db,'prestige/families/'+id),{name});
   toast(`${name} updated.`);document.getElementById('fedit-'+id).style.display='none';
 };
 window.deleteFamily=async function(id,name){

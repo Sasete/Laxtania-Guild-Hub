@@ -326,6 +326,9 @@
 
     <hr class="divider">
 
+    <!-- Family Invite Notification -->
+    <div id="familyInviteNotification" style="display:none; margin-bottom: 20px;"></div>
+
     <!-- Guild Notice -->
     <div id="guildMessageContainer" class="message-box">
       <span class="message-eyebrow">Notice from the Sovereign</span>
@@ -365,7 +368,7 @@ const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getDatabase(app);
 
-let currentUserData=null,isAdmin=false,pendingUsers={},isEditingMessage=false,currentMessage="";
+let currentUserData=null,isAdmin=false,pendingUsers={},isEditingMessage=false,currentMessage="",unsubscribeInvite=null;
 
 function resolveIsAdmin(d){
   const ranks=d.ranks||['serf'];
@@ -380,7 +383,7 @@ function assignableRanks(){
   const isSov=ranks.includes('sovereign');
   const isHand=ranks.includes('hand');
   if(isSov)return['serf','commoner','knight','lord','councillor','hand','sovereign'];
-  if(isHand)return['serf','commoner','knight','lord','councillor','hand'];
+  if(isHand)return['serf','commoner','knight','lord','councillor'];
   return[];
 }
 
@@ -403,18 +406,22 @@ function renderUserRoles(ranks) {
 // ── AUTH STATE ──
 onAuthStateChanged(auth,async user=>{
   if(!user){
-    document.getElementById('authEntry').style.display='block';
-    document.getElementById('authRegister').style.display='none';
-    document.getElementById('guildNav').style.display='none';
+    currentUserData=null;
+    isAdmin=false;
+    if(unsubscribeInvite){unsubscribeInvite();unsubscribeInvite=null;}
     show('viewAuth');
+    document.getElementById('userBar').style.display='none';
+    document.getElementById('guildNav').style.display='none';
     return;
   }
   const snap=await get(ref(db,'users/'+user.uid));
   if(!snap.exists()){
-    document.getElementById('authEntry').style.display='none';
-    document.getElementById('authRegister').style.display='block';
-    document.getElementById('guildNav').style.display='none';
+    currentUserData=null;
+    isAdmin=false;
+    if(unsubscribeInvite){unsubscribeInvite();unsubscribeInvite=null;}
     show('viewAuth');
+    document.getElementById('userBar').style.display='none';
+    document.getElementById('guildNav').style.display='none';
     return;
   }
   const data=snap.val();
@@ -485,11 +492,72 @@ onAuthStateChanged(auth,async user=>{
     
     document.getElementById('bannerSovereign').textContent = sovereigns.length ? sovereigns.join(', ') : '—';
     document.getElementById('bannerHand').textContent = hands.length ? hands.join(', ') : '—';
+
+    // Listen for invitations dynamically
+    if (currentUserData && currentUserData.name) {
+      const myEntry = Object.entries(members).find(([mid, m]) => m.name?.toLowerCase() === currentUserData.name.toLowerCase());
+      if (myEntry) {
+        const myMid = myEntry[0];
+        if (unsubscribeInvite) unsubscribeInvite();
+        unsubscribeInvite = onValue(ref(db, 'prestige/invites/' + myMid), inviteSnap => {
+          const myInvites = inviteSnap.val() || {};
+          const inviteKeys = Object.keys(myInvites);
+          const notificationEl = document.getElementById('familyInviteNotification');
+          if (inviteKeys.length > 0) {
+            notificationEl.innerHTML = inviteKeys.map(fid => {
+              const inv = myInvites[fid];
+              return `
+              <div class="message-box" style="margin-bottom: 12px;">
+                <span class="message-eyebrow">Family Invitation</span>
+                <div class="message-content">You have been invited to join the family <strong>${inv.familyName}</strong> by Lord <strong>${inv.invitedBy}</strong>.</div>
+                <div style="text-align:right; margin-top:12px; display:flex; gap:10px; justify-content:flex-end;">
+                  <button class="approve-btn" onclick="acceptFamilyInvite('${fid}')">Accept</button>
+                  <button class="reject-btn" onclick="rejectFamilyInvite('${fid}')">Decline</button>
+                </div>
+              </div>
+              `;
+            }).join('');
+            notificationEl.style.display = 'block';
+            window.myMemberId = myMid;
+            window.activeInvites = myInvites;
+          } else {
+            notificationEl.style.display = 'none';
+            notificationEl.innerHTML = '';
+            window.myMemberId = null;
+            window.activeInvites = null;
+          }
+        });
+      }
+    }
   });
 
   loadLiveStats();
   show('viewHall');
 });
+
+// ── FAMILY INVITE ACTIONS ──
+window.acceptFamilyInvite = async function(fid) {
+  if (!window.myMemberId || !window.activeInvites) return;
+  const invite = window.activeInvites[fid];
+  if (!invite) return;
+  try {
+    await update(ref(db, 'prestige/members/' + window.myMemberId), { familyId: invite.familyId });
+    await remove(ref(db, 'prestige/invites/' + window.myMemberId));
+    alert(`Successfully joined ${invite.familyName}!`);
+  } catch(e) {
+    alert("Failed to join family: " + e.message);
+  }
+};
+window.rejectFamilyInvite = async function(fid) {
+  if (!window.myMemberId) return;
+  if (!confirm("Decline this family invitation?")) return;
+  try {
+    await remove(ref(db, 'prestige/invites/' + window.myMemberId + '/' + fid));
+    alert("Invitation declined.");
+  } catch(e) {
+    alert("Failed to decline invitation: " + e.message);
+  }
+};
 
 // ── EDIT NOTICE ACTION ──
 window.toggleEditMessage = async function() {

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laxtania — Guild Events</title>
+<style>
+  :root{
+    --wood-dark:#3a2718;--wood-mid:#4f3622;--wood-light:#6b4a30;
+    --parchment:#f1e4c4;--parchment-shadow:#ddc69a;
+    --ink:#2e2014;--ink-soft:#5a4632;
+    --gold:#c8a04a;--gold-bright:#e6c878;
+    --navy:#1c2a40;--seal-red:#8c2424;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif;background-color:var(--wood-dark);background-image:repeating-linear-gradient(90deg,var(--wood-dark) 0px,var(--wood-mid) 18px,var(--wood-dark) 36px,var(--wood-light) 54px),radial-gradient(ellipse at center,rgba(0,0,0,0) 0%,rgba(0,0,0,0.45) 100%);color:var(--ink);min-height:100vh;padding:40px 20px 60px;}
+
+  /* BANNER */
+  .board-header{max-width:980px;margin:0 auto 28px;text-align:center;}
+  .banner{background:linear-gradient(180deg,#233754 0%,var(--navy) 100%);border:2px solid var(--gold);border-radius:4px;padding:22px 30px 26px;box-shadow:0 0 0 5px rgba(0,0,0,0.25),0 12px 30px rgba(0,0,0,0.5);position:relative;}
+  .banner::before,.banner::after{content:"";position:absolute;top:50%;width:60px;height:1px;background:var(--gold);opacity:0.6;transform:translateY(-50%);}
+  .banner::before{left:18px;}.banner::after{right:18px;}
+  .banner-eyebrow{display:block;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--gold-bright);font-variant:small-caps;margin-bottom:8px;}
+  .banner h1{font-size:36px;font-weight:400;letter-spacing:3px;color:var(--parchment);text-shadow:0 2px 4px rgba(0,0,0,0.6);}
+  .banner-sub{display:block;margin-top:8px;font-size:13px;letter-spacing:2px;color:rgba(241,228,196,0.65);font-style:italic;}
+
+  /* PARCHMENT */
+  .parchment-wrap{max-width:980px;margin:0 auto;background-color:var(--parchment);background-image:radial-gradient(ellipse at 25% 20%,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0) 50%),radial-gradient(ellipse at 80% 85%,rgba(120,90,50,0.18) 0%,rgba(120,90,50,0) 55%);border-radius:3px 9px 4px 10px/9px 4px 10px 3px;padding:32px 36px 36px;box-shadow:inset 0 0 0 1px rgba(120,90,50,0.25),inset 0 0 40px rgba(120,90,50,0.18),0 14px 28px rgba(0,0,0,0.45);position:relative;}
+  .pin{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--gold-bright),var(--gold) 55%,#8a6a28 100%);box-shadow:0 3px 5px rgba(0,0,0,0.5),inset 0 0 2px rgba(255,255,255,0.6);}
+  .divider{border:none;height:1px;background:linear-gradient(to right,transparent,var(--gold) 15%,var(--gold) 85%,transparent);margin:16px 0;opacity:0.7;}
+
+  /* TOOLBAR */
+  .event-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+  .create-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;padding:8px 20px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.15);transition:transform 0.08s;}
+  .create-btn:hover{transform:translateY(-1px);}
+
+  /* TABS */
+  .tabs{display:flex;border-bottom:1px solid rgba(120,90,50,0.3);margin-bottom:22px;}
+  .tab-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;color:var(--ink-soft);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:8px 20px 10px;cursor:pointer;transition:all 0.15s;}
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold);}
+  .tab-panel{display:none;}.tab-panel.active{display:block;}
+
+  /* CREATE FORM */
+  .create-form{display:none;background:rgba(28,42,64,0.05);border:1px solid rgba(28,42,64,0.18);padding:18px 20px;margin-bottom:20px;}
+  .create-form.open{display:block;}
+  .create-form h3{font-size:11px;font-variant:small-caps;letter-spacing:2.5px;color:var(--navy);margin-bottom:14px;padding-bottom:7px;border-bottom:1px solid rgba(28,42,64,0.12);}
+  .form-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .form-group{display:flex;flex-direction:column;flex:1;min-width:160px;}
+  .form-group label{font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .form-group input,.form-group textarea,.form-group select{font-family:Georgia,serif;font-size:13px;color:var(--ink);background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);padding:7px 9px;}
+  .form-group textarea{resize:vertical;min-height:70px;}
+  .gold-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;padding:7px 18px;cursor:pointer;transition:transform 0.08s;}
+  .gold-btn:hover{transform:translateY(-1px);}
+  .ghost-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:rgba(255,255,255,0.35);color:var(--ink-soft);border:1px solid rgba(120,90,50,0.35);padding:7px 14px;cursor:pointer;}
+  .red-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:rgba(140,36,36,0.08);color:var(--seal-red);border:1px solid rgba(140,36,36,0.35);padding:5px 12px;cursor:pointer;}
+  .red-btn:hover{background:rgba(140,36,36,0.16);}
+
+  /* EVENT CARDS */
+  .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+  .event-card{background-color:var(--parchment);background-image:radial-gradient(ellipse at 20% 15%,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0) 45%);border-radius:3px 8px 3px 8px/8px 3px 8px 3px;padding:18px 20px;box-shadow:inset 0 0 0 1px rgba(120,90,50,0.2),inset 0 0 20px rgba(120,90,50,0.1),0 4px 12px rgba(0,0,0,0.2);position:relative;display:flex;flex-direction:column;gap:0;}
+  .event-card.cancelled{opacity:0.55;}
+  .event-card.completed{border-left:3px solid var(--gold);}
+  .event-status-badge{display:inline-block;font-size:10px;font-variant:small-caps;letter-spacing:1.5px;padding:2px 8px;border-radius:2px;margin-bottom:8px;}
+  .badge-upcoming{background:rgba(28,42,64,0.1);color:var(--navy);border:1px solid rgba(28,42,64,0.2);}
+  .badge-completed{background:rgba(200,160,74,0.2);color:#7a5a10;border:1px solid rgba(200,160,74,0.5);}
+  .badge-cancelled{background:rgba(140,36,36,0.1);color:var(--seal-red);border:1px solid rgba(140,36,36,0.25);}
+  .event-title{font-size:17px;font-weight:400;letter-spacing:0.5px;color:var(--ink);margin-bottom:5px;line-height:1.3;}
+  .event-meta{font-size:12px;font-style:italic;color:var(--ink-soft);margin-bottom:10px;display:flex;flex-direction:column;gap:2px;}
+  .event-desc{font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:12px;border-top:1px dashed rgba(120,90,50,0.2);padding-top:10px;}
+  .event-footer{margin-top:auto;padding-top:10px;border-top:1px solid rgba(120,90,50,0.15);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .participant-count{font-size:12px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);}
+  .join-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:rgba(28,42,64,0.1);color:var(--navy);border:1px solid rgba(28,42,64,0.3);padding:5px 14px;cursor:pointer;transition:background 0.15s;}
+  .join-btn:hover{background:rgba(28,42,64,0.18);}
+  .join-btn.joined{background:rgba(200,160,74,0.2);color:#7a5a10;border-color:rgba(200,160,74,0.5);}
+  .join-btn.joined:hover{background:rgba(140,36,36,0.1);color:var(--seal-red);border-color:rgba(140,36,36,0.35);}
+
+  /* PARTICIPANT LIST (organizer/admin) */
+  .participants-panel{display:none;margin-top:12px;border-top:1px dashed rgba(120,90,50,0.25);padding-top:10px;}
+  .participants-panel.open{display:block;}
+  .participants-panel-title{font-size:10px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:7px;}
+  .participant-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(120,90,50,0.08);font-size:13px;}
+  .participant-row:last-child{border-bottom:none;}
+
+  /* COMPLETE PANEL (admin) */
+  .complete-panel{display:none;margin-top:12px;background:rgba(200,160,74,0.08);border:1px solid rgba(200,160,74,0.35);padding:12px 14px;}
+  .complete-panel.open{display:block;}
+  .complete-panel label{font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);display:block;margin-bottom:4px;}
+  .complete-panel input{font-family:Georgia,serif;font-size:13px;color:var(--ink);background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);padding:6px 9px;width:100%;margin-bottom:10px;}
+  .complete-preview{font-size:12px;font-style:italic;color:var(--navy);margin-bottom:10px;min-height:18px;}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:40px;font-style:italic;color:var(--ink-soft);font-size:14px;}
+  .loading{text-align:center;padding:36px;font-variant:small-caps;font-size:12px;letter-spacing:3px;color:var(--ink-soft);animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--gold-bright);font-variant:small-caps;letter-spacing:2px;font-size:12px;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;border:1px solid var(--gold);}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="navbar-placeholder" data-page="events" data-path-prefix="../"></div>
+<script src="../navbar.js"></script>
+
+<div class="board-header">
+  <div class="banner">
+    <span class="banner-eyebrow">Laxtania Guild</span>
+    <h1>Guild Events</h1>
+    <span class="banner-sub">Gather, Compete, Earn Glory</span>
+  </div>
+</div>
+
+<div class="parchment-wrap">
+  <div class="pin"></div>
+
+  <div class="event-toolbar">
+    <div style="font-size:13px;font-style:italic;color:var(--ink-soft)">Organise events and earn Prestige.</div>
+    <button class="create-btn" id="createEventBtn" onclick="toggleCreateForm()" style="display:none">+ Create Event</button>
+  </div>
+
+  <!-- Create Event Form -->
+  <div class="create-form" id="createForm">
+    <h3>New Event</h3>
+    <div class="form-row">
+      <div class="form-group" style="flex:2"><label>Event Title</label><input type="text" id="evTitle" placeholder="e.g. Siege of Blackwood Keep"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="evDate"></div>
+      <div class="form-group"><label>Time</label><input type="time" id="evTime" value="20:00"></div>
+      <div class="form-group"><label>Max Participants <span style="font-size:10px;font-style:italic">(0 = unlimited)</span></label><input type="number" id="evMax" value="0" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2"><label>Description</label><textarea id="evDesc" placeholder="What's happening, requirements, rewards info…"></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="gold-btn" onclick="postEvent()">Post Event</button>
+      <button class="ghost-btn" onclick="toggleCreateForm()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('upcoming')">Upcoming</button>
+    <button class="tab-btn" onclick="switchTab('past')">Past & Completed</button>
+  </div>
+
+  <div id="tab-upcoming" class="tab-panel active">
+    <div id="upcomingContainer"><div class="loading">Consulting the Archives…</div></div>
+  </div>
+  <div id="tab-past" class="tab-panel">
+    <div id="pastContainer"><div class="loading">Consulting the Archives…</div></div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, set, get, update, remove, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
+const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
+
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getDatabase(app);
+
+let currentUser=null, currentUserData=null, isAdmin=false;
+let events={}, members={};
+let activeTab='upcoming';
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function fmtDate(ts){const d=new Date(ts);return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});}
+function fmtTime(ts){const d=new Date(ts);return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
+function timeUntil(ts){const diff=ts-Date.now();if(diff<0)return null;const h=Math.floor(diff/3600000);const d=Math.floor(h/24);if(d>0)return`in ${d} day${d!==1?'s':''}`;if(h>0)return`in ${h}h`;return'soon';}
+
+// ── RENDER ──
+function renderEvents(){
+  const now=Date.now();
+  const list=Object.entries(events).map(([id,e])=>({id,...e}));
+  const upcoming=list.filter(e=>e.status!=='cancelled'&&e.status!=='completed'&&(e.date||0)>=now-(3600000*3)).sort((a,b)=>a.date-b.date);
+  const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*3)).sort((a,b)=>b.date-a.date);
+
+  const upEl=document.getElementById('upcomingContainer');
+  const paEl=document.getElementById('pastContainer');
+
+  upEl.innerHTML=upcoming.length?`<div class="events-grid">${upcoming.map(e=>buildCard(e)).join('')}</div>`:'<div class="empty">No upcoming events. Be the first to organise one!</div>';
+  paEl.innerHTML=past.length?`<div class="events-grid">${past.map(e=>buildCard(e)).join('')}</div>`:'<div class="empty">No past events yet.</div>';
+}
+
+function buildCard(ev){
+  const isOrganizer=currentUser&&ev.organizerUid===currentUser.uid;
+  const canManage=isOrganizer||isAdmin;
+  const parts=ev.participants?Object.entries(ev.participants):[];
+  const myEntry=currentUser?parts.find(([uid])=>uid===currentUser.uid):null;
+  const isJoined=!!myEntry;
+  const isCancelled=ev.status==='cancelled';
+  const isCompleted=ev.status==='completed';
+  const isUpcoming=!isCancelled&&!isCompleted;
+  const maxParts=ev.maxParticipants||0;
+  const isFull=maxParts>0&&parts.length>=maxParts&&!isJoined;
+
+  const statusBadge=isCancelled?'<span class="event-status-badge badge-cancelled">Cancelled</span>':isCompleted?'<span class="event-status-badge badge-completed">Completed</span>':'<span class="event-status-badge badge-upcoming">Upcoming</span>';
+  const until=!isCancelled&&!isCompleted&&ev.date?timeUntil(ev.date):'';
+
+  const joinBtn=!isUpcoming||!currentUser?'':isFull&&!isJoined?
+    `<button class="join-btn" disabled style="opacity:0.5;cursor:default">Full</button>`:
+    `<button class="join-btn ${isJoined?'joined':''}" onclick="toggleJoin('${ev.id}')">${isJoined?'✓ Leave':'Join'}</button>`;
+
+  const manageBtn=canManage&&isUpcoming?`<button class="ghost-btn" style="font-size:11px;padding:4px 10px" onclick="togglePanel('parts-${ev.id}')">👥 ${parts.length}${maxParts?'/'+maxParts:''}</button>`:`<span class="participant-count">👥 ${parts.length}${maxParts?'/'+maxParts:''} participant${parts.length!==1?'s':''}</span>`;
+
+  const completeBtn=isAdmin&&isUpcoming?`<button class="gold-btn" style="font-size:11px;padding:4px 12px;margin-top:8px" onclick="togglePanel('complete-${ev.id}')">⚔ Complete</button>`:'';
+  const cancelBtn=canManage&&isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="cancelEvent('${ev.id}')">Cancel Event</button>`:'';
+  const deleteBtn=isAdmin&&!isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="deleteEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')">🗑 Delete</button>`:'';
+
+  // Participants panel (organizer/admin)
+  const partsPanel=canManage?`<div class="participants-panel" id="parts-${ev.id}">
+    <div class="participants-panel-title">Participants (${parts.length}${maxParts?' / '+maxParts:''})</div>
+    ${parts.length?parts.map(([uid,p])=>`<div class="participant-row"><span>${p.name||uid}</span>${isUpcoming?`<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="removeParticipant('${ev.id}','${uid}')">Remove</button>`:''}</div>`).join(''):'<div style="font-size:12px;font-style:italic;color:var(--ink-soft)">No participants yet.</div>'}
+  </div>`:'';
+
+  // Complete panel (admin)
+  const completePanel=isAdmin?`<div class="complete-panel" id="complete-${ev.id}">
+    <label>Total Prestige to Distribute</label>
+    <input type="number" id="cpts-${ev.id}" value="100" min="1" oninput="updateCompletePreview('${ev.id}')">
+    <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · ${parts.length?Math.floor(100/parts.length):0} pts each</div>
+    <div style="display:flex;gap:8px">
+      <button class="gold-btn" style="font-size:12px" onclick="completeEvent('${ev.id}')">Confirm & Distribute</button>
+      <button class="ghost-btn" style="font-size:12px" onclick="togglePanel('complete-${ev.id}')">Cancel</button>
+    </div>
+  </div>`:'';
+
+  const prestige=ev.prestige?`<span style="font-size:12px;font-variant:small-caps;letter-spacing:1px;color:#7a5a10">⬡ ${ev.prestige} pts distributed</span>`:'';
+
+  return`<div class="event-card ${isCancelled?'cancelled':''} ${isCompleted?'completed':''}">
+    ${statusBadge}
+    <div class="event-title">${ev.title||'Untitled Event'}</div>
+    <div class="event-meta">
+      <span>📅 ${ev.date?fmtDate(ev.date):'TBA'}${ev.date?' · '+fmtTime(ev.date):''}</span>
+      ${until?`<span style="color:var(--navy);font-variant:small-caps;font-size:11px;letter-spacing:1px">${until}</span>`:''}
+      <span>⚔ ${ev.organizer||'Unknown'}</span>
+    </div>
+    ${ev.description?`<div class="event-desc">${ev.description}</div>`:''}
+    <div class="event-footer">
+      ${manageBtn}
+      <div style="display:flex;gap:8px;align-items:center">${prestige}${joinBtn}</div>
+    </div>
+    ${partsPanel}
+    ${completePanel}
+    ${completeBtn||cancelBtn||deleteBtn?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${completeBtn}${cancelBtn}${deleteBtn}</div>`:''}
+  </div>`;
+}
+
+// ── ACTIONS ──
+window.switchTab=function(tab){
+  activeTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    const t=b.getAttribute('onclick').match(/'(\w+)'/)?.[1];
+    b.classList.toggle('active',t===tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+};
+
+window.toggleCreateForm=function(){
+  document.getElementById('createForm').classList.toggle('open');
+};
+
+window.togglePanel=function(id){
+  const el=document.getElementById(id);
+  if(el)el.classList.toggle('open');
+};
+
+window.updateCompletePreview=function(evId){
+  const ev=events[evId];if(!ev)return;
+  const parts=ev.participants?Object.keys(ev.participants).length:0;
+  const total=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+  const prev=document.getElementById('cprev-'+evId);
+  if(!prev)return;
+  if(!parts){prev.textContent='No participants yet.';return;}
+  prev.textContent=`${parts} participant${parts!==1?'s':''} · ${Math.floor(total/parts)} pts each${total%parts?' · +'+total%parts+' remainder (first)':''}`;
+};
+
+window.postEvent=async function(){
+  const title=document.getElementById('evTitle').value.trim();
+  const dateVal=document.getElementById('evDate').value;
+  const timeVal=document.getElementById('evTime').value||'00:00';
+  const desc=document.getElementById('evDesc').value.trim();
+  const maxP=parseInt(document.getElementById('evMax').value)||0;
+  if(!title){toast('Enter an event title.');return;}
+  if(!dateVal){toast('Select a date.');return;}
+  const date=new Date(dateVal+'T'+timeVal).getTime();
+  try{
+    const newRef=push(ref(db,'events'));
+    await set(newRef,{title,description:desc,date,organizer:currentUserData.name,organizerUid:currentUser.uid,status:'upcoming',maxParticipants:maxP,prestige:0,createdAt:Date.now()});
+    toast(`"${title}" posted!`);
+    document.getElementById('evTitle').value='';
+    document.getElementById('evDesc').value='';
+    document.getElementById('evDate').value='';
+    document.getElementById('evMax').value='0';
+    document.getElementById('createForm').classList.remove('open');
+  }catch(e){
+    console.error('createEvent error:',e);
+    toast('Error: '+( e.message||'Could not post event. Check permissions.'));
+  }
+};
+
+window.toggleJoin=async function(evId){
+  const ev=events[evId];if(!ev||!currentUser)return;
+  const parts=ev.participants||{};
+  const isJoined=!!parts[currentUser.uid];
+  if(isJoined){
+    await remove(ref(db,`events/${evId}/participants/${currentUser.uid}`));
+    toast('You left the event.');
+  } else {
+    const maxP=ev.maxParticipants||0;
+    if(maxP>0&&Object.keys(parts).length>=maxP){toast('This event is full.');return;}
+    await set(ref(db,`events/${evId}/participants/${currentUser.uid}`),{name:currentUserData.name,joinedAt:Date.now()});
+    toast('You joined the event!');
+  }
+};
+
+window.removeParticipant=async function(evId,uid){
+  const name=events[evId]?.participants?.[uid]?.name||uid;
+  await remove(ref(db,`events/${evId}/participants/${uid}`));
+  toast(`${name} removed.`);
+};
+
+window.deleteEvent=async function(evId,title){
+  if(!isAdmin){toast('Admin access required.');return;}
+  if(!confirm(`Delete "${title}"? This cannot be undone.`))return;
+  await remove(ref(db,'events/'+evId));
+  toast(`"${title}" deleted.`);
+};
+
+window.cancelEvent=async function(evId){
+  const title=events[evId]?.title||'this event';
+  if(!confirm(`Cancel "${title}"?`))return;
+  await update(ref(db,'events/'+evId),{status:'cancelled'});
+  toast('Event cancelled.');
+};
+
+window.completeEvent=async function(evId){
+  if(!isAdmin){toast('Admin access required.');return;}
+  const ev=events[evId];if(!ev)return;
+  const total=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+  const parts=ev.participants?Object.entries(ev.participants):[];
+  if(!total||total<1){toast('Enter a prestige amount.');return;}
+  if(!parts.length){toast('No participants to reward.');return;}
+  const perPerson=Math.floor(total/parts.length);
+  const remainder=total-(perPerson*parts.length);
+  // shuffle indices to distribute remainder randomly
+  const indices=[...Array(parts.length).keys()].sort(()=>Math.random()-0.5);
+  const luckySet=new Set(indices.slice(0,remainder));
+  const by=currentUserData?.name||'Admin';
+  const at=Date.now();
+
+  // Find matching prestige/members entries and update
+  const pmSnap=await get(ref(db,'prestige/members'));
+  const pmData=pmSnap.val()||{};
+  const pmByName={};
+  Object.entries(pmData).forEach(([id,m])=>{if(m.name)pmByName[m.name.toLowerCase()]={id,...m};});
+
+  for(let i=0;i<parts.length;i++){
+    const [,p]=parts[i];
+    const delta=perPerson+(luckySet.has(i)?1:0);
+    const pm=pmByName[p.name?.toLowerCase()];
+    if(pm){
+      const newPts=(pm.points||0)+delta;
+      await update(ref(db,'prestige/members/'+pm.id),{points:newPts});
+      await push(ref(db,'prestige/members/'+pm.id+'/log'),{delta,reason:`Event: ${ev.title}`,by,at});
+    }
+  }
+  await update(ref(db,'events/'+evId),{status:'completed',prestige:total});
+  toast(`"${ev.title}" completed — ${total} pts distributed!`);
+};
+
+// ── AUTH ──
+window.doSignOut=async function(){await signOut(auth);window.location.href='../';};
+
+function renderUserRoles(ranks){
+  const c=document.getElementById('userBarRoles');if(!c)return;
+  const list=ranks||['serf'];
+  c.innerHTML=list.map(r=>`<span class="role-tag">${RANKS[r]?.label||r}</span>`).join('');
+}
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href='../';return;}
+  const snap=await get(ref(db,'users/'+user.uid));
+  if(!snap.exists()||snap.val().status!=='approved'){window.location.href='../';return;}
+  currentUser=user;
+  currentUserData=snap.val();
+  const ranks=currentUserData.ranks||['serf'];
+  isAdmin=ranks.some(r=>RANKS[r]?.admin===true)||currentUserData.adminAccess===true;
+  document.getElementById('userBar').style.display='flex';
+  document.getElementById('userBarName').textContent=currentUserData.name||user.email;
+  renderUserRoles(ranks);
+  document.getElementById('guildNav').style.display='flex';
+  if(isAdmin)document.getElementById('adminToggle').style.display='flex';
+  document.getElementById('createEventBtn').style.display='block';
+
+  onValue(ref(db,'events'),snap=>{
+    events=snap.val()||{};
+    renderEvents();
+  });
+});
+
+window.toggleAdminMode=function(){
+  // events page has no admin-only mode toggle needed
+};
+</script>
+</body>
+</html>
