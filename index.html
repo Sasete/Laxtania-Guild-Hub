@@ -387,6 +387,21 @@ onAuthStateChanged(auth,async user=>{
   }
   currentUserData=data;
   isAdmin=resolveIsAdmin(data);
+
+  // Auto-correct adminAccess in users/{uid} if ranks dictate admin rights but it is false in the database
+  const ranksList = data.ranks || ['serf'];
+  const highestRank = ranksList.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranksList[0]);
+  const shouldHaveAdmin = RANKS[highestRank]?.admin === true || (highestRank === 'councillor' && data.adminAccess === true);
+  if (shouldHaveAdmin && data.adminAccess !== true) {
+    try {
+      await update(ref(db, 'users/' + user.uid), { adminAccess: true });
+      currentUserData.adminAccess = true;
+      isAdmin = true;
+    } catch(e) {
+      console.error("Failed to auto-correct adminAccess:", e);
+    }
+  }
+
   document.getElementById('userBar').style.display='flex';
   document.getElementById('userBarName').textContent=data.name||user.email;
   renderUserRoles(data.ranks);

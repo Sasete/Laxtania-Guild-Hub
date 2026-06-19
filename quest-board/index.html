@@ -755,6 +755,20 @@
     currentUserData = snap.val();
     isAdmin = resolveIsAdmin(currentUserData);
 
+    // Auto-correct adminAccess in users/{uid} if ranks dictate admin rights but it is false in the database
+    const ranksList = currentUserData.ranks || ['serf'];
+    const highestRank = ranksList.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranksList[0]);
+    const shouldHaveAdmin = RANKS[highestRank]?.admin === true || (highestRank === 'councillor' && currentUserData.adminAccess === true);
+    if (shouldHaveAdmin && currentUserData.adminAccess !== true) {
+      try {
+        await db.ref('users/' + user.uid).update({ adminAccess: true });
+        currentUserData.adminAccess = true;
+        isAdmin = true;
+      } catch(e) {
+        console.error("Failed to auto-correct adminAccess:", e);
+      }
+    }
+
     document.getElementById('userBar').style.display = 'flex';
     document.getElementById('userBarName').textContent = currentUserData.name || user.email;
     renderUserRoles(currentUserData.ranks);

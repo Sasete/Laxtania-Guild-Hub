@@ -309,6 +309,21 @@ onAuthStateChanged(auth,async user=>{
   }
   currentUserData=snap.val();
   isAdmin=resolveIsAdmin(currentUserData);
+
+  // Auto-correct adminAccess in users/{uid} if ranks dictate admin rights but it is false in the database
+  const ranksList = currentUserData.ranks || ['serf'];
+  const highestRank = ranksList.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranksList[0]);
+  const shouldHaveAdmin = RANKS[highestRank]?.admin === true || (highestRank === 'councillor' && currentUserData.adminAccess === true);
+  if (shouldHaveAdmin && currentUserData.adminAccess !== true) {
+    try {
+      await update(ref(db, 'users/' + user.uid), { adminAccess: true });
+      currentUserData.adminAccess = true;
+      isAdmin = true;
+    } catch(e) {
+      console.error("Failed to auto-correct adminAccess:", e);
+    }
+  }
+
   document.getElementById('userBar').style.display='flex';
   document.getElementById('userBarName').textContent=currentUserData.name||user.email;
   renderUserRoles(currentUserData.ranks);
@@ -433,7 +448,25 @@ window.saveMember=async function(id){
   const adminAccess=document.getElementById('madmin-'+id).checked;
   const ranks=[...document.querySelectorAll(`#edit-${id} input[data-rank]:checked`)].map(c=>c.dataset.rank);
   if(!ranks.length)ranks.push('serf');
+  
+  // 1. Update prestige registry
   await update(ref(db,'prestige/members/'+id),{name,familyId:fam,points:pts,ranks,customTitle,adminAccess});
+  
+  // 2. Sync to users table by finding matching name
+  try {
+    const usersSnap = await get(ref(db, 'users'));
+    if (usersSnap.exists()) {
+      const allUsers = usersSnap.val();
+      const match = Object.entries(allUsers).find(([, u]) => u.name?.toLowerCase() === name.toLowerCase());
+      if (match) {
+        const uid = match[0];
+        await update(ref(db, 'users/' + uid), { ranks, adminAccess });
+      }
+    }
+  } catch(e) {
+    console.error("Failed to sync to users table:", e);
+  }
+  
   toast(`${name} updated.`);document.getElementById('edit-'+id).style.display='none';
 };
 window.deleteMember=async function(id,name){
