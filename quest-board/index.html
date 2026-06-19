@@ -1710,15 +1710,7 @@
       });
       claimRefs[id] = ref;
 
-      const claimBtn = card.querySelector('.claim-btn');
-      if (!currentUserData) {
-        claimBtn.textContent = 'Sign In to Claim';
-        claimBtn.disabled = true;
-        claimBtn.style.opacity = '0.5';
-        claimBtn.style.cursor = 'default';
-      } else {
-        claimBtn.addEventListener('click', () => claimQuest(card));
-      }
+      card.querySelector('.claim-btn').addEventListener('click', () => claimQuest(card));
     });
   }
 
@@ -1735,18 +1727,13 @@
   }, 60000);
 
   async function claimQuest(card) {
+    if (!currentUserData) {
+      window.location.href = '../';
+      return;
+    }
     const id = card.dataset.questId;
     const totalSlots = parseInt(card.dataset.slots, 10);
-
-    // Use logged-in name if available, otherwise prompt
-    let trimmedName;
-    if (currentUserData && currentUserData.name) {
-      trimmedName = currentUserData.name;
-    } else {
-      const name = prompt('Enter your character name to claim this contract:');
-      if (!name || !name.trim()) return;
-      trimmedName = name.trim();
-    }
+    const trimmedName = currentUserData.name;
 
     const claimBtn = card.querySelector('.claim-btn');
     if (claimBtn) { claimBtn.disabled = true; claimBtn.textContent = 'Claiming…'; }
