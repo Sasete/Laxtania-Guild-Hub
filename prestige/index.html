@@ -608,7 +608,7 @@ function renderFamilies(){
     const ce=adminMode;
     return`<tr class="${isMine?'is-me':''}" style="cursor:pointer" data-famid="${f.id}">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
-      <td><span class="member-name" style="font-weight:bold;text-decoration:underline dotted;text-underline-offset:3px">${f.name||f.id}${isMine?'<span class="me-tag">Mine</span>':''}</span></td>
+      <td><span class="member-name" style="font-weight:bold">${f.name||f.id}${isMine?'<span class="me-tag">Mine</span>':''}</span></td>
       <td><span class="member-name leader">${f.lordName}</span></td>
       <td><span class="family-tag">${f.fams.length} members</span></td>
       <td class="pts-cell r">${(f.bonusPoints||0).toLocaleString()}</td>
