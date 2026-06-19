@@ -190,6 +190,24 @@ input:focus{border-color:var(--gold);border-bottom-color:var(--gold);}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--parchment);font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.15em;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);}
 
+/* ── ADMIN TOGGLE ── */
+.admin-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 12px;border:1px solid rgba(139,26,26,0.4);background:rgba(139,26,26,0.06);transition:all 0.15s;user-select:none;}
+.admin-toggle:hover{background:rgba(139,26,26,0.12);}
+.admin-toggle.active{background:rgba(139,26,26,0.15);border-color:#8b1a1a;}
+.admin-toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(139,26,26,0.3);transition:background 0.2s;}
+.admin-toggle.active .admin-toggle-dot{background:#8b1a1a;box-shadow:0 0 6px rgba(139,26,26,0.5);}
+.admin-toggle-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.15em;color:#8b1a1a;}
+
+/* ── ADMIN PANEL (hub) ── */
+.hub-admin-panel{display:none;background:rgba(139,26,26,0.04);border:1px solid rgba(139,26,26,0.25);padding:18px;margin-top:16px;}
+.hub-admin-panel.visible{display:block;}
+.hub-admin-panel h3{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.25em;color:rgba(139,26,26,0.8);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(139,26,26,0.2);}
+.pending-row-hub{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(154,112,48,0.1);flex-wrap:wrap;}
+.pending-row-hub:last-child{border-bottom:none;}
+.pending-info-hub{flex:1;}
+.pending-name-hub{font-family:'Cinzel',serif;font-size:0.86rem;color:var(--ink);}
+.pending-email-hub{font-size:0.75rem;color:var(--ink-faded);font-style:italic;}
+
 /* ── FOOTER ── */
 .parchment-footer{text-align:center;margin-top:20px;font-size:0.76rem;color:var(--ink-faded);font-style:italic;}
 
@@ -278,7 +296,10 @@ input:focus{border-color:var(--gold);border-bottom-color:var(--gold);}
           <div class="user-ranks" id="userRankBadges"></div>
         </div>
         <div class="user-bar-actions">
-          <a id="adminQuickLink" href="prestige/admin.html" class="btn btn-ghost btn-sm" style="display:none">⚔ Admin</a>
+          <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
+            <div class="admin-toggle-dot"></div>
+            <span class="admin-toggle-label">ADMIN MODE</span>
+          </div>
           <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign Out</button>
         </div>
       </div>
@@ -310,7 +331,7 @@ input:focus{border-color:var(--gold);border-bottom-color:var(--gold);}
       <p class="section-heading">— Select Your Destination —</p>
 
       <div class="portals" id="portalGrid">
-        <a class="portal-card" href="https://sasete.dev/Laxtania-Albion-Quest-Board/">
+        <a class="portal-card" href="quest-board/">
           <span class="portal-icon">📜</span>
           <div class="portal-title">Quest Board <span class="portal-arrow">→</span></div>
           <p class="portal-desc">Browse active contracts, claim your next mission, and collect your silver reward.</p>
@@ -323,6 +344,12 @@ input:focus{border-color:var(--gold);border-bottom-color:var(--gold);}
           <span class="portal-tag">Open to All</span>
         </a>
         <!-- Admin portal injected by JS if applicable -->
+      </div>
+
+      <!-- HUB ADMIN PANEL -->
+      <div class="hub-admin-panel" id="hubAdminPanel">
+        <h3>PENDING MEMBERSHIP REQUESTS</h3>
+        <div id="hubPendingList"><p style="color:var(--ink-faded);font-style:italic">Loading…</p></div>
       </div>
 
       <div class="wax-row">
@@ -433,23 +460,41 @@ function renderMainHall(resolved) {
     document.getElementById('adminQuickLink').style.display = 'inline-block';
   }
 
-  // Admin portal card
+  // Show admin toggle if applicable
   if (resolved.admin) {
+    document.getElementById('adminToggle').style.display = 'flex';
+    // Inject admin portal card
     const grid = document.getElementById('portalGrid');
-    const card = document.createElement('a');
-    card.href = 'prestige/admin.html';
-    card.className = 'portal-card admin-card';
-    card.innerHTML = `
-      <span class="portal-icon">⚔</span>
-      <div class="portal-title">Admin Panel <span class="portal-arrow">→</span></div>
-      <p class="portal-desc">Manage members, families, prestige records, and pending membership requests.</p>
-      <span class="portal-tag">Council Only</span>
-    `;
-    grid.appendChild(card);
+    if (!document.getElementById('adminPortalCard')) {
+      const card = document.createElement('a');
+      card.id = 'adminPortalCard';
+      card.href = 'prestige/';
+      card.className = 'portal-card admin-card';
+      card.innerHTML = `
+        <span class="portal-icon">⚔</span>
+        <div class="portal-title">Admin Panel <span class="portal-arrow">→</span></div>
+        <p class="portal-desc">Manage members, prestige, pending requests, families and tiers.</p>
+        <span class="portal-tag">Council Only</span>
+      `;
+      // clicking admin card goes to prestige page (which has admin toggle)
+      grid.appendChild(card);
+    }
   }
 }
 
 function loadLiveStats() {
+  // Listen for pending users (admin only)
+  onValue(ref(db,'users'), snap=>{
+    const all = snap.val() || {};
+    hubPendingUsers = Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
+    if (hubAdminMode) renderHubPending();
+    // Badge on toggle
+    const count = Object.keys(hubPendingUsers).length;
+    const tog = document.getElementById('adminToggle');
+    if (tog && tog.style.display !== 'none') {
+      tog.querySelector('.admin-toggle-label').textContent = count > 0 ? `ADMIN MODE (${count})` : 'ADMIN MODE';
+    }
+  });
   onValue(ref(db,'prestige/members'), snap=>{
     const d=snap.val()||{};
     document.getElementById('statMembers').textContent=Object.keys(d).length||'—';
@@ -462,6 +507,55 @@ function loadLiveStats() {
     document.getElementById('statQuests').textContent=active||'—';
   });
 }
+
+// ── ADMIN MODE (HUB) ──
+let hubAdminMode = false;
+let hubPendingUsers = {};
+
+window.toggleAdminMode = function() {
+  hubAdminMode = !hubAdminMode;
+  document.getElementById('adminToggle').classList.toggle('active', hubAdminMode);
+  document.getElementById('hubAdminPanel').classList.toggle('visible', hubAdminMode);
+  if (hubAdminMode) renderHubPending();
+};
+
+function renderHubPending() {
+  const el = document.getElementById('hubPendingList');
+  const list = Object.entries(hubPendingUsers);
+  if (!list.length) { el.innerHTML = '<p style="color:var(--ink-faded);font-style:italic">No pending requests.</p>'; return; }
+
+  const RANKS = {serf:'Serf',commoner:'Commoner',knight:'Knight',lord:'Lord',councillor:'Councillor',hand:'Hand',sovereign:'Sovereign'};
+  el.innerHTML = list.map(([uid, u]) => `
+    <div class="pending-row-hub">
+      <div class="pending-info-hub">
+        <div class="pending-name-hub">${u.name||'Unknown'}</div>
+        <div class="pending-email-hub">${u.email||''}</div>
+      </div>
+      <select id="hprank-${uid}" style="width:auto;margin-bottom:0;font-size:0.8rem;padding:5px 8px;background:rgba(255,255,255,0.5);border:1px solid rgba(154,112,48,0.5);color:var(--ink);font-family:'EB Garamond',serif">
+        ${Object.entries(RANKS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+      </select>
+      <button class="btn btn-approve" onclick="hubApproveUser('${uid}','${(u.name||'').replace(/'/g,"\'")}')">Approve</button>
+      <button class="btn btn-danger" onclick="hubRejectUser('${uid}','${(u.name||'').replace(/'/g,"\'")}')">Reject</button>
+    </div>`).join('');
+}
+
+window.hubApproveUser = async function(uid, name) {
+  const sel = document.getElementById('hprank-' + uid);
+  const rank = sel ? sel.value : 'serf';
+  const RANK_LABELS = {serf:'Serf',commoner:'Commoner',knight:'Knight',lord:'Lord',councillor:'Councillor',hand:'Hand',sovereign:'Sovereign'};
+  await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(async ({update, ref}) => {
+    await update(ref(db, 'users/' + uid), {status:'approved', ranks:[rank], adminAccess:false});
+  });
+  toast(`${name} approved as ${RANK_LABELS[rank]||rank}.`);
+};
+
+window.hubRejectUser = async function(uid, name) {
+  if (!confirm(`Reject ${name}'s application?`)) return;
+  await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(async ({remove, ref}) => {
+    await remove(ref(db, 'users/' + uid));
+  });
+  toast(`${name} rejected.`);
+};
 
 // ── AUTH ACTIONS ──
 window.doLogin = async function() {
