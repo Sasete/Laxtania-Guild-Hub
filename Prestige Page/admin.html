@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laxtania — Admin Panel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root{
+  --parchment:#f2e8d5;--ink:#2c1e0f;--ink-light:#4a3520;--ink-faded:#7a6040;
+  --gold:#9a7030;--gold-bright:#c9a84c;--red-wax:#8b1a1a;
+  --wood:#3d2010;--wood-mid:#5c3318;
+  --border-gold:rgba(154,112,48,0.5);--border-red:rgba(139,26,26,0.4);
+  --shadow:0 6px 40px rgba(30,15,5,0.55);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  min-height:100vh;background-color:var(--wood);
+  background-image:repeating-linear-gradient(90deg,transparent,transparent 38px,rgba(0,0,0,0.07) 38px,rgba(0,0,0,0.07) 40px),radial-gradient(ellipse at 50% 0%,rgba(92,51,24,0.9) 0%,rgba(30,12,4,0.98) 100%);
+  font-family:'EB Garamond',Georgia,serif;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;padding:32px 16px 60px;
+}
+
+/* FRAME */
+.board-frame{width:100%;max-width:1060px;background:var(--wood-mid);border:6px solid var(--wood);border-radius:4px;box-shadow:var(--shadow);padding:10px;position:relative;}
+.board-frame::before{content:'✦';position:absolute;top:16px;left:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
+.board-frame::after{content:'✦';position:absolute;top:16px;right:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
+.bolt-bl{position:absolute;bottom:16px;left:18px;color:var(--gold);opacity:0.7;pointer-events:none;}
+.bolt-br{position:absolute;bottom:16px;right:18px;color:var(--gold);opacity:0.7;pointer-events:none;}
+
+.parchment{
+  background:var(--parchment);
+  background-image:radial-gradient(ellipse at 30% 20%,rgba(255,255,255,0.35) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(180,140,80,0.18) 0%,transparent 50%);
+  border:2px solid var(--border-gold);padding:28px 30px 32px;position:relative;
+}
+.parchment::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 0% 0%,rgba(120,80,20,0.2) 0%,transparent 22%),radial-gradient(circle at 100% 100%,rgba(120,80,20,0.2) 0%,transparent 22%);}
+
+/* ACCESS DENIED */
+#accessDenied{text-align:center;padding:60px 20px;}
+#accessDenied h2{font-family:'Cinzel',serif;font-size:1.2rem;color:var(--red-wax);margin-bottom:8px;}
+#accessDenied p{font-style:italic;color:var(--ink-faded);}
+
+/* LOADING */
+.page-loading{text-align:center;padding:60px;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.25em;color:var(--ink-faded);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
+
+/* ORNAMENT */
+.ornament{display:flex;align-items:center;gap:12px;margin:14px 0;}
+.ornament::before,.ornament::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-gold),transparent);}
+.ornament-inner{font-family:'Cinzel',serif;font-size:0.63rem;letter-spacing:0.3em;color:var(--ink-faded);white-space:nowrap;}
+
+/* HEADER */
+.admin-header{text-align:center;margin-bottom:6px;}
+.eyebrow{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.4em;color:var(--ink-faded);margin-bottom:8px;text-transform:uppercase;}
+.admin-header h1{font-family:'Cinzel',serif;font-size:1.5rem;color:var(--ink);letter-spacing:0.06em;}
+.header-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+
+/* SECTION TABS */
+.section-tabs{display:flex;border-bottom:2px solid var(--border-gold);margin-bottom:20px;flex-wrap:wrap;}
+.section-tab{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.18em;color:var(--ink-faded);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:9px 20px 11px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.section-tab:hover{color:var(--ink);}
+.section-tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+.section-tab.has-badge{position:relative;}
+.section-tab .badge{position:absolute;top:6px;right:6px;background:var(--red-wax);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:8px;font-family:'Cinzel',serif;}
+.section-panel{display:none;}
+.section-panel.active{display:block;}
+
+/* GRID */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.admin-grid{grid-template-columns:1fr;}}
+.full{grid-column:1/-1;}
+
+/* CARDS */
+.card{background:rgba(255,255,255,0.28);border:1px solid var(--border-gold);padding:16px;}
+.card h2{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.25em;color:var(--ink-faded);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-gold);display:flex;align-items:center;justify-content:space-between;}
+.card.danger{border-color:var(--border-red);}
+.card.danger h2{color:rgba(139,26,26,0.7);}
+
+/* FORM */
+label{display:block;font-family:'Cinzel',serif;font-size:0.56rem;letter-spacing:0.22em;color:var(--ink-faded);margin-bottom:3px;text-transform:uppercase;}
+input[type=text],input[type=number],input[type=email],input[type=password],select{
+  width:100%;background:rgba(255,255,255,0.5);border:1px solid var(--border-gold);border-bottom:2px solid var(--border-gold);
+  color:var(--ink);font-family:'EB Garamond',serif;font-size:0.92rem;padding:7px 10px;margin-bottom:10px;outline:none;
+}
+input:focus,select:focus{border-color:var(--gold);border-bottom-color:var(--gold);}
+select option{background:var(--parchment);color:var(--ink);}
+.form-row{display:flex;gap:10px;}
+.form-row>*{flex:1;}
+
+/* CHECKBOXES (rank) */
+.rank-checkboxes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.rank-check{display:flex;align-items:center;gap:5px;font-size:0.82rem;cursor:pointer;}
+.rank-check input{width:auto;margin:0;}
+
+/* BUTTONS */
+.btn{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.18em;padding:8px 18px;border:1px solid;cursor:pointer;transition:all 0.15s;white-space:nowrap;text-decoration:none;display:inline-block;}
+.btn-ink{background:var(--ink);border-color:var(--ink);color:var(--parchment);}
+.btn-ink:hover{background:var(--ink-light);}
+.btn-gold{background:rgba(154,112,48,0.1);border-color:var(--gold);color:var(--gold);}
+.btn-gold:hover{background:rgba(154,112,48,0.2);}
+.btn-ghost{background:transparent;border-color:rgba(44,30,15,0.3);color:var(--ink-faded);}
+.btn-ghost:hover{border-color:var(--gold);color:var(--ink);}
+.btn-sm{font-size:0.58rem;padding:5px 11px;}
+.btn-danger{background:rgba(139,26,26,0.1);border-color:var(--red-wax);color:var(--red-wax);font-size:0.58rem;padding:5px 10px;}
+.btn-danger:hover{background:rgba(139,26,26,0.2);}
+.btn-approve{background:rgba(39,120,60,0.1);border-color:rgba(39,120,60,0.8);color:#27783c;font-size:0.58rem;padding:5px 10px;}
+.btn-approve:hover{background:rgba(39,120,60,0.2);}
+
+/* MEMBER ROWS */
+.member-row{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid rgba(154,112,48,0.1);flex-wrap:wrap;}
+.member-row:last-child{border-bottom:none;}
+.mr-info{flex:1;min-width:120px;}
+.mr-name{font-family:'Cinzel',serif;font-size:0.84rem;color:var(--ink);}
+.mr-sub{font-size:0.75rem;color:var(--ink-faded);font-style:italic;}
+.mr-pts{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--gold);min-width:55px;text-align:right;}
+.mr-actions{display:flex;gap:5px;flex-shrink:0;}
+
+.edit-panel{display:none;width:100%;background:rgba(44,30,15,0.05);border:1px solid var(--border-gold);padding:14px;margin-top:8px;}
+.edit-panel.open{display:block;}
+
+/* PENDING ROWS */
+.pending-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(154,112,48,0.1);flex-wrap:wrap;}
+.pending-row:last-child{border-bottom:none;}
+.pending-info{flex:1;}
+.pending-name{font-family:'Cinzel',serif;font-size:0.88rem;color:var(--ink);}
+.pending-email{font-size:0.76rem;color:var(--ink-faded);font-style:italic;}
+.pending-date{font-size:0.7rem;color:var(--ink-faded);}
+
+/* TIER ROWS */
+.tier-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(154,112,48,0.08);}
+.tier-row:last-child{border-bottom:none;}
+.tier-swatch{width:11px;height:11px;border-radius:50%;flex-shrink:0;border:1px solid rgba(44,30,15,0.2);}
+.tier-rname{font-family:'Cinzel',serif;font-size:0.8rem;flex:1;}
+.tier-rpts{font-size:0.76rem;color:var(--ink-faded);}
+
+/* FAMILY ROWS */
+.family-row{padding:10px 0;border-bottom:1px solid rgba(154,112,48,0.1);}
+.family-row:last-child{border-bottom:none;}
+.fr-header{display:flex;align-items:center;gap:8px;}
+.fr-name{font-family:'Cinzel',serif;font-size:0.88rem;flex:1;}
+.fr-bonus{font-size:0.76rem;color:#4a90a8;font-style:italic;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--parchment);font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.15em;padding:10px 24px;transition:transform 0.3s;z-index:999;pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+.empty-state{padding:28px;text-align:center;color:var(--ink-faded);font-style:italic;font-size:0.9rem;}
+</style>
+</head>
+<body>
+
+<div class="board-frame">
+  <span class="bolt-bl">✦</span>
+  <span class="bolt-br">✦</span>
+  <div class="parchment">
+
+    <div id="pageLoading" class="page-loading">Verifying credentials…</div>
+
+    <div id="accessDenied" style="display:none">
+      <h2>Access Denied</h2>
+      <p>You do not have the rank required to enter this chamber.</p>
+      <br>
+      <a href="../" class="btn btn-ghost btn-sm" style="margin-top:8px">← Return to Guild Hall</a>
+    </div>
+
+    <div id="adminPanel" style="display:none">
+
+      <div class="admin-header">
+        <p class="eyebrow">Council of Laxtania · Restricted</p>
+        <h1>Administration Panel</h1>
+        <div class="header-row">
+          <a href="../" class="btn btn-ghost btn-sm">← Guild Hall</a>
+          <a href="index.html" class="btn btn-ghost btn-sm">📜 Prestige View</a>
+          <button class="btn btn-gold btn-sm" onclick="toggleAddMember()">+ Add Member</button>
+          <button class="btn btn-gold btn-sm" onclick="toggleAddFamily()">+ Add Family</button>
+        </div>
+      </div>
+
+      <div class="ornament"><div class="ornament-inner">— ADMINISTRATION —</div></div>
+
+      <!-- ADD MEMBER (collapsible) -->
+      <div class="card full" id="addMemberCard" style="display:none;margin-bottom:14px;">
+        <h2>ADD MEMBER TO PRESTIGE REGISTRY</h2>
+        <div class="form-row">
+          <div><label>In-Game Name</label><input type="text" id="newMName" placeholder="Character name"></div>
+          <div><label>Family</label><select id="newMFamily"><option value="">— None —</option></select></div>
+          <div><label>Starting Points</label><input type="number" id="newMPoints" value="0" min="0"></div>
+        </div>
+        <label>Ranks (select all that apply)</label>
+        <div class="rank-checkboxes" id="newMRanks">
+          <label class="rank-check"><input type="checkbox" value="serf"> Serf</label>
+          <label class="rank-check"><input type="checkbox" value="commoner"> Commoner</label>
+          <label class="rank-check"><input type="checkbox" value="knight"> Knight</label>
+          <label class="rank-check"><input type="checkbox" value="lord"> Lord</label>
+          <label class="rank-check"><input type="checkbox" value="councillor"> Councillor</label>
+          <label class="rank-check"><input type="checkbox" value="hand"> Hand</label>
+          <label class="rank-check"><input type="checkbox" value="sovereign"> Sovereign</label>
+        </div>
+        <div class="form-row">
+          <div><label>Custom Title (optional)</label><input type="text" id="newMCustomTitle" placeholder="e.g. Master of Coin"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ink" onclick="addPrestigeMember()">Record Member</button>
+          <button class="btn btn-ghost" onclick="toggleAddMember()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- ADD FAMILY (collapsible) -->
+      <div class="card full" id="addFamilyCard" style="display:none;margin-bottom:14px;">
+        <h2>ESTABLISH FAMILY</h2>
+        <div class="form-row">
+          <div><label>Family Name</label><input type="text" id="newFName" placeholder="e.g. House Ravenmoor"></div>
+          <div><label>Bonus Points</label><input type="number" id="newFBonus" value="0" min="0"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ink" onclick="addFamily()">Establish Family</button>
+          <button class="btn btn-ghost" onclick="toggleAddFamily()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- SECTION TABS -->
+      <div class="section-tabs">
+        <button class="section-tab active" onclick="switchSection('members')">Member Registry</button>
+        <button class="section-tab has-badge" onclick="switchSection('pending')" id="pendingTab">Pending <span class="badge" id="pendingBadge" style="display:none">0</span></button>
+        <button class="section-tab" onclick="switchSection('families')">Families</button>
+        <button class="section-tab" onclick="switchSection('tiers')">Tiers</button>
+        <button class="section-tab" onclick="switchSection('account')">Account</button>
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="section-panel active" id="panel-members">
+        <div id="membersList"><div class="empty-state">Loading…</div></div>
+      </div>
+
+      <!-- PENDING APPROVALS -->
+      <div class="section-panel" id="panel-pending">
+        <div id="pendingList"><div class="empty-state">Loading…</div></div>
+      </div>
+
+      <!-- FAMILIES -->
+      <div class="section-panel" id="panel-families">
+        <div class="card">
+          <h2>FAMILY REGISTRY</h2>
+          <div id="familiesList"><div class="empty-state">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- TIERS -->
+      <div class="section-panel" id="panel-tiers">
+        <div class="admin-grid">
+          <div class="card">
+            <h2>CURRENT TIERS</h2>
+            <div id="tiersList"><div class="empty-state">Loading…</div></div>
+          </div>
+          <div class="card">
+            <h2>ADD TIER</h2>
+            <label>Name</label><input type="text" id="newTierName" placeholder="e.g. Diamond">
+            <div class="form-row">
+              <div><label>Min Points</label><input type="number" id="newTierMin" placeholder="1500" min="0"></div>
+              <div><label>Colour (hex)</label><input type="text" id="newTierColor" placeholder="#aabbcc"></div>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="addTier()">Add Tier</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div class="section-panel" id="panel-account">
+        <div class="admin-grid">
+          <div class="card">
+            <h2>SIGNED IN AS</h2>
+            <p style="font-family:'Cinzel',serif;font-size:0.92rem;color:var(--ink)" id="acctName">—</p>
+            <p style="font-size:0.8rem;color:var(--ink-faded);font-style:italic;margin-top:3px" id="acctEmail">—</p>
+            <p style="font-size:0.78rem;color:var(--ink-faded);margin-top:6px" id="acctRanks">—</p>
+            <button class="btn btn-ghost btn-sm" onclick="doSignOut()" style="margin-top:14px">Sign Out</button>
+          </div>
+          <div class="card danger">
+            <h2>CHANGE PASSWORD</h2>
+            <label>New Password</label><input type="password" id="newPass" placeholder="New password">
+            <label>Confirm</label><input type="password" id="confirmPass" placeholder="Repeat">
+            <button class="btn btn-danger" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /adminPanel -->
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, updatePassword }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, set, get, update, remove, onValue, push }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
+const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5,admin:null},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
+
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getDatabase(app);
+
+let membersData={}, familiesData={}, pendingUsers={}, currentUser=null;
+
+function show(id){['pageLoading','accessDenied','adminPanel'].forEach(s=>document.getElementById(s).style.display=s===id?'block':'none');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+function resolveAdmin(data){
+  const ranks=data.ranks||['serf'];
+  const highest=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);
+  let admin=RANKS[highest]?.admin===true;
+  if(highest==='councillor'&&data.adminAccess===true) admin=true;
+  return admin;
+}
+
+// ── AUTH GATE ──
+onAuthStateChanged(auth, async user=>{
+  if(!user){window.location.href='../';return;}
+  const snap=await get(ref(db,'users/'+user.uid));
+  if(!snap.exists()||snap.val().status!=='approved'){show('accessDenied');return;}
+  const data=snap.val();
+  if(!resolveAdmin(data)){show('accessDenied');return;}
+  currentUser=user;
+  // Render account tab info
+  document.getElementById('acctName').textContent=data.name||user.email;
+  document.getElementById('acctEmail').textContent=user.email;
+  document.getElementById('acctRanks').textContent='Ranks: '+(data.ranks||['serf']).map(r=>RANKS[r]?.label||r).join(', ')+(data.customTitle?' · '+data.customTitle:'');
+  show('adminPanel');
+  initListeners();
+});
+
+function initListeners(){
+  onValue(ref(db,'prestige/members'),snap=>{membersData=snap.val()||{};renderMembers();populateFamilyDropdowns();});
+  onValue(ref(db,'prestige/families'),snap=>{familiesData=snap.val()||{};renderFamilies();populateFamilyDropdowns();});
+  onValue(ref(db,'prestige/tiers'),snap=>{renderTiers(snap.val()||{});});
+  onValue(ref(db,'users'),snap=>{
+    const all=snap.val()||{};
+    pendingUsers=Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
+    renderPending();
+    const count=Object.keys(pendingUsers).length;
+    const badge=document.getElementById('pendingBadge');
+    badge.textContent=count;
+    badge.style.display=count>0?'inline':'none';
+  });
+}
+
+// ── SECTION TABS ──
+window.switchSection=function(s){
+  document.querySelectorAll('.section-tab').forEach((b,i)=>b.classList.toggle('active',['members','pending','families','tiers','account'][i]===s));
+  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+s).classList.add('active');
+};
+
+// ── FAMILY DROPDOWN SYNC ──
+function populateFamilyDropdowns(){
+  const opts='<option value="">— None —</option>'+Object.entries(familiesData).map(([id,f])=>`<option value="${id}">${f.name}</option>`).join('');
+  document.querySelectorAll('.family-select').forEach(s=>{const v=s.value;s.innerHTML=opts;s.value=v;});
+  const nf=document.getElementById('newMFamily');if(nf){const v=nf.value;nf.innerHTML=opts;nf.value=v;}
+}
+
+// ── COLLAPSIBLE FORMS ──
+window.toggleAddMember=()=>{const c=document.getElementById('addMemberCard');c.style.display=c.style.display==='none'?'block':'none';};
+window.toggleAddFamily=()=>{const c=document.getElementById('addFamilyCard');c.style.display=c.style.display==='none'?'block':'none';};
+
+// ── MEMBERS ──
+function renderMembers(){
+  const el=document.getElementById('membersList');
+  const list=Object.entries(membersData).sort((a,b)=>(b[1].points||0)-(a[1].points||0));
+  if(!list.length){el.innerHTML='<div class="empty-state">No members recorded yet.</div>';return;}
+  el.innerHTML=`<div class="card full"><h2>PRESTIGE MEMBER REGISTRY <span style="opacity:0.6;font-family:\'EB Garamond\',serif;font-style:italic">(${list.length} members)</span></h2>`+
+  list.map(([id,m])=>{
+    const fName=m.familyId&&familiesData[m.familyId]?familiesData[m.familyId].name:'—';
+    const rankList=(m.ranks||[]).map(r=>RANKS[r]?.label||r).join(', ');
+    return `<div class="member-row">
+      <div class="mr-info">
+        <div class="mr-name">${m.name||id}</div>
+        <div class="mr-sub">${rankList}${m.customTitle?' · '+m.customTitle:''} &nbsp;·&nbsp; ${fName}</div>
+      </div>
+      <div class="mr-pts">${(m.points||0).toLocaleString()} pts</div>
+      <div class="mr-actions">
+        <button class="btn btn-gold btn-sm" onclick="toggleEdit('medit-${id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deletePrestigeMember('${id}','${(m.name||id).replace(/'/g,"\\'")}')">✕</button>
+      </div>
+      <div class="edit-panel" id="medit-${id}">
+        <div class="form-row">
+          <div><label>Name</label><input type="text" id="mn-${id}" value="${m.name||''}"></div>
+          <div><label>Family</label><select id="mf-${id}" class="family-select"><option value="">— None —</option>${Object.entries(familiesData).map(([fid,f])=>`<option value="${fid}" ${m.familyId===fid?'selected':''}>${f.name}</option>`).join('')}</select></div>
+          <div><label>Points</label><input type="number" id="mp-${id}" value="${m.points||0}" min="0"></div>
+        </div>
+        <label>Ranks</label>
+        <div class="rank-checkboxes">
+          ${['serf','commoner','knight','lord','councillor','hand','sovereign'].map(r=>`<label class="rank-check"><input type="checkbox" data-rank="${r}" ${(m.ranks||[]).includes(r)?'checked':''}> ${RANKS[r].label}</label>`).join('')}
+        </div>
+        <label>Custom Title</label><input type="text" id="mct-${id}" value="${m.customTitle||''}" placeholder="e.g. Master of Coin">
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:10px"><input type="checkbox" id="madmin-${id}" ${m.adminAccess?'checked':''}> Grant admin access (for Councillors)</label>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-ink btn-sm" onclick="savePrestigeMember('${id}')">Save</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleEdit('medit-${id}')">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+window.toggleEdit=function(id){document.getElementById(id).classList.toggle('open');};
+
+window.savePrestigeMember=async function(id){
+  const name=document.getElementById('mn-'+id).value.trim();
+  const fam=document.getElementById('mf-'+id).value;
+  const pts=parseInt(document.getElementById('mp-'+id).value)||0;
+  const customTitle=document.getElementById('mct-'+id).value.trim();
+  const adminAccess=document.getElementById('madmin-'+id).checked;
+  const ranks=[...document.querySelectorAll(`#medit-${id} input[data-rank]:checked`)].map(c=>c.dataset.rank);
+  if(!ranks.length) ranks.push('serf');
+  await update(ref(db,'prestige/members/'+id),{name,familyId:fam,points:pts,ranks,customTitle,adminAccess});
+  toast(`${name} updated.`);
+  document.getElementById('medit-'+id).classList.remove('open');
+};
+
+window.deletePrestigeMember=async function(id,name){
+  if(!confirm(`Remove ${name} from the Prestige Registry?`)) return;
+  await remove(ref(db,'prestige/members/'+id));
+  toast(`${name} removed.`);
+};
+
+window.addPrestigeMember=async function(){
+  const name=document.getElementById('newMName').value.trim();
+  if(!name){toast('Enter a name.');return;}
+  const fam=document.getElementById('newMFamily').value;
+  const pts=parseInt(document.getElementById('newMPoints').value)||0;
+  const customTitle=document.getElementById('newMCustomTitle').value.trim();
+  const ranks=[...document.querySelectorAll('#newMRanks input:checked')].map(c=>c.value);
+  if(!ranks.length) ranks.push('serf');
+  await set(push(ref(db,'prestige/members')),{name,familyId:fam,points:pts,ranks,customTitle,adminAccess:false});
+  toast(`${name} recorded.`);
+  document.getElementById('newMName').value='';
+  document.getElementById('newMPoints').value='0';
+  document.getElementById('newMCustomTitle').value='';
+  document.querySelectorAll('#newMRanks input').forEach(c=>c.checked=false);
+  document.getElementById('addMemberCard').style.display='none';
+};
+
+// ── PENDING APPROVALS ──
+function renderPending(){
+  const el=document.getElementById('pendingList');
+  const list=Object.entries(pendingUsers);
+  if(!list.length){el.innerHTML='<div class="empty-state">No pending membership requests.</div>';return;}
+  el.innerHTML=`<div class="card full"><h2>PENDING MEMBERSHIP REQUESTS</h2>`+
+  list.map(([uid,u])=>`
+    <div class="pending-row">
+      <div class="pending-info">
+        <div class="pending-name">${u.name||'Unknown'}</div>
+        <div class="pending-email">${u.email||''}</div>
+        <div class="pending-date">${u.registeredAt?new Date(u.registeredAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):''}</div>
+      </div>
+      <button class="btn btn-approve" onclick="approveUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Approve</button>
+      <button class="btn btn-danger" onclick="rejectUser('${uid}','${(u.name||'').replace(/'/g,"\\'")}')">Reject</button>
+    </div>`).join('')+'</div>';
+}
+
+window.approveUser=async function(uid,name){
+  await update(ref(db,'users/'+uid),{status:'approved',ranks:['serf'],adminAccess:false});
+  toast(`${name} approved as Serf.`);
+};
+window.rejectUser=async function(uid,name){
+  if(!confirm(`Reject and remove ${name}'s application?`)) return;
+  await remove(ref(db,'users/'+uid));
+  // Note: Firebase Auth account remains; admin can delete from Firebase console if needed
+  toast(`${name}'s application removed.`);
+};
+
+// ── FAMILIES ──
+function renderFamilies(){
+  const el=document.getElementById('familiesList');
+  const list=Object.entries(familiesData);
+  if(!list.length){el.innerHTML='<div class="empty-state">No families yet.</div>';return;}
+  el.innerHTML=list.map(([id,f])=>`
+    <div class="family-row">
+      <div class="fr-header">
+        <span class="fr-name">${f.name}</span>
+        <span class="fr-bonus">${f.bonusPoints?'+'+f.bonusPoints+' bonus':''}</span>
+        <button class="btn btn-gold btn-sm" onclick="toggleEdit('fedit-${id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteFamily('${id}','${(f.name||'').replace(/'/g,"\\'")}')">✕</button>
+      </div>
+      <div class="edit-panel" id="fedit-${id}" style="margin-top:8px">
+        <div class="form-row">
+          <div><label>Name</label><input type="text" id="fn-${id}" value="${f.name||''}"></div>
+          <div><label>Bonus Points</label><input type="number" id="fb-${id}" value="${f.bonusPoints||0}" min="0"></div>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-ink btn-sm" onclick="saveFamily('${id}')">Save</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleEdit('fedit-${id}')">Cancel</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.saveFamily=async function(id){
+  const name=document.getElementById('fn-'+id).value.trim();
+  const bonus=parseInt(document.getElementById('fb-'+id).value)||0;
+  await update(ref(db,'prestige/families/'+id),{name,bonusPoints:bonus});
+  toast(`${name} updated.`);
+  document.getElementById('fedit-'+id).classList.remove('open');
+};
+window.deleteFamily=async function(id,name){
+  if(!confirm(`Dissolve ${name}?`)) return;
+  await remove(ref(db,'prestige/families/'+id));
+  const updates={};
+  Object.entries(membersData).forEach(([mid,m])=>{if(m.familyId===id)updates[`prestige/members/${mid}/familyId`]='';});
+  if(Object.keys(updates).length) await update(ref(db),updates);
+  toast(`${name} dissolved.`);
+};
+window.addFamily=async function(){
+  const name=document.getElementById('newFName').value.trim();
+  if(!name){toast('Enter a name.');return;}
+  const bonus=parseInt(document.getElementById('newFBonus').value)||0;
+  await set(push(ref(db,'prestige/families')),{name,bonusPoints:bonus});
+  toast(`${name} established.`);
+  document.getElementById('newFName').value='';
+  document.getElementById('newFBonus').value='0';
+  document.getElementById('addFamilyCard').style.display='none';
+};
+
+// ── TIERS ──
+function renderTiers(data){
+  const el=document.getElementById('tiersList');
+  const list=Object.entries(data).sort((a,b)=>a[1].minPts-b[1].minPts);
+  if(!list.length){
+    const def=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"},{name:"Sovereign",minPts:2000,color:"#8a3050"}];
+    def.forEach(t=>push(ref(db,'prestige/tiers'),t));
+    el.innerHTML='<div class="empty-state">Seeding defaults…</div>';return;
+  }
+  el.innerHTML=list.map(([id,t])=>`
+    <div class="tier-row">
+      <div class="tier-swatch" style="background:${t.color}"></div>
+      <span class="tier-rname">${t.name}</span>
+      <span class="tier-rpts">${t.minPts}+ pts</span>
+      <button class="btn btn-danger" onclick="deleteTier('${id}','${t.name}')">✕</button>
+    </div>`).join('');
+}
+window.addTier=async function(){
+  const name=document.getElementById('newTierName').value.trim();
+  const min=parseInt(document.getElementById('newTierMin').value);
+  const color=document.getElementById('newTierColor').value.trim();
+  if(!name||isNaN(min)||!color){toast('Fill all fields.');return;}
+  await push(ref(db,'prestige/tiers'),{name,minPts:min,color});
+  toast(`Tier "${name}" added.`);
+  ['newTierName','newTierMin','newTierColor'].forEach(id=>document.getElementById(id).value='');
+};
+window.deleteTier=async function(id,name){
+  if(!confirm(`Remove tier "${name}"?`)) return;
+  await remove(ref(db,'prestige/tiers/'+id));
+  toast(`"${name}" removed.`);
+};
+
+// ── ACCOUNT ──
+window.doSignOut=async function(){await signOut(auth);window.location.href='../';};
+window.changePassword=async function(){
+  const np=document.getElementById('newPass').value;
+  const cp=document.getElementById('confirmPass').value;
+  if(!np){toast('Enter a password.');return;}
+  if(np!==cp){toast('Passwords do not match.');return;}
+  if(np.length<6){toast('Password must be at least 6 characters.');return;}
+  try{
+    await updatePassword(currentUser,np);
+    toast('Password updated.');
+    document.getElementById('newPass').value='';
+    document.getElementById('confirmPass').value='';
+  }catch(e){
+    if(e.code==='auth/requires-recent-login') toast('Please sign out and back in, then try again.');
+    else toast('Failed to update password.');
+  }
+};
+</script>
+</body>
+</html>

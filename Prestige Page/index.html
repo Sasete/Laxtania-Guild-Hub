@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laxtania — Prestige Registry</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  --parchment:  #f2e8d5;
+  --ink:        #2c1e0f;
+  --ink-light:  #4a3520;
+  --ink-faded:  #7a6040;
+  --gold:       #9a7030;
+  --gold-bright:#c9a84c;
+  --red-wax:    #8b1a1a;
+  --wood:       #3d2010;
+  --wood-mid:   #5c3318;
+  --border-gold:rgba(154,112,48,0.5);
+  --shadow:     0 6px 40px rgba(30,15,5,0.55);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  min-height:100vh;background-color:var(--wood);
+  background-image:
+    repeating-linear-gradient(90deg,transparent,transparent 38px,rgba(0,0,0,0.07) 38px,rgba(0,0,0,0.07) 40px),
+    repeating-linear-gradient(180deg,transparent,transparent 6px,rgba(255,255,255,0.015) 6px,rgba(255,255,255,0.015) 7px),
+    radial-gradient(ellipse at 50% 0%,rgba(92,51,24,0.9) 0%,rgba(30,12,4,0.98) 100%);
+  font-family:'EB Garamond',Georgia,serif;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;padding:32px 16px 60px;
+}
+
+.board-frame{width:100%;max-width:940px;background:var(--wood-mid);border:6px solid var(--wood);border-radius:4px;box-shadow:var(--shadow),inset 0 0 0 2px rgba(255,255,255,0.04);padding:10px;position:relative;}
+.board-frame::before{content:'✦';position:absolute;top:16px;left:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
+.board-frame::after{content:'✦';position:absolute;top:16px;right:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;}
+.bolt-bl{position:absolute;bottom:16px;left:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;pointer-events:none;}
+.bolt-br{position:absolute;bottom:16px;right:18px;color:var(--gold);font-size:1.1rem;opacity:0.7;pointer-events:none;}
+
+.parchment{
+  background:var(--parchment);
+  background-image:
+    radial-gradient(ellipse at 30% 20%,rgba(255,255,255,0.35) 0%,transparent 60%),
+    radial-gradient(ellipse at 70% 80%,rgba(180,140,80,0.18) 0%,transparent 50%),
+    repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(154,112,48,0.06) 28px,rgba(154,112,48,0.06) 29px);
+  border:2px solid var(--border-gold);padding:30px 34px 34px;position:relative;
+}
+.parchment::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 0% 0%,rgba(120,80,20,0.25) 0%,transparent 25%),radial-gradient(circle at 100% 100%,rgba(120,80,20,0.25) 0%,transparent 25%);}
+
+/* ── USER BAR ── */
+.user-bar{display:flex;align-items:center;justify-content:space-between;background:rgba(44,30,15,0.06);border:1px solid var(--border-gold);padding:7px 13px;margin-bottom:18px;flex-wrap:wrap;gap:6px;}
+.user-greeting{font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink);}
+.user-greeting span{color:var(--gold);}
+.user-actions{display:flex;gap:7px;}
+
+.header{text-align:center;}
+.back-link{display:inline-block;margin-bottom:12px;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.2em;color:var(--ink-faded);text-decoration:none;border-bottom:1px solid var(--border-gold);padding-bottom:1px;transition:color 0.15s;}
+.back-link:hover{color:var(--gold);}
+.eyebrow{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.45em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:9px;}
+h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,5vw,2.5rem);font-weight:700;color:var(--ink);letter-spacing:0.08em;text-shadow:1px 1px 0 rgba(255,255,255,0.4);}
+.subtitle{margin-top:5px;font-style:italic;font-size:1rem;color:var(--ink-faded);}
+
+.ornament{display:flex;align-items:center;gap:12px;margin:16px 0;}
+.ornament::before,.ornament::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-gold),transparent);}
+.ornament-inner{font-family:'Cinzel',serif;font-size:0.63rem;letter-spacing:0.3em;color:var(--ink-faded);display:flex;align-items:center;gap:7px;}
+.gem{width:6px;height:6px;background:var(--gold-bright);transform:rotate(45deg);flex-shrink:0;}
+
+/* ── MY PRESTIGE CARD ── */
+.my-prestige-card{
+  background:rgba(154,112,48,0.08);
+  border:2px solid var(--gold-bright);
+  padding:18px 20px;margin-bottom:22px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+}
+.my-prestige-card .my-rank{font-family:'Cinzel',serif;font-size:2rem;color:var(--gold);min-width:36px;text-align:center;}
+.my-prestige-info{flex:1;}
+.my-prestige-name{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--ink);margin-bottom:3px;}
+.my-prestige-meta{font-size:0.82rem;color:var(--ink-faded);font-style:italic;}
+.my-prestige-pts{font-family:'Cinzel',serif;font-size:1.6rem;color:var(--gold);text-align:right;}
+.my-prestige-pts-lbl{font-size:0.6rem;letter-spacing:0.2em;color:var(--ink-faded);font-family:'Cinzel',serif;text-align:right;display:block;}
+
+/* ── TIER LEGEND ── */
+.tier-legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:20px;}
+.tier-badge{display:flex;align-items:center;gap:6px;background:rgba(44,30,15,0.07);border:1px solid var(--border-gold);border-radius:2px;padding:3px 10px;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.1em;color:var(--ink-light);}
+.tier-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:2px solid var(--border-gold);margin-bottom:22px;}
+.tab-btn{font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.18em;color:var(--ink-faded);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:8px 22px 10px;cursor:pointer;transition:all 0.15s;}
+.tab-btn:hover{color:var(--ink);}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ── TABLE ── */
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table thead tr{background:rgba(154,112,48,0.12);border-bottom:2px solid var(--border-gold);}
+.lb-table th{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.22em;color:var(--ink-faded);padding:10px 13px;text-align:left;font-weight:400;white-space:nowrap;}
+.lb-table th.r,.lb-table td.r{text-align:right;}
+.lb-table td{padding:10px 13px;border-bottom:1px solid rgba(154,112,48,0.14);font-size:0.95rem;vertical-align:middle;}
+.lb-table tbody tr:last-child td{border-bottom:none;}
+.lb-table tbody tr:hover{background:rgba(154,112,48,0.05);}
+.lb-table tbody tr.is-me{background:rgba(154,112,48,0.1);border-left:3px solid var(--gold-bright);}
+.lb-table tbody tr.is-me td:first-child{padding-left:10px;}
+
+.rank-num{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--ink-faded);}
+.rank-1{color:var(--gold);font-weight:700;}
+.rank-2{color:#7a8a90;}
+.rank-3{color:#9a6630;}
+
+.member-name{font-family:'Cinzel',serif;font-size:0.86rem;color:var(--ink);}
+.member-name.leader{color:var(--gold);}
+.me-tag{font-size:0.56rem;background:rgba(154,112,48,0.15);border:1px solid var(--border-gold);padding:1px 5px;margin-left:6px;font-family:'Cinzel',serif;letter-spacing:0.1em;color:var(--gold);border-radius:2px;vertical-align:middle;}
+
+.tier-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border:1px solid;border-radius:2px;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.1em;white-space:nowrap;}
+.tier-pill .dot{width:6px;height:6px;border-radius:50%;}
+.family-tag{display:inline-block;padding:1px 7px;font-size:0.78rem;color:var(--ink-faded);border:1px solid var(--border-gold);border-radius:2px;font-style:italic;}
+.pts-cell{font-family:'Cinzel',serif;font-size:0.9rem;color:var(--gold);}
+
+/* ── FAMILY CARDS ── */
+.family-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px;}
+.family-card{background:rgba(255,255,255,0.25);border:1.5px solid var(--border-gold);padding:18px;position:relative;transition:all 0.18s;}
+.family-card:hover{background:rgba(255,255,255,0.38);border-color:var(--gold-bright);}
+.family-card.is-mine{border-color:var(--gold-bright);background:rgba(154,112,48,0.08);}
+.family-card-rank{position:absolute;top:11px;right:13px;font-family:'Cinzel',serif;font-size:1.3rem;color:rgba(154,112,48,0.18);font-weight:700;}
+.family-name{font-family:'Cinzel',serif;font-size:0.97rem;color:var(--ink);margin-bottom:4px;}
+.family-meta{font-size:0.78rem;color:var(--ink-faded);font-style:italic;margin-bottom:13px;}
+.score-row{display:flex;gap:14px;margin-bottom:9px;}
+.score-block{flex:1;}
+.score-lbl{font-family:'Cinzel',serif;font-size:0.54rem;letter-spacing:0.2em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:2px;}
+.score-val{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold);}
+.score-val.bonus{color:#4a90a8;}
+.score-total{font-size:0.76rem;color:var(--ink-faded);padding-top:7px;border-top:1px solid var(--border-gold);display:flex;justify-content:space-between;}
+.score-total span:last-child{color:var(--gold);font-family:'Cinzel',serif;}
+/* ── FAMILY MINI LEADERBOARD ── */
+.family-mini-lb{margin-top:10px;border-top:1px solid var(--border-gold);padding-top:9px;}
+.family-mini-lb-title{font-family:'Cinzel',serif;font-size:0.56rem;letter-spacing:0.25em;color:var(--ink-faded);text-transform:uppercase;margin-bottom:7px;}
+.fam-member-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid rgba(154,112,48,0.08);}
+.fam-member-row:last-child{border-bottom:none;}
+.fam-member-rank{font-family:'Cinzel',serif;font-size:0.65rem;color:var(--ink-faded);min-width:16px;text-align:center;}
+.fam-member-rank.r1{color:var(--gold);}
+.fam-member-name{font-size:0.82rem;color:var(--ink);flex:1;}
+.fam-member-name.is-me{color:var(--gold);font-style:italic;}
+.fam-leader-tag{font-family:'Cinzel',serif;font-size:0.52rem;letter-spacing:0.1em;color:var(--red-wax);border:1px solid rgba(139,26,26,0.35);padding:1px 5px;border-radius:2px;flex-shrink:0;}
+.fam-member-pts{font-family:'Cinzel',serif;font-size:0.75rem;color:var(--gold);min-width:44px;text-align:right;}
+
+/* ── MISC ── */
+.empty{text-align:center;padding:44px 20px;color:var(--ink-faded);font-style:italic;}
+.loading{text-align:center;padding:38px;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.25em;color:var(--ink-faded);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
+.parchment-footer{text-align:center;margin-top:22px;font-size:0.76rem;color:var(--ink-faded);font-style:italic;}
+
+.btn{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.18em;padding:7px 16px;border:1px solid;cursor:pointer;transition:all 0.15s;white-space:nowrap;text-decoration:none;display:inline-block;}
+.btn-ghost{background:transparent;border-color:rgba(44,30,15,0.3);color:var(--ink-faded);}
+.btn-ghost:hover{border-color:var(--gold);color:var(--ink);}
+.btn-sm{font-size:0.58rem;padding:4px 11px;}
+
+@media(max-width:560px){
+  .parchment{padding:18px 13px 22px;}
+  .lb-table th:nth-child(4),.lb-table td:nth-child(4){display:none;}
+  .tabs{justify-content:stretch;}
+  .tab-btn{flex:1;padding:8px 6px 10px;font-size:0.62rem;}
+  .my-prestige-card{gap:12px;}
+}
+</style>
+</head>
+<body>
+
+<div class="board-frame">
+  <span class="bolt-bl">✦</span>
+  <span class="bolt-br">✦</span>
+  <div class="parchment">
+
+    <!-- User bar -->
+    <div class="user-bar" id="userBar" style="display:none">
+      <div class="user-greeting">Signed in as <span id="userBarName"></span></div>
+      <div class="user-actions">
+        <a id="adminBarLink" href="admin.html" class="btn btn-ghost btn-sm" style="display:none">⚔ Admin</a>
+        <a href="../" class="btn btn-ghost btn-sm">← Guild Hall</a>
+      </div>
+    </div>
+
+    <div class="header">
+      <a href="../" class="back-link" id="backLink">← Guild Hall</a>
+      <p class="eyebrow">Guild of Laxtania · Hall of Honours</p>
+      <h1>Prestige Registry</h1>
+      <p class="subtitle">Records of Valour, kept by the Siankael Treasury</p>
+    </div>
+
+    <div class="ornament"><div class="ornament-inner"><div class="gem"></div><span>HONOURS</span><div class="gem"></div></div></div>
+
+    <!-- My Prestige Card (shown when user matched) -->
+    <div id="myPrestigeCard" style="display:none" class="my-prestige-card">
+      <div class="my-rank" id="myRank">—</div>
+      <div class="my-prestige-info">
+        <div class="my-prestige-name" id="myName">—</div>
+        <div class="my-prestige-meta" id="myMeta">—</div>
+      </div>
+      <div>
+        <div class="my-prestige-pts" id="myPts">—</div>
+        <span class="my-prestige-pts-lbl">Prestige Points</span>
+      </div>
+    </div>
+
+    <!-- Tier Legend -->
+    <div class="tier-legend" id="tierLegend"><div class="loading" style="padding:8px">…</div></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('members')">Members</button>
+      <button class="tab-btn" onclick="switchTab('families')">Families</button>
+    </div>
+
+    <div id="tab-members" class="tab-panel active">
+      <div id="membersContainer"><div class="loading">Consulting the Archives…</div></div>
+    </div>
+    <div id="tab-families" class="tab-panel">
+      <div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div>
+    </div>
+
+    <p class="parchment-footer">By decree of the Sovereign of Laxtania &nbsp;·&nbsp; Decree No. III</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FC = {
+  apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",
+  authDomain:"laxtania-albion-quest-board.firebaseapp.com",
+  databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"laxtania-albion-quest-board",
+  storageBucket:"laxtania-albion-quest-board.firebasestorage.app",
+  messagingSenderId:"636241022279",
+  appId:"1:636241022279:web:42d7af06401d9cdda89062"
+};
+
+const RANKS={serf:{label:"Serf",weight:1},commoner:{label:"Commoner",weight:2},knight:{label:"Knight",weight:3},lord:{label:"Lord",weight:4},councillor:{label:"Councillor",weight:5,admin:null},hand:{label:"Hand",weight:6,admin:true},sovereign:{label:"Sovereign",weight:7,admin:true}};
+
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const db=getDatabase(app);
+
+const DEFAULT_TIERS=[
+  {name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},
+  {name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},
+  {name:"Platinum",minPts:1000,color:"#4a90a8"},{name:"Sovereign",minPts:2000,color:"#8a3050"},
+];
+
+let tiers=DEFAULT_TIERS, members={}, families={};
+let currentUserData=null, currentPrestigeMember=null;
+
+function getTier(pts){let t=tiers[0];for(const x of tiers){if(pts>=x.minPts)t=x;}return t;}
+
+// ── AUTH ──
+onAuthStateChanged(auth, async user=>{
+  if(!user) return; // page accessible even without login for public view
+  const snap=await get(ref(db,'users/'+user.uid));
+  if(!snap.exists()) return;
+  const data=snap.val();
+  if(data.status!=='approved') return;
+
+  currentUserData=data;
+  document.getElementById('userBar').style.display='flex';
+  document.getElementById('userBarName').textContent=data.name||'';
+  document.getElementById('backLink').style.display='none';
+
+  // Admin link
+  const ranks=data.ranks||[];
+  const highest=ranks.reduce((b,r)=>(RANKS[r]?.weight||0)>(RANKS[b]?.weight||0)?r:b,ranks[0]||'serf');
+  let admin=RANKS[highest]?.admin===true;
+  if(highest==='councillor'&&data.adminAccess===true) admin=true;
+  if(admin) document.getElementById('adminBarLink').style.display='inline-block';
+
+  // Try to match to prestige member by name
+  matchPrestigeMember(data.name);
+});
+
+function matchPrestigeMember(userName) {
+  if(!userName) return;
+  const match = Object.entries(members).find(([,m])=>
+    m.name?.toLowerCase()===userName.toLowerCase()
+  );
+  if(match){
+    currentPrestigeMember={id:match[0],...match[1]};
+    renderMyCard();
+    renderMembers();
+    renderFamilies();
+  }
+}
+
+function renderMyCard(){
+  if(!currentPrestigeMember) return;
+  const sorted=Object.entries(members).map(([id,m])=>({id,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
+  const rank=sorted.findIndex(m=>m.id===currentPrestigeMember.id)+1;
+  const tier=getTier(currentPrestigeMember.points||0);
+  const famName=currentPrestigeMember.familyId&&families[currentPrestigeMember.familyId]?families[currentPrestigeMember.familyId].name:'No Family';
+
+  document.getElementById('myRank').textContent='#'+rank;
+  document.getElementById('myName').textContent=currentPrestigeMember.name||'';
+  document.getElementById('myMeta').innerHTML=`<span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span> &nbsp;·&nbsp; ${famName}`;
+  document.getElementById('myPts').textContent=(currentPrestigeMember.points||0).toLocaleString();
+  document.getElementById('myPrestigeCard').style.display='flex';
+}
+
+function renderTierLegend(){
+  document.getElementById('tierLegend').innerHTML=tiers.map(t=>`
+    <div class="tier-badge"><div class="tier-dot" style="background:${t.color}"></div><span>${t.name}</span><span style="opacity:0.5;font-size:0.56rem">${t.minPts}+</span></div>`).join('');
+}
+
+function renderMembers(){
+  const c=document.getElementById('membersContainer');
+  const myName=currentPrestigeMember?.name?.toLowerCase();
+  const list=Object.entries(members).map(([id,m])=>({id,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
+  if(!list.length){c.innerHTML='<div class="empty">No members recorded yet.</div>';return;}
+  const rows=list.map((m,i)=>{
+    const tier=getTier(m.points||0);
+    const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    const fName=m.familyId&&families[m.familyId]?families[m.familyId].name:'—';
+    const isLeader=m.role==='leader'||m.role==='co-leader';
+    const isMe=myName&&m.name?.toLowerCase()===myName;
+    return `<tr class="${isMe?'is-me':''}">
+      <td><span class="rank-num ${rk}">${i+1}</span></td>
+      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">YOU</span>':''}</span></td>
+      <td><span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span></td>
+      <td><span class="family-tag">${fName}</span></td>
+      <td class="pts-cell r">${(m.points||0).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderFamilies(){
+  const c=document.getElementById('familiesContainer');
+  const myFamId=currentPrestigeMember?.familyId;
+  const mList=Object.entries(members).map(([id,m])=>({id,...m}));
+  const myName=currentPrestigeMember?.name?.toLowerCase();
+
+  const list=Object.entries(families).map(([id,f])=>{
+    const fams=mList.filter(m=>m.familyId===id).sort((a,b)=>(b.points||0)-(a.points||0));
+    const mTotal=fams.reduce((s,m)=>s+(m.points||0),0);
+    const bonus=f.bonusPoints||0;
+    return {id,...f,mTotal,bonus,total:mTotal+bonus,fams};
+  }).sort((a,b)=>b.total-a.total);
+
+  if(!list.length){c.innerHTML='<div class="empty">No families established yet.</div>';return;}
+
+  c.innerHTML=`<div class="family-grid">${list.map((f,i)=>{
+    const isMine=myFamId===f.id;
+
+    // Mini leaderboard rows
+    const lbRows=f.fams.map((m,mi)=>{
+      const isMe=myName&&m.name?.toLowerCase()===myName;
+      const isLord=(m.ranks||[]).includes('lord');
+      const rankDisp=mi===0?'<span class="fam-member-rank r1">1</span>':`<span class="fam-member-rank">${mi+1}</span>`;
+      return `<div class="fam-member-row">
+        ${rankDisp}
+        <span class="fam-member-name ${isMe?'is-me':''}">${m.name||m.id}</span>
+        ${isLord?'<span class="fam-leader-tag">Lord</span>':''}
+        <span class="fam-member-pts">${(m.points||0).toLocaleString()}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="family-card ${isMine?'is-mine':''}">
+      <div class="family-card-rank">${i+1}</div>
+      <div class="family-name">${f.name||f.id}${isMine?' ✦':''}</div>
+      <div class="family-meta">${f.fams.length} member${f.fams.length!==1?'s':''}</div>
+      <div class="score-row">
+        <div class="score-block"><div class="score-lbl">Member Points</div><div class="score-val">${f.mTotal.toLocaleString()}</div></div>
+        <div class="score-block"><div class="score-lbl">Bonus</div><div class="score-val bonus">${f.bonus>0?'+':''}${f.bonus.toLocaleString()}</div></div>
+      </div>
+      <div class="score-total"><span>Total Prestige</span><span>${f.total.toLocaleString()} pts</span></div>
+      ${f.fams.length?`
+        <div class="family-mini-lb">
+          <div class="family-mini-lb-title">Members</div>
+          ${lbRows}
+        </div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();});
+onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPrestigeMember)matchPrestigeMember(currentPrestigeMember.name);else if(currentUserData)matchPrestigeMember(currentUserData.name);renderMembers();renderFamilies();});
+onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();});
+
+window.switchTab=function(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['members','families'][i]===tab));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+};
+</script>
+</body>
+</html>
