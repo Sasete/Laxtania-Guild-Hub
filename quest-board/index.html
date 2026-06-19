@@ -839,7 +839,8 @@
 
   auth.onAuthStateChanged(async user => {
     if (!user) {
-      window.location.href = '../';
+      // Guest mode — board is visible but interactive features are hidden
+      document.getElementById('request-fab').style.display = 'none';
       return;
     }
     const snap = await db.ref('users/' + user.uid).get();
@@ -1709,7 +1710,15 @@
       });
       claimRefs[id] = ref;
 
-      card.querySelector('.claim-btn').addEventListener('click', () => claimQuest(card));
+      const claimBtn = card.querySelector('.claim-btn');
+      if (!currentUserData) {
+        claimBtn.textContent = 'Sign In to Claim';
+        claimBtn.disabled = true;
+        claimBtn.style.opacity = '0.5';
+        claimBtn.style.cursor = 'default';
+      } else {
+        claimBtn.addEventListener('click', () => claimQuest(card));
+      }
     });
   }
 
