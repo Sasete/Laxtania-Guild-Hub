@@ -174,16 +174,9 @@
 <div class="board-header">
   <div class="banner">
     <span class="banner-eyebrow">Hall of Honours</span>
-    <h1>Prestige Registry</h1>
-    <span class="banner-sub">Records of Valour — Laxtania Guild</span>
+    <h1>Members & Families</h1>
+    <span class="banner-sub">Prestige Registry — Laxtania Guild</span>
   </div>
-</div>
-
-<!-- Admin toolbar -->
-<div class="admin-toolbar" id="adminToolbar" style="max-width:980px;margin:0 auto 0;">
-  <span class="admin-toolbar-lbl">Admin —</span>
-  <button class="admin-toolbar-btn" onclick="toggleInline('addMemberForm')">+ Member</button>
-  <button class="admin-toolbar-btn" onclick="toggleInline('addFamilyForm')">+ Family</button>
 </div>
 
 <!-- Add Member form -->
@@ -246,18 +239,21 @@
 
   <div class="divider"></div>
 
+  <!-- Admin toolbar (visible only in admin mode) -->
+  <div class="admin-toolbar" id="adminToolbar">
+    <span class="admin-toolbar-lbl">Admin —</span>
+    <button class="admin-toolbar-btn" onclick="toggleInline('addMemberForm')">+ Member</button>
+    <button class="admin-toolbar-btn" onclick="toggleInline('addFamilyForm')">+ Family</button>
+  </div>
+
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('members')">Members</button>
     <button class="tab-btn" onclick="switchTab('families')">Families</button>
-    <button class="tab-btn" id="adminTabBtn" style="display:none" onclick="switchTab('admin')">
-      ⚔ Admin <span id="adminBadge" style="display:none;background:var(--seal-red);color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle">0</span>
-    </button>
   </div>
 
   <div id="tab-members" class="tab-panel active"><div id="membersContainer"><div class="loading">Consulting the Archives…</div></div></div>
   <div id="tab-families" class="tab-panel"><div id="familiesContainer"><div class="loading">Consulting the Archives…</div></div></div>
-  <div id="tab-admin" class="tab-panel"><div id="adminContainer"></div></div>
 
   <!-- My Family Section -->
   <div id="myFamilyContainer" style="display:none; margin-top: 24px;"></div>
@@ -272,7 +268,7 @@ import { getDatabase, ref, set, get, update, remove, onValue, push } from "https
 
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
 const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
-const DEFAULT_TIERS=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"},{name:"Sovereign",minPts:2000,color:"#8a3050"}];
+const DEFAULT_TIERS=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"}];
 
 const app=initializeApp(FC); const auth=getAuth(app); const db=getDatabase(app);
 let tiers=DEFAULT_TIERS,members={},families={},pendingUsers={};
@@ -330,16 +326,8 @@ onAuthStateChanged(auth,async user=>{
   document.getElementById('guildNav').style.display='flex';
   if(isAdmin){
     document.getElementById('adminToggle').style.display='flex';
-    document.getElementById('adminTabBtn').style.display='inline-block';
-    onValue(ref(db,'users'),snap=>{
-      const all=snap.val()||{};
-      pendingUsers=Object.fromEntries(Object.entries(all).filter(([,u])=>u.status==='pending'));
-      const c=Object.keys(pendingUsers).length;
-      document.getElementById('adminBadge').textContent=c;
-      document.getElementById('adminBadge').style.display=c>0?'inline':'none';
-      if(adminMode)renderAdminTab();
-    });
   }
+  startDataListeners();
   if(currentUserData.name)matchPM(currentUserData.name);
 });
 
@@ -349,14 +337,18 @@ window.toggleAdminMode=function(){
   document.getElementById('adminToggle').classList.toggle('active',adminMode);
   document.getElementById('adminToolbar').classList.toggle('visible',adminMode);
   renderMembers();renderFamilies();
-  if(adminMode)renderAdminTab();
 };
 window.toggleInline=function(id){const el=document.getElementById(id);el.classList.toggle('open');};
 
-// ── FIREBASE LISTENERS ──
-onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();renderMyFamilySection();if(adminMode)renderAdminTab();});
-onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
-onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
+// ── FIREBASE LISTENERS (started after auth, see onAuthStateChanged) ──
+let _listenersStarted = false;
+function startDataListeners() {
+  if (_listenersStarted) return;
+  _listenersStarted = true;
+  onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();renderMyFamilySection();});
+  onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
+  onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
+}
 
 function populateFamilyDDs(){
   const opts='<option value="">— None —</option>'+Object.entries(families).map(([id,f])=>`<option value="${id}">${f.name}</option>`).join('');
@@ -631,7 +623,11 @@ function renderMyFamilySection(){
     <div class="family-card my-family-highlight" style="border: 2px solid var(--gold); background: rgba(200, 160, 74, 0.08); box-shadow: 0 8px 24px rgba(46,32,20,0.15); padding: 20px; border-radius: 4px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
         <div>
-          <div class="family-name" style="font-size: 20px; font-weight: bold; color: var(--navy); margin-bottom: 4px;">${fam.name || myFamId}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <div class="family-name" id="myFamNameDisp" style="font-size: 20px; font-weight: bold; color: var(--navy);">${fam.name || myFamId}</div>
+            ${isLordOfFamily?`<button onclick="toggleFamRename()" style="background:none;border:1px solid rgba(120,90,50,0.3);color:var(--ink-soft);font-size:10px;font-variant:small-caps;letter-spacing:1px;padding:2px 7px;cursor:pointer;border-radius:2px;">Rename</button>`:''}
+          </div>
+          ${isLordOfFamily?`<div id="famRenameBox" style="display:none;margin-bottom:6px;"><div style="display:flex;gap:6px;align-items:center;"><input id="famRenameInput" type="text" value="${(fam.name||'').replace(/"/g,'&quot;')}" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;border:1px solid rgba(120,90,50,0.35);background:rgba(255,255,255,0.7);color:var(--navy);width:180px;"><button class="gold-btn" style="font-size:11px;padding:5px 12px;" onclick="saveFamName()">Save</button><button class="ghost-btn" style="font-size:11px;padding:5px 10px;" onclick="toggleFamRename()">Cancel</button></div></div>`:''}
           <div class="family-meta" style="font-size: 13px; font-style: italic; color: var(--ink-soft);">Ranked #${famRankIndex} &nbsp;·&nbsp; ${fams.length} member${fams.length!==1?'s':''}</div>
         </div>
         <div style="text-align: right;">
@@ -670,6 +666,23 @@ window.inviteMember = async function() {
   const memberName = members[mid]?.name || "Adventurer";
   await update(ref(db, 'prestige/members/' + mid), { familyId: myFamId });
   toast(`${memberName} joined your family.`);
+};
+
+window.toggleFamRename = function() {
+  const box = document.getElementById('famRenameBox');
+  if (!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+};
+
+window.saveFamName = async function() {
+  const myFamId = currentPM?.familyId;
+  if (!myFamId) return;
+  const input = document.getElementById('famRenameInput');
+  const newName = input?.value.trim();
+  if (!newName) { toast('Please enter a name.'); return; }
+  await update(ref(db, 'prestige/families/' + myFamId), { name: newName });
+  toast(`Family renamed to "${newName}".`);
+  document.getElementById('famRenameBox').style.display = 'none';
 };
 
 window.removeMemberFromFamily = async function(mid) {
@@ -758,7 +771,6 @@ window.switchTab=function(tab){
   });
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='admin')renderAdminTab();
 };
 </script>
 </body>

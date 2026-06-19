@@ -1338,8 +1338,6 @@
     await db.ref(`quests/${id}`).set(claims.length ? claims : null);
   }
 
-  // Complete: remove one occurrence of this claimant AND shrink slots by 1.
-  // If slots would reach 0, also mark the quest inactive automatically.
   async function completeClaimant(id, index) {
     const def = currentDefs[id];
     const rawClaims = currentClaims[id] || [];
@@ -1356,6 +1354,26 @@
     updates[`questDefs/${id}/slots`] = newSlots || 1;   // keep at least 1 so it can be re-opened
     updates[`questDefs/${id}/active`] = newActive;
     updates[`quests/${id}`] = claims.length ? claims : null;
+
+    // Award prestige points automatically
+    const prestigeReward = extractRewardValue(def.rewards, '♦');
+    if (prestigeReward > 0) {
+      try {
+        const membersSnap = await db.ref('prestige/members').get();
+        const members = membersSnap.val() || {};
+        const matchEntry = Object.entries(members).find(([mid, m]) => m.name?.toLowerCase() === name.toLowerCase());
+        if (matchEntry) {
+          const [mid, member] = matchEntry;
+          const currentPoints = member.points || 0;
+          updates[`prestige/members/${mid}/points`] = currentPoints + prestigeReward;
+        } else {
+          alert(`Warning: "${name}" was not found in the Members Registry. The quest was completed, but no prestige points were awarded automatically.`);
+        }
+      } catch (e) {
+        console.error("Failed to update prestige points:", e);
+      }
+    }
+
     await db.ref().update(updates);
   }
 

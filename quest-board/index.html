@@ -601,6 +601,83 @@
   .qr-meta { font-size: 12px; color: rgba(230,200,120,0.6); font-style: italic; margin-bottom: 10px; }
   .qr-actions { display: flex; gap: 8px; }
 
+  /* ============ ADMIN CARD STYLES ============ */
+  .quest-card.dragging { opacity: 0.35; }
+  .quest-card.drag-over-top { box-shadow: 0 -5px 0 var(--gold-bright), inset 0 0 0 1px rgba(120,90,50,0.25), inset 0 0 40px rgba(120,90,50,0.18), 0 14px 28px rgba(0,0,0,0.45); }
+  .quest-card.drag-over-bottom { box-shadow: 0 5px 0 var(--gold-bright), inset 0 0 0 1px rgba(120,90,50,0.25), inset 0 0 40px rgba(120,90,50,0.18), 0 14px 28px rgba(0,0,0,0.45); }
+  .pin:active { cursor: grabbing; }
+  .delete-card-btn {
+    position: absolute; top: -14px; right: -14px; width: 30px; height: 30px;
+    border-radius: 50%; background: var(--seal-red); color: var(--parchment);
+    border: 2px solid var(--parchment); font-size: 16px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4); z-index: 2; font-family: Georgia, serif;
+  }
+  .delete-card-btn:hover { background: #a92e2e; }
+  .deadline-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; }
+  .deadline-label { font-style: italic; font-variant: small-caps; letter-spacing: 1px; }
+  .deadline-input { font-family: Georgia, serif; font-size: 12px; color: var(--ink); background: rgba(255,255,255,0.35); border: 1px solid rgba(46,32,20,0.25); border-radius: 2px; padding: 2px 4px; }
+  .deadline-input:focus { background: rgba(255,255,255,0.6); outline: 1px solid var(--gold); }
+  .clear-deadline-btn { font-family: Georgia, serif; font-size: 12px; line-height: 1; width: 18px; height: 18px; background: rgba(255,255,255,0.5); border: 1px solid rgba(46,32,20,0.3); border-radius: 2px; cursor: pointer; color: var(--ink); }
+  .clear-deadline-btn:hover { background: rgba(255,255,255,0.8); }
+  .out-of-time-badge { font-variant: small-caps; letter-spacing: 1px; font-weight: bold; font-size: 11px; background: var(--seal-red); color: var(--parchment); border-radius: 3px; padding: 2px 8px; }
+  .quest-card.out-of-time { box-shadow: inset 0 0 0 2px var(--seal-red), inset 0 0 40px rgba(120,90,50,0.18), 0 14px 28px rgba(0,0,0,0.45); }
+  .editable { outline: none; border-radius: 2px; cursor: text; }
+  .editable:hover { background: rgba(255,255,255,0.35); }
+  .editable:focus { background: rgba(255,255,255,0.55); box-shadow: 0 0 0 1px var(--gold); }
+  .num-input { font-family: Georgia, serif; font-size: inherit; font-weight: inherit; color: inherit; width: 60px; background: rgba(255,255,255,0.35); border: 1px solid rgba(46,32,20,0.25); border-radius: 2px; padding: 1px 4px; text-align: right; }
+  .reward-silver-input { width: 96px; }
+  .slots-edit { display: flex; align-items: center; gap: 6px; }
+  .description-wrap { position: relative; }
+  .description.editable { padding-right: 32px; }
+  .bold-toggle { position: absolute; top: -4px; right: 0; font-family: Georgia, serif; font-weight: bold; font-size: 12px; width: 24px; height: 24px; background: rgba(255,255,255,0.5); border: 1px solid rgba(46,32,20,0.3); border-radius: 3px; cursor: pointer; color: var(--ink); }
+  .bold-toggle:hover { background: rgba(255,255,255,0.8); }
+  .save-card-btn { font-family: Georgia, serif; font-variant: small-caps; letter-spacing: 1.5px; font-size: 14px; background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: var(--ink); border: 1px solid #8a6a28; border-radius: 3px; padding: 8px 18px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.25); transition: transform 0.08s ease; }
+  .save-card-btn:hover { transform: translateY(-1px); }
+  .save-status { font-size: 12px; font-style: italic; color: var(--ink-soft); }
+  .add-card { border: 3px dashed var(--gold); border-radius: 10px; background: rgba(241,228,196,0.06); display: flex; align-items: center; justify-content: center; min-height: 240px; cursor: pointer; color: var(--gold-bright); transition: background 0.15s ease; }
+  .add-card:hover { background: rgba(241,228,196,0.14); }
+  .add-card .plus { font-size: 72px; font-weight: bold; line-height: 1; }
+  .active-toggle { font-family: Georgia, serif; font-variant: small-caps; letter-spacing: 1px; font-size: 12px; padding: 3px 10px; border-radius: 3px; border: 1px solid; cursor: pointer; transition: opacity 0.1s ease; }
+  .active-toggle.is-active { background: rgba(46,32,20,0.08); border-color: rgba(46,32,20,0.25); color: var(--ink-soft); }
+  .active-toggle.is-inactive { background: var(--seal-red); border-color: var(--seal-red-dark); color: var(--parchment); }
+  .complete-claim-btn { font-family: Georgia, serif; font-size: 11px; line-height: 1; padding: 2px 7px; height: 18px; background: #2a5a2a; color: var(--parchment); border: none; border-radius: 2px; cursor: pointer; white-space: nowrap; }
+  .complete-claim-btn:hover { background: #1e431e; }
+  .remove-claim-btn { font-family: Georgia, serif; font-size: 12px; line-height: 1; width: 16px; height: 16px; background: var(--seal-red); color: var(--parchment); border: none; border-radius: 2px; cursor: pointer; padding: 0; }
+  .claim-tag.admin-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px 3px 9px; }
+  .inactive-section { max-width: 980px; margin: 60px auto 0; }
+  .inactive-section-header { font-family: Georgia, serif; font-variant: small-caps; letter-spacing: 3px; font-size: 14px; color: rgba(241,228,196,0.45); text-align: center; margin-bottom: 24px; position: relative; }
+  .inactive-section-header::before, .inactive-section-header::after { content: ""; position: absolute; top: 50%; width: 35%; height: 1px; background: rgba(200,160,74,0.3); }
+  .inactive-section-header::before { left: 0; }
+  .inactive-section-header::after { right: 0; }
+  .inactive-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 46px 36px; }
+  @media (max-width: 760px) { .inactive-grid { grid-template-columns: 1fr; } }
+  .quest-card.inactive { opacity: 0.45; filter: grayscale(0.4); }
+  .quest-card.inactive:hover { opacity: 0.75; filter: grayscale(0.2); }
+  .tab-bar { max-width: 980px; margin: 0 auto 36px; display: flex; gap: 4px; border-bottom: 2px solid var(--gold); padding-bottom: 0; }
+  .tab-btn { font-family: Georgia, serif; font-variant: small-caps; letter-spacing: 2px; font-size: 14px; background: rgba(241,228,196,0.06); color: rgba(241,228,196,0.5); border: 1px solid rgba(200,160,74,0.3); border-bottom: none; border-radius: 4px 4px 0 0; padding: 10px 24px; cursor: pointer; transition: background 0.1s ease, color 0.1s ease; display: flex; align-items: center; gap: 8px; position: relative; bottom: -2px; }
+  .tab-btn:hover { background: rgba(241,228,196,0.12); color: var(--gold-bright); }
+  .tab-btn.active { background: var(--navy); color: var(--gold-bright); border-color: var(--gold); font-weight: bold; }
+  .req-badge { background: var(--seal-red); color: var(--parchment); border-radius: 10px; font-size: 11px; font-style: normal; font-weight: bold; padding: 1px 7px; font-variant: normal; letter-spacing: 0; min-width: 20px; text-align: center; }
+  .requests-grid { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 36px; }
+  @media (max-width: 760px) { .requests-grid { grid-template-columns: 1fr; } }
+  .request-card { background-color: var(--parchment); border-radius: 3px 9px 4px 10px / 9px 4px 10px 3px; padding: 26px 24px 22px; box-shadow: inset 0 0 0 1px rgba(120,90,50,0.25), inset 0 0 40px rgba(120,90,50,0.18), 0 10px 22px rgba(0,0,0,0.4); position: relative; }
+  .request-card::before { content: "Pending Review"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 10px; font-variant: small-caps; letter-spacing: 2px; color: var(--gold-bright); background: var(--navy); border: 1px solid var(--gold); border-radius: 3px; padding: 2px 10px; white-space: nowrap; }
+  .request-meta { font-size: 12px; font-style: italic; color: var(--ink-soft); margin-bottom: 4px; }
+  .request-title { font-size: 22px; font-weight: 400; color: var(--ink); margin: 0 0 2px; letter-spacing: 0.5px; }
+  .request-level { font-size: 12px; font-weight: bold; font-variant: small-caps; letter-spacing: 2px; color: var(--seal-red); margin-bottom: 12px; }
+  .request-divider { border: none; height: 1px; background: linear-gradient(to right, transparent, var(--gold) 20%, var(--gold) 80%, transparent); margin: 12px 0; opacity: 0.6; }
+  .request-desc { font-size: 14px; line-height: 1.6; color: var(--ink); margin: 0 0 10px; }
+  .request-gain { font-size: 13px; font-style: italic; color: var(--ink-soft); margin: 0 0 14px; }
+  .request-reward { font-size: 13px; font-weight: bold; color: var(--ink); margin-bottom: 18px; display: flex; align-items: center; gap: 6px; }
+  .request-submitted { font-size: 11px; font-style: italic; color: var(--ink-soft); margin-bottom: 14px; opacity: 0.7; }
+  .request-actions { display: flex; gap: 10px; align-items: center; }
+  .approve-btn { font-family: Georgia, serif; font-variant: small-caps; letter-spacing: 1.5px; font-size: 13px; background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: var(--ink); border: 1px solid #8a6a28; border-radius: 3px; padding: 8px 18px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.08s ease; }
+  .approve-btn:hover { transform: translateY(-1px); }
+  .reject-btn { font-family: Georgia, serif; font-variant: small-caps; letter-spacing: 1.5px; font-size: 13px; background: rgba(255,255,255,0.35); color: var(--seal-red); border: 1px solid rgba(140,36,36,0.4); border-radius: 3px; padding: 8px 14px; cursor: pointer; transition: background 0.1s ease; }
+  .reject-btn:hover { background: rgba(140,36,36,0.1); }
+  .request-status { font-size: 12px; font-style: italic; color: var(--ink-soft); margin-left: auto; }
+  .requests-empty { max-width: 980px; margin: 60px auto; text-align: center; font-style: italic; color: rgba(241,228,196,0.35); font-size: 16px; letter-spacing: 1px; }
 
 </style>
 </head>
@@ -623,11 +700,14 @@
 <div id="navbar-placeholder" data-page="quests" data-path-prefix="../"></div>
 <script src="../navbar.js"></script>
 
-<!-- Admin overlay: pending quest requests -->
-<div class="admin-overlay" id="adminOverlay">
-  <h3>Pending Contract Requests</h3>
-  <div id="pendingRequestsContainer"><p style="color:rgba(241,228,196,0.4);font-style:italic">No pending requests.</p></div>
+<!-- Admin tab bar (only visible in admin mode) -->
+<div class="tab-bar" id="adminTabBar" style="display:none">
+  <button class="tab-btn active" data-tab="board" onclick="switchAdminTab('board')">Active Board</button>
+  <button class="tab-btn" data-tab="requests" onclick="switchAdminTab('requests')">Pending Requests <span class="req-badge" id="req-badge" style="display:none;"></span></button>
 </div>
+
+<!-- Tab: Board -->
+<div id="tab-board">
 
 <div class="board-header">
   <div class="banner">
@@ -639,7 +719,19 @@
 
 <div class="quests">
   <!-- Cards rendered dynamically from Firebase questDefs -->
+</div>
 
+<div class="inactive-section" id="inactive-section" style="display:none;">
+  <div class="inactive-section-header">Inactive Contracts</div>
+  <div class="inactive-grid" id="inactive-grid"></div>
+</div>
+
+</div><!-- /tab-board -->
+
+<!-- Tab: Pending Requests (admin only) -->
+<div id="tab-requests" style="display:none;">
+  <div class="requests-grid" id="requests-grid"></div>
+  <div class="requests-empty" id="requests-empty" style="display:none;">No pending requests at this time.</div>
 </div>
 
 <!-- Request a Contract FAB -->
@@ -722,6 +814,9 @@
   let currentUserData = null;
   let isAdmin = false;
   let adminMode = false;
+  let currentClaims = {};
+  let claimListenersAdmin = {};
+  let hasDraft = false;
   const RANKS = {serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
 
   function resolveIsAdmin(d) {
@@ -783,51 +878,487 @@
     }
   });
 
-  function toggleAdminMode() {
+  window.toggleAdminMode = function() {
     adminMode = !adminMode;
     document.getElementById('adminToggle').classList.toggle('active', adminMode);
-    document.getElementById('adminOverlay').classList.toggle('visible', adminMode);
-  }
-
-  function renderPendingRequests(requests) {
-    const c = document.getElementById('pendingRequestsContainer');
-    const list = Object.entries(requests);
-    if (!list.length) {
-      c.innerHTML = '<p style="color:rgba(241,228,196,0.4);font-style:italic">No pending requests.</p>';
-      return;
+    document.getElementById('adminTabBar').style.display = adminMode ? 'flex' : 'none';
+    document.getElementById('request-fab').style.display = adminMode ? 'none' : '';
+    if (adminMode) {
+      switchAdminTab('board');
+      startAdminClaimListeners();
+    } else {
+      stopAdminClaimListeners();
+      hasDraft = false;
     }
-    c.innerHTML = list.map(([id, r]) => `
-      <div class="quest-request-row">
-        <div class="qr-name">${escapeHtml(r.name || '—')}</div>
-        <div class="qr-meta">${escapeHtml(r.level || '')} · by ${escapeHtml(r.issuer || '—')} · ${escapeHtml(r.slots || 1)} slot(s) · ${formatSilverShort(r.silver || 0)} silver</div>
-        <div style="font-size:13px;color:rgba(241,228,196,0.7);margin-bottom:10px;line-height:1.5">${escapeHtml(r.description || '')}</div>
-        <div class="qr-actions">
-          <button class="approve-btn" onclick="approveRequest('${id}')">Approve & Post</button>
-          <button class="reject-btn" onclick="rejectRequest('${id}')">Reject</button>
-        </div>
-      </div>`).join('');
+    renderBoard(currentQuestDefs);
+  };
+
+  window.switchAdminTab = function(tab) {
+    document.querySelectorAll('#adminTabBar .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.getElementById('tab-board').style.display   = tab === 'board'    ? '' : 'none';
+    document.getElementById('tab-requests').style.display = tab === 'requests' ? '' : 'none';
+  };
+
+  function startAdminClaimListeners() {
+    Object.keys(currentQuestDefs).forEach(id => {
+      if (!claimListenersAdmin[id]) {
+        const r = db.ref('quests/' + id);
+        r.on('value', snap => { currentClaims[id] = snap.val() || []; renderAdminBoard(currentQuestDefs); });
+        claimListenersAdmin[id] = r;
+      }
+    });
   }
 
-  async function approveRequest(id) {
-    const snap = await db.ref('questRequests/' + id).get();
-    const r = snap.val();
-    if (!r) return;
-    const newKey = db.ref('questDefs').push().key;
-    const questDef = {
-      name: r.name, level: r.level, issuer: r.issuer,
-      description: r.description, guildGain: r.guildGain,
-      slots: r.slots || 1, active: true, order: Date.now(),
-      rewards: [{ icon: '⛀', text: String(r.silver || 0) }]
+  function stopAdminClaimListeners() {
+    Object.values(claimListenersAdmin).forEach(r => r.off());
+    claimListenersAdmin = {};
+    currentClaims = {};
+  }
+
+  // ── Admin pending requests listener ──
+  db.ref('questRequests').orderByChild('status').equalTo('pending').on('value', snap => {
+    const data = snap.val() || {};
+    const pending = Object.entries(data).filter(([, r]) => r.status === 'pending');
+    const badge = document.getElementById('req-badge');
+    if (badge) { badge.textContent = pending.length; badge.style.display = pending.length ? 'inline-block' : 'none'; }
+    const grid = document.getElementById('requests-grid');
+    const empty = document.getElementById('requests-empty');
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (!pending.length) { if (empty) empty.style.display = 'block'; return; }
+    if (empty) empty.style.display = 'none';
+    pending.forEach(([reqId, req]) => grid.appendChild(buildRequestCard(reqId, req)));
+  });
+
+  function buildRequestCard(reqId, req) {
+    const submitted = req.submittedAt
+      ? new Date(req.submittedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : 'Unknown';
+    const div = document.createElement('div');
+    div.className = 'request-card';
+    div.innerHTML = `
+      <div class="request-meta">Requested by <strong>${escapeHtml(req.issuer)}</strong></div>
+      <div class="request-title">${escapeHtml(req.name)}</div>
+      <div class="request-level">${escapeHtml(req.level)} &nbsp;·&nbsp; ${req.slots} slot${req.slots === 1 ? '' : 's'}</div>
+      <hr class="request-divider">
+      <p class="request-desc">${escapeHtml(req.description)}</p>
+      <p class="request-gain"><strong>Guild Gain:</strong> ${escapeHtml(req.guildGain)}</p>
+      <div class="request-reward">
+        <svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-silver"/></svg>
+        ${Number(req.silver).toLocaleString('en-US')} Silver
+      </div>
+      <div class="request-submitted">Submitted: ${submitted}</div>
+      <div class="request-actions">
+        <button class="approve-btn">Approve</button>
+        <button class="reject-btn">Reject</button>
+        <span class="request-status"></span>
+      </div>`;
+    div.querySelector('.approve-btn').addEventListener('click', () => approveRequest(div, reqId, req));
+    div.querySelector('.reject-btn').addEventListener('click', () => rejectRequest(div, reqId, req.name));
+    return div;
+  }
+
+  async function approveRequest(card, reqId, req) {
+    const statusEl = card.querySelector('.request-status');
+    statusEl.textContent = 'Approving…';
+    const orders = Object.values(currentQuestDefs).map(d => d.order || 0);
+    const order = orders.length ? Math.max(...orders) + 1 : 1;
+    let id = slugify(req.name) || 'contract';
+    let uniqueId = id, suffix = 2;
+    while (currentQuestDefs[uniqueId]) { uniqueId = `${id}-${suffix}`; suffix++; }
+    const def = {
+      order, active: true, level: req.level, slots: req.slots,
+      name: req.name, issuer: `Requested by ${req.issuer}`,
+      description: escapeHtml(req.description), guildGain: req.guildGain,
+      deadline: null,
+      rewards: [{ icon: '♦', text: '0 Prestige' }, { icon: '⛀', text: `${Number(req.silver).toLocaleString('en-US')} Silver` }]
     };
-    await db.ref('questDefs/' + newKey).set(questDef);
-    await db.ref('questRequests/' + id).remove();
-    alert('Contract approved and posted to the board.');
+    await db.ref('questDefs/' + uniqueId).set(def);
+    await db.ref('questRequests/' + reqId + '/status').set('approved');
+    statusEl.textContent = 'Posted to the board ✓';
+    card.querySelector('.approve-btn').disabled = true;
+    card.querySelector('.reject-btn').disabled = true;
   }
 
-  async function rejectRequest(id) {
-    if (!confirm('Reject and delete this request?')) return;
-    await db.ref('questRequests/' + id).remove();
+  async function rejectRequest(card, reqId, name) {
+    if (!confirm(`Reject the request for "${name}"?\n\nIt will be removed from the queue.`)) return;
+    const statusEl = card.querySelector('.request-status');
+    statusEl.textContent = 'Rejecting…';
+    await db.ref('questRequests/' + reqId + '/status').set('rejected');
+    statusEl.textContent = 'Rejected.';
   }
+
+  // ── Admin helper functions ──
+  function slugify(text) {
+    return String(text).toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  function formatSilverFull(n) { return Number(n).toLocaleString('en-US'); }
+
+  function isoToLocalInputValue(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function localInputValueToIso(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  }
+
+  function extractRewardValue(rewards, iconChar) {
+    const item = (rewards || []).find(r => r.icon === iconChar);
+    if (!item) return 0;
+    return parseInt(String(item.text).replace(/[^\d]/g, ''), 10) || 0;
+  }
+
+  function cleanDescriptionHtml(html) {
+    let out = html;
+    out = out.replace(/<div>/gi, ' ').replace(/<\/div>/gi, '');
+    out = out.replace(/<br\s*\/?>/gi, ' ');
+    out = out.replace(/<b>/gi, '<strong>').replace(/<\/b>/gi, '</strong>');
+    out = out.replace(/<(?!\/?strong\b)[^>]*>/gi, '');
+    return out.replace(/\s+/g, ' ').trim();
+  }
+
+  function groupClaimantsAdmin(claims) {
+    const groups = [];
+    (claims || []).forEach((name, i) => {
+      const existing = groups.find(g => g.name === name);
+      if (existing) { existing.count++; existing.index = i; }
+      else groups.push({ name, count: 1, index: i });
+    });
+    return groups;
+  }
+
+  function flashStatus(card, msg) {
+    const el = card.querySelector('.save-status');
+    el.textContent = msg;
+    setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 2500);
+  }
+
+  function gatherCardData(card) {
+    return {
+      level: card.querySelector('.level').textContent.trim(),
+      slots: Math.max(1, parseInt(card.querySelector('.slots-input').value, 10) || 1),
+      name: card.querySelector('.quest-name').textContent.trim(),
+      issuer: card.querySelector('.issuer').textContent.trim(),
+      description: cleanDescriptionHtml(card.querySelector('.description').innerHTML),
+      guildGain: card.querySelector('.guild-gain .editable').textContent.trim(),
+      prestige: parseInt(card.querySelector('.reward-prestige-input').value, 10) || 0,
+      silver: parseInt(card.querySelector('.reward-silver-input').value, 10) || 0,
+      deadline: localInputValueToIso(card.querySelector('.deadline-input').value)
+    };
+  }
+
+  function buildDefFromData(data, order, existingActive) {
+    return {
+      order, active: existingActive !== false,
+      level: data.level, slots: data.slots, name: data.name,
+      issuer: data.issuer, description: data.description, guildGain: data.guildGain,
+      deadline: data.deadline,
+      rewards: [{ icon: '♦', text: `${data.prestige} Prestige` }, { icon: '⛀', text: `${formatSilverFull(data.silver)} Silver` }]
+    };
+  }
+
+  function validateCard(data) {
+    return data.name && data.level && data.issuer && data.description && data.guildGain;
+  }
+
+  async function saveAdminCard(card, id) {
+    const data = gatherCardData(card);
+    if (!validateCard(data)) { flashStatus(card, 'Please fill in all fields.'); return; }
+    const def = currentQuestDefs[id] || {};
+    await db.ref('questDefs/' + id).set(buildDefFromData(data, def.order ?? 1, def.active));
+    flashStatus(card, 'Saved ✓');
+  }
+
+  async function saveDraft(card) {
+    const data = gatherCardData(card);
+    if (!validateCard(data)) { flashStatus(card, 'Please fill in all fields.'); return; }
+    let id = slugify(data.name) || 'contract';
+    let uniqueId = id, suffix = 2;
+    while (currentQuestDefs[uniqueId]) { uniqueId = `${id}-${suffix}`; suffix++; }
+    const orders = Object.values(currentQuestDefs).map(d => d.order || 0);
+    const order = orders.length ? Math.max(...orders) + 1 : 1;
+    await db.ref('questDefs/' + uniqueId).set(buildDefFromData(data, order, true));
+    hasDraft = false;
+  }
+
+  async function deleteAdminCard(id, name) {
+    if (!confirm(`Remove "${name}" from the Quest Board?\n\nThis also clears any claim records for this contract.`)) return;
+    await db.ref('questDefs/' + id).remove();
+    await db.ref('quests/' + id).remove();
+  }
+
+  async function removeClaimant(id, index) {
+    const claims = (currentClaims[id] || []).slice();
+    const name = claims[index];
+    if (name === undefined) return;
+    if (!confirm(`Remove ${name}'s claim on "${currentQuestDefs[id]?.name || id}"?\n\nThe slot will become available again.`)) return;
+    claims.splice(index, 1);
+    await db.ref('quests/' + id).set(claims.length ? claims : null);
+  }
+
+  async function completeClaimant(id, index) {
+    const def = currentQuestDefs[id];
+    const claims = (currentClaims[id] || []).slice();
+    const name = claims[index];
+    if (name === undefined) return;
+    if (!confirm(`Mark ${name}'s contract as complete?\n\nThe slot will be permanently closed.`)) return;
+    claims.splice(index, 1);
+    const newSlots = Math.max(0, (def.slots || 1) - 1);
+    const newActive = newSlots > 0 ? (def.active !== false) : false;
+    const updates = {};
+    updates[`questDefs/${id}/slots`] = newSlots || 1;
+    updates[`questDefs/${id}/active`] = newActive;
+    updates[`quests/${id}`] = claims.length ? claims : null;
+
+    // Award prestige points automatically
+    const prestigeReward = extractRewardValue(def.rewards, '♦');
+    if (prestigeReward > 0) {
+      try {
+        const membersSnap = await db.ref('prestige/members').get();
+        const members = membersSnap.val() || {};
+        const matchEntry = Object.entries(members).find(([mid, m]) => m.name?.toLowerCase() === name.toLowerCase());
+        if (matchEntry) {
+          const [mid, member] = matchEntry;
+          const currentPoints = member.points || 0;
+          updates[`prestige/members/${mid}/points`] = currentPoints + prestigeReward;
+        } else {
+          alert(`Warning: "${name}" was not found in the Members Registry. The quest was completed, but no prestige points were awarded automatically.`);
+        }
+      } catch (e) {
+        console.error("Failed to update prestige points:", e);
+      }
+    }
+
+    await db.ref().update(updates);
+  }
+
+  async function toggleActive(id, currentlyActive) {
+    await db.ref('questDefs/' + id + '/active').set(!currentlyActive);
+  }
+
+  let draggedId = null;
+
+  function enableDragHandle(card, id) {
+    const pin = card.querySelector('.pin');
+    pin.draggable = true;
+    pin.style.cursor = 'grab';
+    const questsEl = document.querySelector('.quests');
+
+    pin.addEventListener('dragstart', e => {
+      draggedId = id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    pin.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      questsEl.querySelectorAll('.quest-card').forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom'));
+      draggedId = null;
+    });
+    card.addEventListener('dragover', e => {
+      if (!draggedId || draggedId === id) return;
+      e.preventDefault();
+      const rect = card.getBoundingClientRect();
+      card.classList.remove('drag-over-top', 'drag-over-bottom');
+      card.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+    });
+    card.addEventListener('drop', async e => {
+      if (!draggedId || draggedId === id) return;
+      e.preventDefault();
+      const draggedEl = questsEl.querySelector(`[data-quest-id="${draggedId}"]`);
+      if (!draggedEl) return;
+      if (card.classList.contains('drag-over-top')) questsEl.insertBefore(draggedEl, card);
+      else questsEl.insertBefore(draggedEl, card.nextSibling);
+      card.classList.remove('drag-over-top', 'drag-over-bottom');
+      await commitOrder();
+    });
+  }
+
+  async function commitOrder() {
+    const cards = Array.from(document.querySelector('.quests').querySelectorAll('.quest-card[data-quest-id]'));
+    const updates = {};
+    cards.forEach((card, idx) => { updates[`questDefs/${card.dataset.questId}/order`] = idx + 1; });
+    await db.ref().update(updates);
+  }
+
+  function buildAdminCardShell(opts) {
+    const { tilt, level, slotsValue, slotsLabel, name, issuer, descriptionHtml,
+            guildGain, prestige, silver, claimsHtml, slotStatus, slotStatusFull,
+            saveLabel, deadlineValue, outOfTime, isActive } = opts;
+
+    const article = document.createElement('article');
+    article.className = 'quest-card';
+    article.style.setProperty('--tilt', `${tilt}deg`);
+
+    const activeLabel = isActive ? 'Active' : 'Inactive';
+    const activeCls   = isActive ? 'is-active' : 'is-inactive';
+
+    article.innerHTML = `
+      <div class="pin"></div>
+      <button class="delete-card-btn" title="Remove this contract">×</button>
+      <div class="quest-eyebrow">
+        <span class="level editable" contenteditable="true">${level}</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <button class="active-toggle ${activeCls}" title="Toggle active/inactive">${activeLabel}</button>
+          <span class="slots-edit">
+            <input type="number" class="num-input slots-input" min="1" value="${slotsValue}">
+            <span class="slots-label">${slotsLabel}</span>
+          </span>
+        </span>
+      </div>
+      <div class="deadline-row">
+        <span class="deadline-label">Deadline</span>
+        <input type="datetime-local" class="deadline-input" value="${deadlineValue}">
+        <button class="clear-deadline-btn" title="Remove deadline">×</button>
+        <span class="out-of-time-badge" style="display:${outOfTime ? 'inline-block' : 'none'};">Out of Time</span>
+      </div>
+      <h2 class="quest-name editable" contenteditable="true">${name}</h2>
+      <p class="issuer editable" contenteditable="true">${issuer}</p>
+      <hr class="divider">
+      <div class="description-wrap">
+        <button class="bold-toggle" title="Bold selected text">B</button>
+        <p class="description editable" contenteditable="true">${descriptionHtml}</p>
+      </div>
+      <p class="guild-gain"><strong>Guild Gain:</strong> <span class="editable" contenteditable="true">${guildGain}</span></p>
+      <div class="reward">
+        <div class="reward-item">
+          <svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-prestige"/></svg>
+          <input type="number" class="num-input reward-prestige-input" min="0" value="${prestige}"> Prestige
+        </div>
+        <div class="reward-item">
+          <svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-silver"/></svg>
+          <input type="number" class="num-input reward-silver-input" min="0" step="1000" value="${silver}"> Silver
+        </div>
+      </div>
+      <div class="claim-section">
+        <div class="slot-status${slotStatusFull ? ' full' : ''}">${slotStatus}</div>
+        <div class="claimants">${claimsHtml}</div>
+        <div class="claim-controls">
+          <button class="save-card-btn">${saveLabel}</button>
+          <span class="save-status"></span>
+        </div>
+      </div>`;
+
+    const slotsInput = article.querySelector('.slots-input');
+    const slotsLabelEl = article.querySelector('.slots-label');
+    slotsInput.addEventListener('input', () => {
+      const n = Math.max(1, parseInt(slotsInput.value, 10) || 1);
+      slotsLabelEl.textContent = pluralize(n, 'contract') + ' open';
+    });
+
+    const descEl = article.querySelector('.description');
+    article.querySelector('.bold-toggle').addEventListener('click', () => { descEl.focus(); document.execCommand('bold'); });
+    article.querySelector('.clear-deadline-btn').addEventListener('click', () => { article.querySelector('.deadline-input').value = ''; });
+
+    return article;
+  }
+
+  function buildAdminCard(id, def, claims) {
+    const tilt = (Math.random() * 2.4 - 1.2).toFixed(2);
+    const prestige = extractRewardValue(def.rewards, '♦');
+    const silver   = extractRewardValue(def.rewards, '⛀');
+    const remaining = Math.max((def.slots || 0) - claims.length, 0);
+
+    const claimsHtml = groupClaimantsAdmin(claims).map(({ name, count, index }) => `
+      <span class="claim-tag admin-tag">
+        ${escapeHtml(name)}${count > 1 ? ` <span class="claim-count">×${count}</span>` : ''}
+        <button class="complete-claim-btn" data-id="${escapeHtml(id)}" data-index="${index}">✓</button>
+        <button class="remove-claim-btn" data-id="${escapeHtml(id)}" data-index="${index}">×</button>
+      </span>`).join('');
+
+    const article = buildAdminCardShell({
+      tilt, level: escapeHtml(def.level), slotsValue: def.slots,
+      slotsLabel: pluralize(def.slots, 'contract') + ' open',
+      name: escapeHtml(def.name), issuer: escapeHtml(def.issuer),
+      descriptionHtml: def.description, guildGain: escapeHtml(def.guildGain),
+      prestige, silver, claimsHtml,
+      slotStatus: `${remaining} / ${def.slots} contracts open`,
+      slotStatusFull: remaining === 0, saveLabel: 'Save Changes',
+      deadlineValue: def.deadline ? isoToLocalInputValue(def.deadline) : '',
+      outOfTime: isExpired(def), isActive: def.active !== false
+    });
+
+    article.classList.toggle('out-of-time', isExpired(def));
+    article.classList.toggle('inactive', def.active === false);
+    article.dataset.questId = id;
+    enableDragHandle(article, id);
+
+    article.querySelector('.delete-card-btn').addEventListener('click', () => deleteAdminCard(id, def.name));
+    article.querySelector('.save-card-btn').addEventListener('click', () => saveAdminCard(article, id));
+    article.querySelector('.active-toggle').addEventListener('click', () => toggleActive(id, def.active !== false));
+    article.querySelectorAll('.remove-claim-btn').forEach(btn => {
+      btn.addEventListener('click', () => removeClaimant(id, parseInt(btn.dataset.index, 10)));
+    });
+    article.querySelectorAll('.complete-claim-btn').forEach(btn => {
+      btn.addEventListener('click', () => completeClaimant(id, parseInt(btn.dataset.index, 10)));
+    });
+    return article;
+  }
+
+  function buildDraftCard() {
+    const tilt = (Math.random() * 2.4 - 1.2).toFixed(2);
+    const article = buildAdminCardShell({
+      tilt, level: 'T? — Type', slotsValue: 1, slotsLabel: '1 contract open',
+      name: 'New Contract', issuer: 'Issued by the Laxtania Treasury',
+      descriptionHtml: 'Describe the task.',
+      guildGain: 'What the Treasury gains from this contract.',
+      prestige: 0, silver: 0, claimsHtml: '',
+      slotStatus: '1 / 1 contracts open', slotStatusFull: false,
+      saveLabel: 'Post Contract', deadlineValue: '', outOfTime: false, isActive: true
+    });
+    article.dataset.draft = 'true';
+    article.querySelector('.pin').style.cursor = 'default';
+    article.querySelector('.delete-card-btn').addEventListener('click', () => { hasDraft = false; renderBoard(currentQuestDefs); });
+    article.querySelector('.save-card-btn').addEventListener('click', () => saveDraft(article));
+    return article;
+  }
+
+  function renderAdminBoard(questDefs) {
+    const questsEl = document.querySelector('.quests');
+    questsEl.innerHTML = '';
+
+    const entries = Object.entries(questDefs || {}).sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0));
+    const active   = entries.filter(([, def]) => def.active !== false);
+    const inactive = entries.filter(([, def]) => def.active === false);
+
+    active.forEach(([id, def]) => questsEl.appendChild(buildAdminCard(id, def, currentClaims[id] || [])));
+
+    if (hasDraft) questsEl.appendChild(buildDraftCard());
+
+    const addCard = document.createElement('div');
+    addCard.className = 'add-card';
+    addCard.innerHTML = '<span class="plus">+</span>';
+    addCard.addEventListener('click', () => {
+      if (hasDraft) return;
+      hasDraft = true;
+      renderBoard(currentQuestDefs);
+      const newCard = questsEl.querySelector('.quest-card[data-draft="true"]');
+      if (newCard) newCard.querySelector('.quest-name').focus();
+    });
+    questsEl.appendChild(addCard);
+
+    const inactiveSection = document.getElementById('inactive-section');
+    const inactiveGrid    = document.getElementById('inactive-grid');
+    inactiveGrid.innerHTML = '';
+    inactive.forEach(([id, def]) => inactiveGrid.appendChild(buildAdminCard(id, def, currentClaims[id] || [])));
+    inactiveSection.style.display = inactive.length ? 'block' : 'none';
+  }
+
+  setInterval(() => {
+    if (!adminMode) return;
+    document.querySelector('.quests').querySelectorAll('.quest-card[data-quest-id]').forEach(card => {
+      const dv = card.querySelector('.deadline-input').value;
+      const expired = !!dv && new Date(dv).getTime() <= Date.now();
+      card.classList.toggle('out-of-time', expired);
+      const badge = card.querySelector('.out-of-time-badge');
+      if (badge) badge.style.display = expired ? 'inline-block' : 'none';
+    });
+  }, 60000);
 
   function doSignOut() {
     auth.signOut().then(() => { window.location.href = '../'; });
@@ -1131,7 +1662,20 @@
   }
 
   function renderBoard(questDefs) {
-    // Detach previous claim listeners before rebuilding
+    if (adminMode) {
+      // Sync admin claim listeners for any new quest ids
+      Object.keys(questDefs || {}).forEach(id => {
+        if (!claimListenersAdmin[id]) {
+          const r = db.ref('quests/' + id);
+          r.on('value', snap => { currentClaims[id] = snap.val() || []; });
+          claimListenersAdmin[id] = r;
+        }
+      });
+      renderAdminBoard(questDefs);
+      return;
+    }
+
+    // Member view — detach previous claim listeners before rebuilding
     Object.values(claimRefs).forEach(ref => ref.off());
     claimRefs = {};
 
@@ -1169,18 +1713,14 @@
     });
   }
 
-  // Live listener: the board rebuilds itself whenever questDefs changes
-  // in Firebase — adding, editing, or removing a quest there updates
-  // the page for everyone automatically, no code changes needed.
   let currentQuestDefs = {};
   db.ref('questDefs').on('value', snapshot => {
     currentQuestDefs = snapshot.val() || {};
     renderBoard(currentQuestDefs);
   });
 
-  // A quest with a deadline should disappear on its own once that time
-  // passes, even if nobody touches Firebase — recheck periodically.
   setInterval(() => {
+    if (adminMode) return;
     const hasTimedQuest = Object.values(currentQuestDefs).some(def => def.deadline);
     if (hasTimedQuest) renderBoard(currentQuestDefs);
   }, 60000);
