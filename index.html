@@ -623,11 +623,20 @@ window.rejectUser=async function(uid,name){
 
 // ── LIVE STATS ──
 function loadLiveStats(){
+  let _statMemberPts=0,_statFamilyBonus=0;
+  function _updateStatPrestige(){
+    document.getElementById('statPrestige').textContent=(_statMemberPts+_statFamilyBonus).toLocaleString();
+  }
   onValue(ref(db,'prestige/members'),snap=>{
     const d=snap.val()||{};
     document.getElementById('statMembers').textContent=Object.keys(d).length||'—';
-    const total=Object.values(d).reduce((m,v)=>m+(v.points||0),0);
-    document.getElementById('statPrestige').textContent=total.toLocaleString();
+    _statMemberPts=Object.values(d).reduce((m,v)=>m+(v.points||0),0);
+    _updateStatPrestige();
+  });
+  onValue(ref(db,'prestige/families'),snap=>{
+    const d=snap.val()||{};
+    _statFamilyBonus=Object.values(d).reduce((s,f)=>s+(f.bonusPoints||0),0);
+    _updateStatPrestige();
   });
   onValue(ref(db,'questDefs'),snap=>{
     const d=snap.val()||{};

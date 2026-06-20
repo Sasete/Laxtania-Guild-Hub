@@ -324,7 +324,7 @@ import { getDatabase, ref, set, get, update, remove, onValue, push } from "https
 
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
 const RANKS={serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
-const DEFAULT_TIERS=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"}];
+const DEFAULT_TIERS=[{name:"Iron",minPts:0,color:"#6e7f8a"},{name:"Bronze",minPts:100,color:"#9a6630"},{name:"Silver",minPts:300,color:"#7a8a90"},{name:"Gold",minPts:600,color:"#9a7030"},{name:"Platinum",minPts:1000,color:"#4a90a8"},{name:"Diamond",minPts:2000,color:"#5bc8e8"}];
 
 const app=initializeApp(FC); const auth=getAuth(app); const db=getDatabase(app);
 let tiers=DEFAULT_TIERS,members={},families={},pendingUsers={},invites={};
@@ -402,7 +402,7 @@ let _listenersStarted = false;
 function startDataListeners() {
   if (_listenersStarted) return;
   _listenersStarted = true;
-  onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts);renderTierLegend();renderMembers();renderFamilies();renderMyFamilySection();});
+  onValue(ref(db,'prestige/tiers'),snap=>{const d=snap.val();if(d)tiers=Object.values(d).sort((a,b)=>a.minPts-b.minPts).map(t=>t.name==='Sovereign'?{...t,name:'Diamond',color:'#5bc8e8'}:t);renderTierLegend();renderMembers();renderFamilies();renderMyFamilySection();});
   onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
   onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyCard();renderMyFamilySection();populateFamilyDDs();});
   onValue(ref(db,'prestige/invites'),snap=>{invites=snap.val()||{};renderMyFamilySection();});
