@@ -336,6 +336,8 @@
       <div class="live-stat"><span class="live-num" id="statMembers">—</span><span class="live-lbl">Members</span></div>
       <div class="live-stat"><span class="live-num" id="statQuests">—</span><span class="live-lbl">Active Contracts</span></div>
       <div class="live-stat"><span class="live-num" id="statPrestige">0</span><span class="live-lbl">Total Prestige</span></div>
+      <div class="live-stat"><span class="live-num" id="statTreasury">—</span><span class="live-lbl">Treasury</span></div>
+      <div class="live-stat"><span class="live-num" id="statSilverRate">—</span><span class="live-lbl">Silver / Prestige</span></div>
     </div>
 
     <hr class="divider">
@@ -468,7 +470,8 @@ onAuthStateChanged(auth,async user=>{
   document.getElementById('userBarName').textContent=data.name||user.email;
   renderUserRoles(data.ranks);
   document.getElementById('guildNav').style.display='flex';
-  
+  if((data.ranks||[]).some(r=>['councillor','hand','sovereign'].includes((r||'').toLowerCase()))){const cl=document.getElementById('councilNavLink');if(cl)cl.classList.add('council-visible');}
+
   if(isAdmin){
     document.getElementById('adminPanel').style.display='block';
     document.getElementById('messageEditControls').style.display='block';
@@ -624,8 +627,9 @@ window.rejectUser=async function(uid,name){
 // ── LIVE STATS ──
 function loadLiveStats(){
   let _statMemberPts=0,_statFamilyBonus=0;
+  function _fmtNum(n){return n>=1000000?parseFloat((Math.round(n/10000)/100).toFixed(2))+'M':n>=1000?parseFloat((Math.round(n/100)/10).toFixed(1))+'K':n.toLocaleString();}
   function _updateStatPrestige(){
-    document.getElementById('statPrestige').textContent=(_statMemberPts+_statFamilyBonus).toLocaleString();
+    document.getElementById('statPrestige').textContent=_fmtNum(_statMemberPts+_statFamilyBonus);
   }
   onValue(ref(db,'prestige/members'),snap=>{
     const d=snap.val()||{};
@@ -642,6 +646,19 @@ function loadLiveStats(){
     const d=snap.val()||{};
     const active=Object.values(d).filter(q=>q.active!==false&&(!q.deadline||new Date(q.deadline)>new Date())).length;
     document.getElementById('statQuests').textContent=active||'—';
+  });
+  onValue(ref(db,'treasury/entries'),snap=>{
+    const entries=snap.val()||{};
+    const bal=Object.values(entries).reduce((s,e)=>s+(e.amount||0),0);
+    const el=document.getElementById('statTreasury');
+    const v=Math.abs(bal);
+    el.textContent=(bal<0?'-':'')+(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
+    el.style.color=bal<0?'#c05050':'';
+  });
+  onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
+    const v=snap.exists()?snap.val():10000;
+    const el=document.getElementById('statSilverRate');
+    el.textContent=(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
   });
 }
 

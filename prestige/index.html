@@ -380,8 +380,10 @@ onAuthStateChanged(auth,async user=>{
   document.getElementById('userBarName').textContent=currentUserData.name||user.email;
   renderUserRoles(currentUserData.ranks);
   document.getElementById('guildNav').style.display='flex';
-  if(isAdmin){
-    document.getElementById('adminToggle').style.display='flex';
+  if(isAdmin){document.getElementById('adminToggle').style.display='flex';}
+  const ranks=currentUserData.ranks||[];
+  if(ranks.some(r=>['councillor','hand','sovereign'].includes((r||'').toLowerCase()))){
+    const cl=document.getElementById('councilNavLink');if(cl)cl.classList.add('council-visible');
   }
   startDataListeners();
   if(currentUserData.name)matchPM(currentUserData.name);

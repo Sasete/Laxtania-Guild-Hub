@@ -275,9 +275,9 @@ function buildCard(ev){
   const perPrev=parts.length?Math.floor(100/parts.length):0;
   const remPrev=parts.length?100-(perPrev*parts.length):0;
   const completePanel=isAdmin&&isUpcoming?`<div class="complete-panel" id="complete-${ev.id}">
-    <label>Total Prestige to Distribute</label>
-    <input type="number" id="cpts-${ev.id}" value="100" min="1" oninput="updateCompletePreview('${ev.id}')">
-    <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · ${perPrev} pts each${remPrev>0?` · ${remPrev} remainder randomly distributed`:''}</div>
+    <label>Guild Income — Estimated Silver</label>
+    <input type="number" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
+    <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · enter income above</div>
     <div style="display:flex;gap:8px">
       <button class="gold-btn" style="font-size:12px" onclick="completeEvent('${ev.id}')">Confirm & Distribute</button>
       <button class="ghost-btn" style="font-size:12px" onclick="togglePanel('complete-${ev.id}')">Cancel</button>
@@ -328,13 +328,16 @@ window.togglePanel=function(id){
 window.updateCompletePreview=function(evId){
   const ev=events[evId];if(!ev)return;
   const parts=ev.participants?Object.keys(ev.participants).length:0;
-  const total=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+  const income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
   const prev=document.getElementById('cprev-'+evId);
   if(!prev)return;
   if(!parts){prev.textContent='No participants yet.';return;}
+  if(!income){prev.textContent=`${parts} participant${parts!==1?'s':''} · enter income above`;return;}
+  const rate=window._silverPerPrestige||10000;
+  const total=Math.floor(income/rate);
   const per=Math.floor(total/parts);
   const rem=total-(per*parts);
-  prev.textContent=`${parts} participant${parts!==1?'s':''} · ${per} pts each${rem>0?` · ${rem} remainder randomly distributed`:''}`;
+  prev.textContent=`${income.toLocaleString()} S → ${total} pts total · ${per} pts each${rem>0?` · ${rem} remainder randomly distributed`:''}`;
 };
 
 window.postEvent=async function(){
@@ -437,19 +440,20 @@ window.cancelEvent=async function(evId){
 window.completeEvent=async function(evId){
   if(!isAdmin){toast('Admin access required.');return;}
   const ev=events[evId];if(!ev)return;
-  const total=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+  const income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+  const rate=window._silverPerPrestige||10000;
+  const total=Math.floor(income/rate);
   const parts=ev.participants?Object.entries(ev.participants):[];
-  if(!total||total<1){toast('Enter a prestige amount.');return;}
+  if(!income||income<1){toast('Guild income girin.');return;}
+  if(!total||total<1){toast('Orana göre prestige 0 çıktı.');return;}
   if(!parts.length){toast('No participants to reward.');return;}
   const perPerson=Math.floor(total/parts.length);
   const remainder=total-(perPerson*parts.length);
-  // shuffle indices to distribute remainder randomly
   const indices=[...Array(parts.length).keys()].sort(()=>Math.random()-0.5);
   const luckySet=new Set(indices.slice(0,remainder));
   const by=currentUserData?.name||'Admin';
   const at=Date.now();
 
-  // Find matching prestige/members entries and update
   const pmSnap=await get(ref(db,'prestige/members'));
   const pmData=pmSnap.val()||{};
   const pmByName={};
@@ -458,7 +462,6 @@ window.completeEvent=async function(evId){
   for(let i=0;i<parts.length;i++){
     const [uid,p]=parts[i];
     const delta=perPerson+(luckySet.has(i)?1:0);
-    // Store per-participant prestige on the event
     await update(ref(db,`events/${evId}/participants/${uid}`),{prestigeAwarded:delta});
     const pm=pmByName[p.name?.toLowerCase()];
     if(pm){
@@ -467,8 +470,18 @@ window.completeEvent=async function(evId){
       await push(ref(db,'prestige/members/'+pm.id+'/log'),{delta,reason:`Event: ${ev.title}`,by,at});
     }
   }
-  await update(ref(db,'events/'+evId),{status:'completed',prestige:total});
-  toast(`"${ev.title}" completed — ${total} pts distributed!`);
+  await update(ref(db,'events/'+evId),{status:'completed',prestige:total,guildIncome:income});
+
+  const incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
+  await push(ref(db,'tasks'),{
+    title:`Event Loot Tasfiyesi — ${ev.title} — ~${incFmt}S`,
+    type:'payment_in',amount:income,fundType:'events',status:'pending',
+    eventId:evId,eventTitle:ev.title,estimated:true,
+    notes:`Tahmini loot geliri: ${income.toLocaleString()} S`,
+    createdAt:at,createdBy:by,auto:true
+  });
+
+  toast(`"${ev.title}" tamamlandı — ${total} pts · ${incFmt}S settlement görevi oluşturuldu.`);
 };
 
 // ── AUTH ──
@@ -493,6 +506,7 @@ onAuthStateChanged(auth,async user=>{
   renderUserRoles(ranks);
   document.getElementById('guildNav').style.display='flex';
   if(isAdmin)document.getElementById('adminToggle').style.display='flex';
+  if((currentUserData.ranks||[]).some(r=>['councillor','hand','sovereign'].includes((r||'').toLowerCase()))){const cl=document.getElementById('councilNavLink');if(cl)cl.classList.add('council-visible');}
   document.getElementById('createEventBtn').style.display='block';
 
   onValue(ref(db,'prestige/members'),snap=>{

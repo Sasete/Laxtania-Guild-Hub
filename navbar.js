@@ -114,6 +114,8 @@
   .admin-toggle.active{background:rgba(140,36,36,0.22);border-color:var(--seal-red);}
   .admin-toggle-dot{width:7px;height:7px;border-radius:50%;background:rgba(140,36,36,0.35);transition:background 0.2s;}
   .admin-toggle.active .admin-toggle-dot{background:var(--seal-red);box-shadow:0 0 5px rgba(140,36,36,0.6);}
+  #councilNavLink{display:none !important;}
+  #councilNavLink.council-visible{display:flex !important;}
   `;
   const style = document.createElement('style');
   style.textContent = css;
@@ -132,6 +134,7 @@
     <a href="${prefix}prestige/" class="nav-item ${page === 'members' ? 'active' : ''}">👥 Members</a>
     <a href="${prefix}quest-board/" class="nav-item ${page === 'quests' ? 'active' : ''}">📜 Quests</a>
     <a href="${prefix}events/" class="nav-item ${page === 'events' ? 'active' : ''}">🗡️ Events</a>
+    <a href="${prefix}council/" id="councilNavLink" class="nav-item ${page === 'council' ? 'active' : ''}">⚜ Council <span id="councilTaskBadge" style="display:none;background:#8c2424;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span></a>
   </div>
   <div class="nav-user-container">
     <div class="nav-sep"></div>
@@ -151,4 +154,26 @@
   `;
   
   placeholder.outerHTML = navHtml;
+
+  // Task badge — listen on all pages
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({getApps})=>{
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({getAuth,onAuthStateChanged})=>{
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({getDatabase,ref,onValue})=>{
+        const app=getApps()[0];if(!app)return;
+        const auth=getAuth(app);
+        const db=getDatabase(app);
+        onAuthStateChanged(auth,user=>{
+          if(!user)return;
+          onValue(ref(db,'tasks'),snap=>{
+            const tasks=snap.val()||{};
+            const count=Object.values(tasks).filter(t=>t.status==='pending').length;
+            const badge=document.getElementById('councilTaskBadge');
+            if(!badge)return;
+            if(count>0){badge.textContent=count;badge.style.display='inline';}
+            else{badge.style.display='none';}
+          });
+        });
+      });
+    });
+  });
 })();
