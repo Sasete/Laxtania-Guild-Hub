@@ -269,6 +269,7 @@
     <hr class="divider">
     <div class="section-eyebrow">Treasury Movement History</div>
     <div id="adjList"><div class="empty">No entries yet.</div></div>
+    <div id="adjPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
   <!-- ══ QUEST FUND ══ -->
@@ -294,6 +295,7 @@
     </div>
     <div class="section-eyebrow">Transaction History</div>
     <div id="questEntryList"><div class="empty">No entries yet.</div></div>
+    <div id="questEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
   <!-- ══ EVENTS FUND ══ -->
@@ -319,6 +321,7 @@
     </div>
     <div class="section-eyebrow">Transaction History</div>
     <div id="eventsEntryList"><div class="empty">No entries yet.</div></div>
+    <div id="eventsEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
   <!-- ══ ISLAND FUND ══ -->
@@ -344,6 +347,7 @@
     </div>
     <div class="section-eyebrow">Transaction History</div>
     <div id="islandEntryList"><div class="empty">No entries yet.</div></div>
+    <div id="islandEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
   <!-- ══ BONDS ══ -->
@@ -420,8 +424,12 @@
           <input type="number" id="taskAmount" value="0" step="1000" min="0">
         </div>
         <div class="form-group">
+          <label>Holder <span style="font-size:10px;color:var(--ink-soft)">(for payment notices)</span></label>
+          <input type="text" id="taskHolder" placeholder="Member name">
+        </div>
+        <div class="form-group">
           <label>Notes</label>
-          <input type="text" id="taskNotes" placeholder="Recipient, details, etc.">
+          <input type="text" id="taskNotes" placeholder="Details, etc.">
         </div>
         <div class="form-group">
           <label>Fund</label>
@@ -440,9 +448,11 @@
     </div>
 
     <div id="taskListPending"></div>
+    <div id="taskPaginationPending" style="display:flex;justify-content:center;gap:8px;margin:12px 0"></div>
     <hr class="divider">
     <div class="section-eyebrow">Completed / Cancelled</div>
     <div id="taskListDone"></div>
+    <div id="taskPaginationDone" style="display:flex;justify-content:center;gap:8px;margin:12px 0"></div>
   </div>
 
   <!-- ══ SETTINGS ══ -->
@@ -540,14 +550,13 @@ function renderOverview(){
   // Treasury entry log
   const FUND_LABELS={quest:'Quest Fund',events:'Events Fund',island:'Island Fund'};
   const sorted=Object.entries(treasuryEntries).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
-  document.getElementById('adjList').innerHTML=sorted.length
-    ?`<div class="entry-list">${sorted.map(([,e])=>`<div class="adj-row">
-        <span class="entry-amount ${e.amount>=0?'pos':'neg'}" style="font-size:13px">${e.amount>=0?'+':''}${fmtS(e.amount)}</span>
-        ${e.fund?`<span class="fund-tag" style="flex-shrink:0">${FUND_LABELS[e.fund]||e.fund}</span>`:''}
-        <span style="flex:1;font-size:13px;color:var(--ink)">${e.reason||'—'}</span>
-        <span class="entry-meta">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.by||'?'} · ${e.at?fmtDate(e.at):''}</span>
-      </div>`).join('')}</div>`
-    :'<div class="empty">No entries yet.</div>';
+  renderEntryPage(sorted,'adjList','adjPagination','treasury',
+    ([,e])=>`<div class="adj-row">
+      <span class="entry-amount ${e.amount>=0?'pos':'neg'}" style="font-size:13px">${e.amount>=0?'+':''}${fmtS(e.amount)}</span>
+      ${e.fund?`<span class="fund-tag" style="flex-shrink:0">${FUND_LABELS[e.fund]||e.fund}</span>`:''}
+      <span style="flex:1;font-size:13px;color:var(--ink)">${e.reason||'—'}</span>
+      <span class="entry-meta">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.by||'?'} · ${e.at?fmtDate(e.at):''}</span>
+    </div>`);
 }
 
 // ── TREASURY ACTIONS ──
@@ -603,14 +612,12 @@ function renderFundEntries(fundKey){
   const balEl=document.getElementById(FUND_BAL_ELS[fundKey]);
   if(balEl){balEl.textContent=fmtS(bal);balEl.className='fund-bal-value'+(bal<0?' neg':'');}
   const sorted=Object.entries(getFundEntries(fundKey)).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
-  const listEl=document.getElementById(FUND_LIST_ELS[fundKey]);if(!listEl)return;
-  if(!sorted.length){listEl.innerHTML='<div class="empty">No entries yet.</div>';return;}
-  listEl.innerHTML=`<div class="entry-list">${sorted.map(([,e])=>`
-    <div class="entry-row">
+  renderEntryPage(sorted,FUND_LIST_ELS[fundKey],fundKey+'EntryPagination',fundKey,
+    ([,e])=>`<div class="entry-row">
       <span class="entry-amount ${e.amount>=0?'pos':'neg'}">${e.amount>=0?'+':''}${fmtS(e.amount)}</span>
       <span class="entry-reason">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.reason||'—'}</span>
       <span class="entry-meta">${e.by||'?'} · ${e.at?fmtDate(e.at):''}</span>
-    </div>`).join('')}</div>`;
+    </div>`);
 }
 
 function renderQuestFund(){renderFundEntries('quest');}
@@ -1012,6 +1019,44 @@ window.createBondPeriod=async function(){
 };
 
 // ── TASKS ──
+let _taskPagePending=0,_taskPageDone=0;
+window._goTaskPage=function(key,p){if(key==='pending'){_taskPagePending=p;}else{_taskPageDone=p;}renderTasks();};
+const TASKS_PER_PAGE=10;
+
+function renderTaskPage(list,containerId,paginationId,page){
+  const total=list.length;
+  const totalPages=Math.max(1,Math.ceil(total/TASKS_PER_PAGE));
+  const p=Math.min(page,totalPages-1);
+  const slice=list.slice(p*TASKS_PER_PAGE,(p+1)*TASKS_PER_PAGE);
+  document.getElementById(containerId).innerHTML=slice.length?slice.map(([id,t])=>taskCardHtml(id,t)).join(''):'<div class="empty" style="padding:16px">No tasks.</div>';
+  const pg=document.getElementById(paginationId);
+  if(totalPages<=1){pg.innerHTML='';return;}
+  const key=paginationId==='taskPaginationPending'?'pending':'done';
+  pg.innerHTML=Array.from({length:totalPages},(_,i)=>`<button onclick="_goTaskPage('${key}',${i})" style="font-family:Georgia,serif;font-variant:small-caps;font-size:11px;letter-spacing:1px;padding:4px 10px;border:1px solid rgba(120,90,50,${i===p?'.6':'.25'});background:${i===p?'rgba(200,160,74,.2)':'transparent'};cursor:pointer;border-radius:2px">${i+1}</button>`).join('');
+}
+
+const ENTRIES_PER_PAGE=10;
+const _entryPages={treasury:0,quest:0,events:0,island:0};
+
+window._goEntryPage=function(key,p){
+  _entryPages[key]=p;
+  if(key==='treasury')renderOverview();
+  else renderFundEntries(key);
+};
+
+function renderEntryPage(sorted,listId,pagId,pageKey,rowFn){
+  const page=_entryPages[pageKey]||0;
+  const total=sorted.length;
+  const totalPages=Math.max(1,Math.ceil(total/ENTRIES_PER_PAGE));
+  const p=Math.min(page,totalPages-1);
+  const slice=sorted.slice(p*ENTRIES_PER_PAGE,(p+1)*ENTRIES_PER_PAGE);
+  const listEl=document.getElementById(listId);if(!listEl)return;
+  listEl.innerHTML=slice.length?`<div class="entry-list">${slice.map(rowFn).join('')}</div>`:'<div class="empty">No entries yet.</div>';
+  const pgEl=document.getElementById(pagId);if(!pgEl)return;
+  if(totalPages<=1){pgEl.innerHTML='';return;}
+  pgEl.innerHTML=Array.from({length:totalPages},(_,i)=>`<button onclick="_goEntryPage('${pageKey}',${i})" style="font-family:Georgia,serif;font-variant:small-caps;font-size:11px;letter-spacing:1px;padding:4px 10px;border:1px solid rgba(120,90,50,${i===p?'.6':'.25'});background:${i===p?'rgba(200,160,74,.2)':'transparent'};cursor:pointer;border-radius:2px">${i+1}</button>`).join('');
+}
+
 function renderTasks(){
   const pending=Object.entries(tasks).filter(([,t])=>t.status==='pending').sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const done=Object.entries(tasks).filter(([,t])=>t.status!=='pending').sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
@@ -1019,8 +1064,8 @@ function renderTasks(){
   const navBadge=document.getElementById('councilTaskBadge');
   if(pending.length){badge.textContent=pending.length;badge.style.display='inline';if(navBadge){navBadge.textContent=pending.length;navBadge.style.display='inline';}}
   else{badge.style.display='none';if(navBadge)navBadge.style.display='none';}
-  document.getElementById('taskListPending').innerHTML=pending.length?pending.map(([id,t])=>taskCardHtml(id,t)).join(''):'<div class="empty">No pending tasks.</div>';
-  document.getElementById('taskListDone').innerHTML=done.length?done.map(([id,t])=>taskCardHtml(id,t)).join(''):'<div class="empty" style="padding:16px">No completed tasks.</div>';
+  renderTaskPage(pending,'taskListPending','taskPaginationPending',_taskPagePending);
+  renderTaskPage(done,'taskListDone','taskPaginationDone',_taskPageDone);
 }
 
 function fundLabel(ft){
@@ -1044,7 +1089,8 @@ function taskCardHtml(id,t){
     </div>
     <div class="task-progress"><div class="task-progress-bar${pct>=100?' full':''}" style="width:${pct}%"></div></div>`:'';
   const paymentsHtml=t.payments&&isPending?`<div class="task-payments">${Object.values(t.payments).sort((a,b)=>(a.at||0)-(b.at||0)).map(p=>`<div class="task-payment-row"><span>${p.by} · ${fmtDate(p.at)}${p.note?' — '+p.note:''}</span><span style="color:#2a5a2a">+${fmtS(p.amount)}</span></div>`).join('')}</div>`:'';
-  const amtLine=target?`<div class="task-amount">${typeIcon} ${fmtS(target)}${t.notes?` — ${t.notes}`:''} ${fundLabel(t.fundType)}</div>`:'';
+  const holderBadge=t.holder?`<span style="font-weight:bold;color:var(--navy)"> — ${t.holder}</span>`:'';
+  const amtLine=target?`<div class="task-amount">${typeIcon} ${fmtS(target)}${holderBadge}${t.notes?` — ${t.notes}`:''} ${fundLabel(t.fundType)}</div>`:'';
   const partialForm=`<div id="pf-${id}" style="display:none;margin-top:8px;display:none;gap:8px;flex-wrap:wrap;align-items:center">
     <input type="number" id="pf-amt-${id}" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);width:130px">
     <input type="text" id="pf-note-${id}" placeholder="Note (optional)" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);flex:1;min-width:120px">
@@ -1133,10 +1179,12 @@ window.createTask=async function(){
   const notes=document.getElementById('taskNotes').value.trim();
   const fundType=document.getElementById('taskFundType').value||null;
   if(!title){toast('Enter a task title.');return;}
+  const holder=document.getElementById('taskHolder').value.trim();
   const task={title,type,amount,notes,status:'pending',createdAt:Date.now(),createdBy:currentUserData.name};
   if(fundType)task.fundType=fundType;
+  if(holder)task.holder=holder;
   await push(ref(db,'tasks'),task);
-  document.getElementById('taskTitle').value='';document.getElementById('taskAmount').value='0';document.getElementById('taskNotes').value='';
+  document.getElementById('taskTitle').value='';document.getElementById('taskAmount').value='0';document.getElementById('taskNotes').value='';document.getElementById('taskHolder').value='';
   toggleEl('addTaskForm');
   toast('Task created.');
 };

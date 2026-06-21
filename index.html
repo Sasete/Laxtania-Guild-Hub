@@ -340,6 +340,8 @@
       <div class="live-stat"><span class="live-num" id="statSilverRate">—</span><span class="live-lbl">Silver / Prestige</span></div>
     </div>
 
+    <div id="myPaymentNotices" style="max-width:980px;margin:0 auto 20px;display:flex;flex-direction:column;gap:8px"></div>
+
     <hr class="divider">
 
     <!-- Family Invite Notification -->
@@ -486,6 +488,36 @@ onAuthStateChanged(auth,async user=>{
     document.getElementById('messageEditControls').style.display='none';
   }
 
+  // Personal payment notices
+  onValue(ref(db,'tasks'),snap=>{
+    const tasks=snap.val()||{};
+    const uname=currentUserData?.name?.toLowerCase();
+    const container=document.getElementById('myPaymentNotices');
+    if(!container||!uname){if(container)container.innerHTML='';return;}
+    const mine=Object.values(tasks).filter(t=>
+      t.status==='pending'&&
+      (t.type==='payment_out'||t.type==='payment_in')&&
+      t.holder?.toLowerCase()===uname
+    );
+    if(!mine.length){container.innerHTML='';return;}
+    function fmtSL(n){const v=Math.abs(n);return(n<0?'-':'')+(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';}
+    container.innerHTML=mine.map(t=>{
+      const isOut=t.type==='payment_out';
+      const icon=isOut?'💸':'💰';
+      const label=isOut?`You have <strong>${fmtSL(t.amount)}</strong> to receive from the Guild`:`You owe the Guild <strong>${fmtSL(t.amount)}</strong>`;
+      const border=isOut?'rgba(42,90,42,.4)':'rgba(140,36,36,.4)';
+      const bg=isOut?'rgba(42,90,42,.06)':'rgba(140,36,36,.06)';
+      const color=isOut?'#2a5a2a':'#8c2424';
+      return`<div style="background:${bg};border:1px solid ${border};border-radius:3px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-family:Georgia,serif">
+        <span style="font-size:22px">${icon}</span>
+        <div>
+          <div style="font-size:13px;color:${color}">${label}</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;font-style:italic">${t.title||''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+
   // Listen for Guild Notice
   onValue(ref(db, 'guildMessage'), snap => {
     currentMessage = snap.val() || "Welcome to the Laxtania Guild Hall. Check the Quest Board for new contracts.";
@@ -626,11 +658,22 @@ window.rejectUser=async function(uid,name){
 
 // ── LIVE STATS ──
 function loadLiveStats(){
-  let _statMemberPts=0,_statFamilyBonus=0;
+  let _statMemberPts=0,_statFamilyBonus=0,_statPrestigePrev=0;
   function _fmtNum(n){return n>=1000000?parseFloat((Math.round(n/10000)/100).toFixed(2))+'M':n>=1000?parseFloat((Math.round(n/100)/10).toFixed(1))+'K':n.toLocaleString();}
   function _updateStatPrestige(){
-    document.getElementById('statPrestige').textContent=_fmtNum(_statMemberPts+_statFamilyBonus);
+    const total=_statMemberPts+_statFamilyBonus;
+    let arrow='';
+    if(_statPrestigePrev&&total!==_statPrestigePrev){
+      arrow=total>_statPrestigePrev
+        ?'<span style="font-size:18px;color:#2a7a2a;margin-left:4px">▲</span>'
+        :'<span style="font-size:18px;color:#8c2424;margin-left:4px">▼</span>';
+    }
+    document.getElementById('statPrestige').innerHTML=_fmtNum(total)+arrow;
   }
+  onValue(ref(db,'prestige/snapshot/lastTotal'),snap=>{
+    _statPrestigePrev=snap.exists()?snap.val():0;
+    _updateStatPrestige();
+  });
   onValue(ref(db,'prestige/members'),snap=>{
     const d=snap.val()||{};
     document.getElementById('statMembers').textContent=Object.keys(d).length||'—';
@@ -660,6 +703,7 @@ function loadLiveStats(){
     const el=document.getElementById('statSilverRate');
     el.textContent=(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
   });
+
 }
 
 // ── AUTH ACTIONS ──

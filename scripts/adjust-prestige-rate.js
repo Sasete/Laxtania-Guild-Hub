@@ -63,6 +63,10 @@ async function main() {
     console.log('Already at real value — no change.');
   }
 
+  // Save today's prestige total as snapshot for the trend arrow on Guild Hall
+  await db.ref('prestige/snapshot/lastTotal').set(totalPrestige);
+  console.log(`Prestige snapshot saved: ${totalPrestige} pts`);
+
   process.exit(0);
 }
 

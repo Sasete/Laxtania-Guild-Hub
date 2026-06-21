@@ -303,7 +303,7 @@ function buildCard(ev){
   const completeBtn=isAdmin&&isUpcoming?`<button class="gold-btn" style="font-size:11px;padding:4px 12px;margin-top:8px" onclick="togglePanel('complete-${ev.id}')">⚔ Complete</button>`:'';
   const cancelBtn=canManage&&isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="cancelEvent('${ev.id}')">Cancel Event</button>`:'';
   const deleteBtn=isAdmin&&!isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="deleteEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')">🗑 Delete</button>`:'';
-  const recalcBtn=isAdmin&&isCompleted&&ev.guildIncome?`<button class="ghost-btn" style="margin-top:8px;font-size:11px" onclick="recalcPrestige('${ev.id}')">↻ Recalculate Prestige</button>`:'';
+  const recalcBtn='';
 
 
   // Participants panel (organizer/admin for upcoming; everyone for completed)
