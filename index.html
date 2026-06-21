@@ -270,7 +270,7 @@
 
 <!-- Guild Nav & User Bar Placeholder -->
 <div id="navbar-placeholder" data-page="hall" data-path-prefix="./"></div>
-<script src="navbar.js"></script>
+<script>const _ns=document.createElement("script");_ns.src="navbar.js?v="+Date.now();document.currentScript.replaceWith(_ns);</script>
 
 <!-- Main parchment card -->
 <div class="board-header">
@@ -531,17 +531,33 @@ onAuthStateChanged(auth,async user=>{
     for(const[id,def]of Object.entries(_questDefs)){
       const claimants=_questClaims[id]||[];
       if(!Array.isArray(claimants))continue;
+
+      // Check: am I the claimant OR am I in someone's party for this quest?
       const myClaimName=claimants.find(n=>n?.toLowerCase()===uname);
-      if(!myClaimName)continue;
-      const partyKey=_partyKey(myClaimName);
+      let holderName=myClaimName;
+      if(!holderName){
+        // Search all parties for this quest
+        const questPartyMap=_questParties[id]||{};
+        for(const[,pVal] of Object.entries(questPartyMap)){
+          const members=Array.isArray(pVal)?pVal:Object.values(pVal||{});
+          if(members.some(n=>n?.toLowerCase()===uname)){
+            holderName=members[0]; // first member is the contract holder
+            break;
+          }
+        }
+      }
+      if(!holderName)continue;
+
+      const partyKey=_partyKey(holderName);
       const partyData=(_questParties[id]||{})[partyKey];
-      const partyMembers=partyData?(Array.isArray(partyData)?partyData:Object.values(partyData)):[myClaimName];
+      const partyMembers=partyData?(Array.isArray(partyData)?partyData:Object.values(partyData)):[holderName];
       const partyCount=partyMembers.length;
+      const isHolder=!!myClaimName;
       const partyTxt=partyCount>1?`<span style="font-size:11px;color:#1c3a6a;margin-left:8px">👥 ${partyCount} members</span>`:'';
       const rewards=Array.isArray(def.rewards)?def.rewards:Object.values(def.rewards||{});
       const rewardTxt=rewards.map(r=>`<span style="margin-right:10px">${r.icon||''} ${r.text||''}</span>`).join('');
       cards.push(`<div style="background:rgba(30,60,100,.06);border:1px solid rgba(30,60,100,.35);border-radius:3px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-family:Georgia,serif">
-        <button onclick="openPartyModal('${id}','${myClaimName.replace(/'/g,"\\'")}')" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;min-width:44px" title="Manage Party">
+        <button onclick="${isHolder?`openPartyModal('${id}','${holderName.replace(/'/g,"\\'")}')`:''}" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;${isHolder?'cursor:pointer':'cursor:default'};padding:4px 8px;border-radius:4px;min-width:44px" title="${isHolder?'Manage Party':'Party Member'}">
           <span style="font-size:20px">👥</span>
           <span style="font-size:11px;color:#1c3a6a;font-family:Georgia,serif">${partyCount}</span>
         </button>
@@ -552,7 +568,10 @@ onAuthStateChanged(auth,async user=>{
           ${rewardTxt?`<div style="font-size:12px;color:var(--ink);margin-top:2px">${rewardTxt}</div>`:''}
           ${partyCount>1?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">Party: ${partyMembers.join(', ')}</div>`:''}
         </div>
-        <button onclick="dropContract('${id}','${myClaimName.replace(/'/g,"\\'")}')" style="padding:4px 10px;background:transparent;color:var(--seal-red);border:1px solid var(--seal-red);border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:11px;white-space:nowrap">Drop</button>
+        ${isHolder
+          ?`<button onclick="dropContract('${id}','${holderName.replace(/'/g,"\\'")}')" style="padding:4px 10px;background:transparent;color:var(--seal-red);border:1px solid var(--seal-red);border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:11px;white-space:nowrap">Drop</button>`
+          :`<button onclick="leaveParty('${id}','${holderName.replace(/'/g,"\\'")}','${currentUserData.name.replace(/'/g,"\\'")}')" style="padding:4px 10px;background:transparent;color:var(--seal-red);border:1px solid var(--seal-red);border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:11px;white-space:nowrap">Leave</button>`
+        }
       </div>`);
     }
     container.innerHTML=cards.join('');
@@ -611,6 +630,20 @@ onAuthStateChanged(auth,async user=>{
     _partyMembers.splice(index,1);
     _saveParty();
     _renderPartyModal();
+  };
+  window.leaveParty=async function(questId,holderName,memberName){
+    if(!confirm('Leave this party?'))return;
+    const key=_partyKey(holderName);
+    const snap=await get(ref(db,'questParties/'+questId+'/'+key));
+    const val=snap.val();
+    const members=Array.isArray(val)?[...val]:Object.values(val||{});
+    const idx=members.findIndex(n=>n?.toLowerCase()===memberName.toLowerCase());
+    if(idx!==-1)members.splice(idx,1);
+    if(members.length<=1){
+      await remove(ref(db,'questParties/'+questId+'/'+key));
+    } else {
+      await set(ref(db,'questParties/'+questId+'/'+key),members);
+    }
   };
   window.dropContract=async function(questId,claimantName){
     if(!confirm('Drop this contract? Your party data will also be cleared.'))return;
