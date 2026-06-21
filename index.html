@@ -698,10 +698,26 @@ function loadLiveStats(){
     el.textContent=(bal<0?'-':'')+(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
     el.style.color=bal<0?'#c05050':'';
   });
-  onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
-    const v=snap.exists()?snap.val():10000;
+  let _silverRate=0,_silverRatePrev=0;
+  function _updateSilverRate(){
+    const v=_silverRate;
     const el=document.getElementById('statSilverRate');
-    el.textContent=(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
+    const txt=(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
+    let arrow='';
+    if(_silverRatePrev&&v!==_silverRatePrev){
+      arrow=v>_silverRatePrev
+        ?'<span style="font-size:18px;color:#2a7a2a;margin-left:4px">▲</span>'
+        :'<span style="font-size:18px;color:#8c2424;margin-left:4px">▼</span>';
+    }
+    el.innerHTML=txt+arrow;
+  }
+  onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
+    _silverRate=snap.exists()?snap.val():10000;
+    _updateSilverRate();
+  });
+  onValue(ref(db,'treasury/settings/silverPerPrestigeSnapshot'),snap=>{
+    _silverRatePrev=snap.exists()?snap.val():0;
+    _updateSilverRate();
   });
 
 }

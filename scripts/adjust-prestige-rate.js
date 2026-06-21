@@ -56,6 +56,9 @@ async function main() {
   console.log(`Real:    ${realValue.toLocaleString()} S`);
   console.log(`New:     ${newNominal.toLocaleString()} S  (${newNominal > nominal ? '+' : newNominal < nominal ? '-' : '='}${STEP})`);
 
+  // Save today's rate as snapshot before updating (for trend arrow)
+  await db.ref('treasury/settings/silverPerPrestigeSnapshot').set(nominal);
+
   if (newNominal !== nominal) {
     await db.ref('treasury/settings/silverPerPrestige').set(newNominal);
     console.log('Rate updated.');
