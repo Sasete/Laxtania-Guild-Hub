@@ -387,10 +387,12 @@ window.togglePanel=function(id){
 };
 
 function calcPrestigeRate(income){
-  if(income>=5000000)return 50000;
-  if(income>=3000000)return 25000;
-  if(income>=1000000)return 15000;
-  return window._silverPerPrestige||10000;
+  const X=window._silverPerPrestige||10000;
+  if(income>=10000000)return X*10;
+  if(income>=5000000) return X*5;
+  if(income>=3000000) return X*2.5;
+  if(income>=1000000) return X*1.5;
+  return X;
 }
 
 window.updateCompletePreview=function(evId){
