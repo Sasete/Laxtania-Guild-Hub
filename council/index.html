@@ -348,7 +348,12 @@
 
   <!-- ══ BONDS ══ -->
   <div id="tab-bonds" class="tab-panel">
-    <div class="metric-grid" style="margin-bottom:20px">
+    <div class="metric-grid" style="margin-bottom:20px;grid-template-columns:repeat(4,1fr)">
+      <div class="metric-card">
+        <div class="metric-label">Total Raised</div>
+        <div class="metric-value" id="bondTotalIn">—</div>
+        <div class="metric-sub">From bond sales</div>
+      </div>
       <div class="metric-card primary">
         <div class="metric-label">Bond Liability</div>
         <div class="metric-value neg" id="bondLiabilityVal">—</div>
@@ -360,9 +365,9 @@
         <div class="metric-sub">Treasury − Bond liability</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Total Raised</div>
-        <div class="metric-value" id="bondTotalIn">—</div>
-        <div class="metric-sub">From bond sales</div>
+        <div class="metric-label">Free Treasury Net</div>
+        <div class="metric-value" id="bondFreeNetVal">—</div>
+        <div class="metric-sub">Free Treasury − Bond liability</div>
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
@@ -701,13 +706,19 @@ function renderBonds(){
   if(nv){nv.textContent=fmtS(net);nv.className='metric-value'+(net<0?' neg':net>0?' pos':'');}
   const ti=document.getElementById('bondTotalIn');
   if(ti)ti.textContent=fmtS(totalIn);
+  const qBal=Object.values(questEntries).reduce((s,e)=>s+(e.amount||0),0);
+  const eBal=Object.values(eventsEntries).reduce((s,e)=>s+(e.amount||0),0);
+  const iBal=Object.values(islandEntries).reduce((s,e)=>s+(e.amount||0),0);
+  const freeNet=(treasuryBalance-qBal-eBal-iBal)-liability;
+  const fn=document.getElementById('bondFreeNetVal');
+  if(fn){fn.textContent=fmtS(freeNet);fn.className='metric-value'+(freeNet<0?' neg':freeNet>0?' pos':'');}
 
   const allPeriods=Object.entries(bondPeriods).sort((a,b)=>(b[1].announcedAt||0)-(a[1].announcedAt||0));
   const activePeriods=allPeriods.filter(([,p])=>p.status==='active'||p.status==='completing');
   const pastPeriods=allPeriods.filter(([,p])=>p.status==='redeemed');
   let html='';
 
-  function buildPeriodHtml(pid,p){
+  function buildPeriodHtml(pid,p,defaultOpen=true){
     const sales=Object.entries(p.sales||{}).sort((a,b)=>(a[1].at||0)-(b[1].at||0));
     const activeSales=sales.filter(([,s])=>!s.redeemed);
     const activated=activeSales.reduce((n,[,s])=>n+(s.quantity||0),0);
@@ -718,11 +729,12 @@ function renderBonds(){
     const isCompleting=p.status==='completing';
     const now=Date.now();
     const isPastDue=p.dueDate&&now>p.dueDate;
-    const isSaleLocked=p.dueDate&&now>(p.dueDate+2*24*60*60*1000);
+    const isSaleLocked=p.announcedAt&&now>(p.announcedAt+2*24*60*60*1000);
     const dueBadge=isPastDue&&!isClosed?'<span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;background:rgba(140,36,36,.15);border:1px solid rgba(140,36,36,.5);color:var(--seal-red);padding:1px 8px;border-radius:2px">Due</span>':'';
     const statusBadge=isClosed?'<span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;background:rgba(42,90,42,.15);border:1px solid rgba(42,90,42,.4);color:#2a5a2a;padding:1px 8px;border-radius:2px">Closed</span>':isCompleting?'<span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;background:rgba(200,160,74,.2);border:1px solid rgba(200,160,74,.5);color:#7a5a10;padding:1px 8px;border-radius:2px">Paying Out</span>':'<span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;background:rgba(28,42,64,.1);border:1px solid rgba(28,42,64,.3);color:var(--navy);padding:1px 8px;border-radius:2px">Active</span>';
+    const bodyId='bond-body-'+pid;
     return `<div class="bond-period-block">
-        <div class="bond-period-header">
+        <div class="bond-period-header" onclick="(function(){var b=document.getElementById('${bodyId}');var c=document.getElementById('${bodyId}-chevron');if(b.style.display==='none'){b.style.display='';c.textContent='▾';}else{b.style.display='none';c.textContent='▸';}})()" style="cursor:pointer;user-select:none">
           <div class="bph-cell"><div class="bph-label">Campaign</div><div class="bph-val" style="display:flex;align-items:center;gap:6px">${p.name||'#'+pid.slice(-4)} ${statusBadge} ${dueBadge}</div></div>
           <div class="bph-cell"><div class="bph-label">Announced</div><div class="bph-val">${p.announcedAt?fmtDay(p.announcedAt):'—'}</div></div>
           <div class="bph-cell"><div class="bph-label">Due</div><div class="bph-val">${p.dueDate?fmtDay(p.dueDate):'—'}</div></div>
@@ -731,7 +743,9 @@ function renderBonds(){
           <div class="bph-cell"><div class="bph-label">Available</div><div class="bph-val">${remaining}</div></div>
           <div class="bph-cell"><div class="bph-label">Bond Value</div><div class="bph-val">${p.bondValue?fmtS(p.bondValue):'—'}</div></div>
           <div class="bph-cell"><div class="bph-label">Interest</div><div class="bph-val">${((p.interestRate||0)*100).toFixed(0)}%</div></div>
+          <div style="margin-left:auto;font-size:16px;color:var(--ink-soft);padding:0 4px" id="${bodyId}-chevron">${defaultOpen?'▾':'▸'}</div>
         </div>
+        <div id="${bodyId}" ${defaultOpen?'':'style="display:none"'}>
         <table class="bond-table">
           <thead><tr>
             <th>Coupon ID</th><th>Holder</th><th class="r">Qty</th><th class="r">Value</th><th class="r">Repayment</th><th></th>
@@ -768,7 +782,17 @@ function renderBonds(){
             <button class="red-btn" onclick="closeBondPeriod('${pid}')">Close Campaign</button>
           </div>
         </div>`:'<div style="padding:8px 14px;font-size:11px;font-variant:small-caps;color:#2a5a2a;border-top:1px solid rgba(120,90,50,.15)">✓ All bonds redeemed — campaign closed</div>'}
+        </div>
       </div>`;
+  }
+
+  // Auto-complete campaigns past due date
+  if(currentUserData){
+    for(const[pid,p]of activePeriods){
+      if(p.dueDate&&Date.now()>p.dueDate&&p.status==='active'){
+        completeBondCampaign(pid,true);
+      }
+    }
   }
 
   if(!allPeriods.length){
@@ -782,7 +806,7 @@ function renderBonds(){
     if(pastPeriods.length){
       html+=`<div style="margin-top:24px">
         <button class="ghost-btn" style="width:100%;font-size:11px;text-align:left;padding:8px 12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.textContent.includes('▶')?'▼ Past Campaigns (${pastPeriods.length})':'▶ Past Campaigns (${pastPeriods.length})'" >▶ Past Campaigns (${pastPeriods.length})</button>
-        <div style="display:none;margin-top:8px">${pastPeriods.map(([pid,p])=>buildPeriodHtml(pid,p)).join('')}</div>
+        <div style="display:none;margin-top:8px">${pastPeriods.map(([pid,p])=>buildPeriodHtml(pid,p,false)).join('')}</div>
       </div>`;
     }
   }
@@ -830,13 +854,15 @@ window.closeBondPeriod=async function(pid){
   toast('Bond campaign closed.');
 };
 
-window.completeBondCampaign=async function(pid){
+window.completeBondCampaign=async function(pid,autoComplete=false){
   const p=bondPeriods[pid];if(!p)return;
   const sales=Object.entries(p.sales||{}).filter(([,s])=>!s.redeemed);
-  if(!sales.length){toast('No unredeemed bonds to pay out.');return;}
-  const holderSummary=sales.map(([,s])=>`${s.holder} (${s.quantity} bonds · ${fmtS(s.repayment)})`).join(', ');
-  if(!confirm(`Create payment tasks for ${sales.length} holder(s)?\n\n${holderSummary}`))return;
-  const by=currentUserData.name;const at=Date.now();
+  if(!sales.length){if(!autoComplete)toast('No unredeemed bonds to pay out.');return;}
+  if(!autoComplete){
+    const holderSummary=sales.map(([,s])=>`${s.holder} (${s.quantity} bonds · ${fmtS(s.repayment)})`).join(', ');
+    if(!confirm(`Create payment tasks for ${sales.length} holder(s)?\n\n${holderSummary}`))return;
+  }
+  const by=currentUserData?.name||'system';const at=Date.now();
   for(const[,s]of sales){
     await push(ref(db,'tasks'),{
       title:`Bond Repayment — ${s.couponId} — ${s.holder}`,
@@ -847,7 +873,8 @@ window.completeBondCampaign=async function(pid){
     });
   }
   await update(ref(db,`bonds/${pid}`),{status:'completing'});
-  toast(`${sales.length} payment task(s) created.`);
+  if(!autoComplete)toast(`${sales.length} payment task(s) created.`);
+  else toast(`Campaign "${p.name||pid.slice(-4)}" matured — ${sales.length} payment task(s) auto-created.`);
 };
 
 window.seedEventData=async function(){

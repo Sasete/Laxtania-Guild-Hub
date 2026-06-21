@@ -1,0 +1,26 @@
+name: Daily Prestige Rate Adjustment
+
+on:
+  schedule:
+    - cron: '0 21 * * *'  # Her gün 00:00 Turkey time (UTC+3)
+  workflow_dispatch:       # Manuel tetiklemek için
+
+jobs:
+  adjust-rate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin
+        working-directory: scripts
+
+      - name: Run adjustment
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node adjust-prestige-rate.js
+        working-directory: scripts
