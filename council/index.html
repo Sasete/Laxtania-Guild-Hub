@@ -454,6 +454,11 @@
       <div id="rateHint" style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:8px"></div>
     </div>
 
+    <div class="section-eyebrow" style="margin-top:28px">Prestige Real Value</div>
+    <div class="add-form" style="max-width:480px" id="prestigeValueCard">
+      <div style="font-size:11px;color:var(--ink-soft);font-style:italic">Loading…</div>
+    </div>
+
   </div>
 </div>
 
@@ -472,7 +477,7 @@ const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
-let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},bondPeriods={},tasks={},silverRate=10000;
+let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={};
 
 // ── HELPERS ──
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
@@ -1062,6 +1067,38 @@ window.recordPayment=async function(id){
   }
 };
 
+function renderPrestigeValue(){
+  const card=document.getElementById('prestigeValueCard');if(!card)return;
+  const netPos=treasuryBalance-calcBondLiability();
+  const memberPts=Object.values(prestigeMembers).reduce((s,m)=>s+(m.points||0),0);
+  const familyBonus=Object.values(prestigeFamilies).reduce((s,f)=>s+(f.bonusPoints||0),0);
+  const totalPts=memberPts+familyBonus;
+  if(!totalPts){card.innerHTML=`<div style="font-size:11px;color:var(--ink-soft);font-style:italic">No prestige data yet.</div>`;return;}
+  const realVal=Math.round(netPos/totalPts);
+  const diff=realVal-silverRate;
+  const diffColor=diff>=0?'#2a5a2a':'#8c2424';
+  const diffSign=diff>=0?'+':'';
+  card.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
+      <div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-variant:small-caps;letter-spacing:1px">Net Position</div>
+        <div style="font-size:16px;font-weight:bold;color:var(--navy)">${fmtS(netPos)}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-variant:small-caps;letter-spacing:1px">Total Prestige</div>
+        <div style="font-size:16px;font-weight:bold;color:var(--navy)">${totalPts.toLocaleString()} pts</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-variant:small-caps;letter-spacing:1px">Real Value</div>
+        <div style="font-size:16px;font-weight:bold;color:var(--navy)">${realVal.toLocaleString()} S</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(120,90,50,.15);font-size:12px;color:var(--ink-soft);font-style:italic">
+      Nominal rate is <strong>${silverRate.toLocaleString()} S</strong> per prestige — real value is
+      <strong style="color:${diffColor}">${diffSign}${diff.toLocaleString()} S</strong> ${diff>=0?'above':'below'} nominal.
+    </div>`;
+}
+
 window.createTask=async function(){
   const title=document.getElementById('taskTitle').value.trim();
   const type=document.getElementById('taskType').value;
@@ -1147,18 +1184,21 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('treasury/entries',snap=>{
     treasuryEntries=snap.val()||{};
     treasuryBalance=Object.values(treasuryEntries).reduce((s,e)=>s+(e.amount||0),0);
-    renderOverview();
+    renderOverview();renderPrestigeValue();
   });
-  safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();});
-  safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();});
-  safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();});
+  safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();renderPrestigeValue();});
+  safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();});
+  safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();});
   safeOnValue('bonds',snap=>{bondPeriods=snap.val()||{};renderBonds();renderOverview();});
   safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();});
   onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
     if(snap.exists()){silverRate=snap.val();document.getElementById('silverRateInput').value=silverRate;}
     document.getElementById('rateHint').textContent=`1 Prestige = ${silverRate.toLocaleString()} Silver`;
     window._silverPerPrestige=silverRate;
+    renderPrestigeValue();
   });
+  safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
+  safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});
 });
 </script>
 </body>
