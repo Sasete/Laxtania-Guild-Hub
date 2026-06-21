@@ -707,6 +707,14 @@
     /* FAB */
     #request-fab{bottom:16px;right:16px;width:48px;height:48px;font-size:22px;}
   }
+  .ghost-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:12px;background:rgba(255,255,255,0.35);color:var(--ink-soft);border:1px solid rgba(120,90,50,0.35);padding:7px 14px;cursor:pointer;}
+  .join-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:rgba(28,42,64,0.1);color:var(--navy);border:1px solid rgba(28,42,64,0.3);padding:5px 14px;cursor:pointer;transition:background 0.15s;}
+  .join-btn:hover{background:rgba(28,42,64,0.18);}
+  .participants-panel{display:none;margin-top:12px;border-top:1px dashed rgba(120,90,50,0.25);padding-top:10px;}
+  .participants-panel.open{display:block;}
+  .participants-panel-title{font-size:10px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:7px;}
+  .participant-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(120,90,50,0.08);font-size:13px;}
+  .participant-row:last-child{border-bottom:none;}
 </style>
 </head>
 <body>
@@ -839,6 +847,7 @@
   let isAdmin = false;
   let adminMode = false;
   let currentClaims = {};
+  let currentParties = {};
   let claimListenersAdmin = {};
   let hasDraft = false;
   const RANKS = {serf:{label:"Serf",w:1},commoner:{label:"Commoner",w:2},knight:{label:"Knight",w:3},lord:{label:"Lord",w:4},councillor:{label:"Councillor",w:5},hand:{label:"Hand",w:6,admin:true},sovereign:{label:"Sovereign",w:7,admin:true}};
@@ -1139,19 +1148,26 @@
     updates[`questDefs/${id}/active`] = newActive;
     updates[`quests/${id}`] = claims.length ? claims : null;
 
-    // Award prestige points automatically
+    // Read party data
+    function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
+    const partySnap = await db.ref('questParties/' + id + '/' + partyKey(name)).get();
+    const partyVal = partySnap.val();
+    const partyMembers = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : [name];
+
+    // Award prestige split among party members
     const prestigeReward = extractRewardValue(def.rewards, '♦');
     if (prestigeReward > 0) {
       try {
         const membersSnap = await db.ref('prestige/members').get();
         const members = membersSnap.val() || {};
-        const matchEntry = Object.entries(members).find(([mid, m]) => m.name?.toLowerCase() === name.toLowerCase());
-        if (matchEntry) {
-          const [mid, member] = matchEntry;
-          const currentPoints = member.points || 0;
-          updates[`prestige/members/${mid}/points`] = currentPoints + prestigeReward;
-        } else {
-          alert(`Warning: "${name}" was not found in the Members Registry. The quest was completed, but no prestige points were awarded automatically.`);
+        const perMember = Math.floor(prestigeReward / partyMembers.length);
+        if (perMember > 0) {
+          for (const memberName of partyMembers) {
+            const entry = Object.entries(members).find(([,m]) => m.name?.toLowerCase() === memberName.toLowerCase());
+            if (entry) {
+              updates[`prestige/members/${entry[0]}/points`] = (entry[1].points || 0) + perMember;
+            }
+          }
         }
       } catch (e) {
         console.error("Failed to update prestige points:", e);
@@ -1159,6 +1175,9 @@
     }
 
     await db.ref().update(updates);
+
+    // Clean up party data
+    await db.ref('questParties/' + id + '/' + partyKey(name)).remove();
 
     // Create payment task for silver reward
     const silverReward = extractRewardValue(def.rewards, '⛀');
@@ -1608,6 +1627,9 @@
     if (sealEl) {
       sealEl.style.display = remaining <= 0 ? 'block' : 'none';
     }
+
+    const id = card.dataset.questId;
+    if (id) updateQuestPartyUI(id);
   }
 
   const questsContainer = document.querySelector('.quests');
@@ -1691,6 +1713,17 @@
       <p class="description">${def.description}</p>
       <p class="guild-gain"><strong>Guild Gain:</strong> ${escapeHtml(def.guildGain)}</p>
       <div class="reward">${rewardsHtml}</div>
+      <div class="party-row" id="party-row-${id}" style="display:none;margin-top:10px">
+        <button class="ghost-btn" style="font-size:11px;padding:4px 10px" onclick="toggleQuestPartyPanel('${id}')">👥 <span id="party-count-${id}">0</span></button>
+      </div>
+      <div class="participants-panel" id="party-panel-${id}" style="margin-top:10px">
+        <div class="participants-panel-title">Participants (<span id="party-count-panel-${id}">0</span>)</div>
+        <div id="party-members-${id}"><div style="font-size:12px;font-style:italic;color:var(--ink-soft)">No participants yet.</div></div>
+        <div id="party-add-row-${id}" style="display:none;display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <input type="text" id="party-input-${id}" placeholder="Member name..." style="font-family:Georgia,serif;font-size:12px;flex:1;min-width:120px;padding:4px 6px;background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3)">
+          <button class="gold-btn" style="font-size:11px;padding:4px 10px" onclick="questPartyAdd('${id}')">Add</button>
+        </div>
+      </div>
       <div class="claim-section">
         <div class="slot-status">— / ${def.slots} contracts open</div>
         <div class="claimants"></div>
@@ -1823,6 +1856,80 @@
     renderBoard(currentQuestDefs);
   });
 
+  // ── Quest Party System ──
+  function _partyKey(name){ return name.toLowerCase().replace(/[.#$[\]/\s]/g,'_'); }
+
+  db.ref('questParties').on('value', snap => {
+    currentParties = snap.val() || {};
+    Object.keys(currentQuestDefs).forEach(id => updateQuestPartyUI(id));
+  });
+
+  function updateQuestPartyUI(id) {
+    const row = document.getElementById('party-row-' + id);
+    const panel = document.getElementById('party-panel-' + id);
+    if (!row || !panel) return;
+
+    const uname = currentUserData?.name;
+    const claims = Array.isArray(currentClaims[id]) ? currentClaims[id] : Object.values(currentClaims[id] || {});
+    const myClaimName = uname ? claims.find(n => n?.toLowerCase() === uname.toLowerCase()) : null;
+    const partyKey = myClaimName ? _partyKey(myClaimName) : null;
+    const partyVal = partyKey ? (currentParties[id] || {})[partyKey] : null;
+    const members = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : (myClaimName ? [myClaimName] : []);
+
+    row.style.display = myClaimName ? 'flex' : 'none';
+
+    const countEl = document.getElementById('party-count-' + id);
+    const countPanelEl = document.getElementById('party-count-panel-' + id);
+    const membersEl = document.getElementById('party-members-' + id);
+    const addRow = document.getElementById('party-add-row-' + id);
+    if (countEl) countEl.textContent = members.length;
+    if (countPanelEl) countPanelEl.textContent = members.length;
+
+    if (membersEl) {
+      membersEl.innerHTML = members.length
+        ? members.map((m, i) => `<div class="participant-row">
+            <span>${m}${i===0?' <span style="font-size:10px;color:var(--ink-soft)">(Holder)</span>':''}</span>
+            ${i > 0 && myClaimName ? `<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="questPartyRemove('${id}','${myClaimName.replace(/'/g,"\\'")}',${i})">Remove</button>` : ''}
+          </div>`).join('')
+        : '<div style="font-size:12px;font-style:italic;color:var(--ink-soft)">No participants yet.</div>';
+    }
+    if (addRow) addRow.style.display = myClaimName ? 'flex' : 'none';
+  }
+
+  window.toggleQuestPartyPanel = function(id) {
+    const panel = document.getElementById('party-panel-' + id);
+    if (panel) panel.classList.toggle('open');
+  };
+
+  window.questPartyAdd = async function(id) {
+    const input = document.getElementById('party-input-' + id);
+    const name = (input?.value || '').trim();
+    if (!name) return;
+    const uname = currentUserData?.name;
+    const claims = Array.isArray(currentClaims[id]) ? currentClaims[id] : Object.values(currentClaims[id] || {});
+    const myClaimName = uname ? claims.find(n => n?.toLowerCase() === uname.toLowerCase()) : null;
+    if (!myClaimName) return;
+    const key = _partyKey(myClaimName);
+    const existing = (currentParties[id] || {})[key];
+    const members = existing ? (Array.isArray(existing) ? [...existing] : Object.values(existing)) : [myClaimName];
+    if (members.some(m => m.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
+    members.push(name);
+    await db.ref('questParties/' + id + '/' + key).set(members);
+    if (input) input.value = '';
+  };
+
+  window.questPartyRemove = async function(id, claimantName, index) {
+    const key = _partyKey(claimantName);
+    const existing = (currentParties[id] || {})[key];
+    const members = existing ? (Array.isArray(existing) ? [...existing] : Object.values(existing)) : [];
+    members.splice(index, 1);
+    if (members.length <= 1) {
+      await db.ref('questParties/' + id + '/' + key).remove();
+    } else {
+      await db.ref('questParties/' + id + '/' + key).set(members);
+    }
+  };
+
   setInterval(() => {
     if (adminMode) return;
     const hasTimedQuest = Object.values(currentQuestDefs).some(def => def.deadline);
@@ -1863,15 +1970,6 @@
       return;
     }
 
-    const questName = card.querySelector('.quest-name').textContent.trim();
-    const levelEyebrow = card.querySelector('.level').textContent.trim();
-    const issuer = card.querySelector('.issuer').textContent.trim();
-    const description = card.querySelector('.description').textContent.trim();
-    const rewardLine = Array.from(card.querySelectorAll('.reward-item'))
-      .map(el => el.textContent.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, ' ').trim())
-      .join('   \u2022   ');
-
-    downloadReceipt(questName, trimmedName, { levelEyebrow, issuer, description, rewardLine });
   }
 
   // ============ REQUEST A CONTRACT ============

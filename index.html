@@ -519,8 +519,9 @@ onAuthStateChanged(auth,async user=>{
     }).join('');
   });
 
-  // Personal claim notices
-  let _questDefs={},_questClaims={};
+  // Personal claim notices + party system
+  let _questDefs={},_questClaims={},_questParties={};
+  function _partyKey(name){return name.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
   function _renderClaimNotices(){
     const container=document.getElementById('myClaimNotices');
     if(!container)return;
@@ -530,15 +531,28 @@ onAuthStateChanged(auth,async user=>{
     for(const[id,def]of Object.entries(_questDefs)){
       const claimants=_questClaims[id]||[];
       if(!Array.isArray(claimants))continue;
-      if(!claimants.some(n=>n?.toLowerCase()===uname))continue;
-      const silver=def.silver||0;
-      const silverTxt=silver?(` — <strong>${silver>=1000000?(silver/1000000).toFixed(1)+'M':silver>=1000?Math.round(silver/100)/10+'K':silver.toLocaleString()} S</strong> reward`):'';
+      const myClaimName=claimants.find(n=>n?.toLowerCase()===uname);
+      if(!myClaimName)continue;
+      const partyKey=_partyKey(myClaimName);
+      const partyData=(_questParties[id]||{})[partyKey];
+      const partyMembers=partyData?(Array.isArray(partyData)?partyData:Object.values(partyData)):[myClaimName];
+      const partyCount=partyMembers.length;
+      const partyTxt=partyCount>1?`<span style="font-size:11px;color:#1c3a6a;margin-left:8px">👥 ${partyCount} members</span>`:'';
+      const rewards=Array.isArray(def.rewards)?def.rewards:Object.values(def.rewards||{});
+      const rewardTxt=rewards.map(r=>`<span style="margin-right:10px">${r.icon||''} ${r.text||''}</span>`).join('');
       cards.push(`<div style="background:rgba(30,60,100,.06);border:1px solid rgba(30,60,100,.35);border-radius:3px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-family:Georgia,serif">
-        <span style="font-size:22px">📜</span>
-        <div>
-          <div style="font-size:13px;color:#1c3a6a">Active contract: <strong>${def.name||'Quest'}</strong>${silverTxt}</div>
-          ${def.description?`<div style="font-size:11px;color:var(--ink-soft);margin-top:2px;font-style:italic">${def.description}</div>`:''}
+        <button onclick="openPartyModal('${id}','${myClaimName.replace(/'/g,"\\'")}')" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;min-width:44px" title="Manage Party">
+          <span style="font-size:20px">👥</span>
+          <span style="font-size:11px;color:#1c3a6a;font-family:Georgia,serif">${partyCount}</span>
+        </button>
+        <div style="flex:1">
+          <div style="font-size:13px;color:#1c3a6a;margin-bottom:3px">Active contract: <strong>${def.name||'Quest'}</strong></div>
+          ${def.issuer?`<div style="font-size:11px;color:var(--ink-soft);font-style:italic;margin-bottom:3px">Issued by ${def.issuer}</div>`:''}
+          ${def.description?`<div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px">${def.description}</div>`:''}
+          ${rewardTxt?`<div style="font-size:12px;color:var(--ink);margin-top:2px">${rewardTxt}</div>`:''}
+          ${partyCount>1?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">Party: ${partyMembers.join(', ')}</div>`:''}
         </div>
+        <button onclick="dropContract('${id}','${myClaimName.replace(/'/g,"\\'")}')" style="padding:4px 10px;background:transparent;color:var(--seal-red);border:1px solid var(--seal-red);border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:11px;white-space:nowrap">Drop</button>
       </div>`);
     }
     container.innerHTML=cards.join('');
@@ -553,6 +567,70 @@ onAuthStateChanged(auth,async user=>{
     }
     _renderClaimNotices();
   });
+  onValue(ref(db,'questParties'),snap=>{_questParties=snap.val()||{};_renderClaimNotices();});
+
+  // Party modal logic
+  let _partyQuestId=null,_partyClaimant=null,_partyMembers=[];
+  window.openPartyModal=function(questId,claimant){
+    _partyQuestId=questId;_partyClaimant=claimant;
+    const def=_questDefs[questId]||{};
+    document.getElementById('partyModalTitle').textContent='👥 Party — '+(def.name||questId);
+    document.getElementById('partyMemberList').innerHTML='<div style="font-size:12px;color:var(--ink-soft);padding:8px">Loading…</div>';
+    document.getElementById('partyAddInput').value='';
+    document.getElementById('partyModal').style.display='flex';
+    get(ref(db,'questParties/'+questId+'/'+_partyKey(claimant))).then(snap=>{
+      const val=snap.val();
+      _partyMembers=val?(Array.isArray(val)?[...val]:Object.values(val)):[claimant];
+      _renderPartyModal();
+    });
+  };
+  window.closePartyModal=function(){
+    document.getElementById('partyModal').style.display='none';
+    _partyQuestId=null;_partyClaimant=null;_partyMembers=[];
+  };
+  function _renderPartyModal(){
+    const list=document.getElementById('partyMemberList');
+    if(!list)return;
+    list.innerHTML=_partyMembers.map((m,i)=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(0,0,0,.05);border-radius:3px">
+        <span style="font-size:13px;color:var(--ink)">${m}${i===0?' <span style="font-size:10px;color:var(--ink-soft)">(Contract Holder)</span>':''}</span>
+        ${i>0?`<button onclick="partyRemoveMember(${i})" style="background:var(--seal-red);color:white;border:none;border-radius:2px;cursor:pointer;padding:2px 8px;font-size:12px;line-height:1">×</button>`:''}
+      </div>`).join('');
+  }
+  window.partyAddMember=function(){
+    const input=document.getElementById('partyAddInput');
+    const name=input.value.trim();
+    if(!name)return;
+    if(_partyMembers.some(m=>m.toLowerCase()===name.toLowerCase())){input.value='';return;}
+    _partyMembers.push(name);
+    _saveParty();
+    input.value='';
+    _renderPartyModal();
+  };
+  window.partyRemoveMember=function(index){
+    _partyMembers.splice(index,1);
+    _saveParty();
+    _renderPartyModal();
+  };
+  window.dropContract=async function(questId,claimantName){
+    if(!confirm('Drop this contract? Your party data will also be cleared.'))return;
+    const snap=await get(ref(db,'quests/'+questId));
+    const val=snap.val();
+    const claims=Array.isArray(val)?[...val]:Object.values(val||{});
+    const idx=claims.findIndex(n=>n?.toLowerCase()===claimantName.toLowerCase());
+    if(idx!==-1)claims.splice(idx,1);
+    await set(ref(db,'quests/'+questId),claims.length?claims:null);
+    await remove(ref(db,'questParties/'+questId+'/'+_partyKey(claimantName)));
+  };
+  function _saveParty(){
+    if(!_partyQuestId||!_partyClaimant)return;
+    const path='questParties/'+_partyQuestId+'/'+_partyKey(_partyClaimant);
+    if(_partyMembers.length<=1){
+      remove(ref(db,path));
+    } else {
+      set(ref(db,path),_partyMembers);
+    }
+  }
 
   // Listen for Guild Notice
   onValue(ref(db, 'guildMessage'), snap => {
@@ -801,5 +879,18 @@ onValue(ref(db, 'prestige/members'), snap => {
   document.getElementById('bannerHand').textContent = hands.length ? hands.join(', ') : '—';
 });
 </script>
+<!-- Party Modal -->
+<div id="partyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--parchment);border-radius:6px;padding:24px;min-width:320px;max-width:460px;width:90%;font-family:Georgia,serif;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <h3 id="partyModalTitle" style="color:var(--ink);margin-bottom:16px;font-size:16px"></h3>
+    <div id="partyMemberList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-height:40px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="partyAddInput" type="text" placeholder="Member name..." style="flex:1;padding:8px 10px;border:1px solid var(--parchment-shadow);border-radius:3px;font-family:Georgia,serif;font-size:13px;background:white">
+      <button onclick="partyAddMember()" style="padding:8px 14px;background:var(--navy);color:var(--parchment);border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Add</button>
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:14px;font-style:italic">Prestige will be split equally among all party members. Silver reward goes to the contract holder.</div>
+    <button onclick="closePartyModal()" style="padding:8px 20px;background:var(--ink-soft);color:var(--parchment);border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
+  </div>
+</div>
 </body>
 </html>
