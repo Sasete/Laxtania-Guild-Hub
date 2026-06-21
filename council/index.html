@@ -111,6 +111,11 @@
   .task-amount{font-size:13px;font-weight:bold;color:#7a5a10;margin-bottom:8px;}
   .task-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .task-status-badge{font-size:10px;font-variant:small-caps;letter-spacing:1px;padding:2px 8px;border-radius:2px;display:inline-block;margin-bottom:6px;}
+  .task-progress{margin:8px 0 4px;height:6px;background:rgba(120,90,50,.15);border-radius:3px;overflow:hidden;}
+  .task-progress-bar{height:100%;background:linear-gradient(90deg,rgba(42,90,42,.6),rgba(42,90,42,.9));border-radius:3px;transition:width .3s;}
+  .task-progress-bar.full{background:linear-gradient(90deg,rgba(42,90,42,.8),rgba(42,90,42,1));}
+  .task-payments{margin-top:8px;font-size:11px;color:var(--ink-soft);border-top:1px solid rgba(120,90,50,.1);padding-top:6px;}
+  .task-payment-row{display:flex;justify-content:space-between;padding:2px 0;}
   .badge-pending{background:rgba(200,160,74,.2);color:#7a5a10;border:1px solid rgba(200,160,74,.5);}
   .badge-completed{background:rgba(42,90,42,.15);color:#2a5a2a;border:1px solid rgba(42,90,42,.4);}
   .badge-cancelled{background:rgba(140,36,36,.1);color:var(--seal-red);border:1px solid rgba(140,36,36,.3);}
@@ -449,27 +454,6 @@
       <div id="rateHint" style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:8px"></div>
     </div>
 
-    <div class="section-eyebrow" style="margin-top:28px">Data Import</div>
-    <div class="add-form" style="max-width:480px;display:flex;flex-direction:column;gap:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:13px;font-weight:bold;color:var(--ink)">Historical Events</div>
-          <div style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:2px">13 events · Apr–Jun 2026 · 266 prestige · 2.66M loot</div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="red-btn" onclick="rollbackPrestigeImport()">↩ Prestige</button>
-          <button class="red-btn" onclick="rollbackEventImport()">↩ Events</button>
-          <button class="gold-btn" onclick="seedEventData()">⬆ Import</button>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:13px;font-weight:bold;color:var(--ink)">Season 1 Bond Campaign</div>
-          <div style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:2px">5 holders · 37 bonds · 37M raised · 44.4M repayment</div>
-        </div>
-        <button class="gold-btn" onclick="seedBondData()">⬆ Import</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -500,7 +484,7 @@ function fmtS(n){
   const s=v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString();
   return(n<0?'-':'')+s+' S';
 }
-function toggleEl(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+window.toggleEl=function(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';};
 function isEligible(d){return(d.ranks||[]).some(r=>RANKS[r]?.w>=5);}
 
 // ── TABS ──
@@ -799,10 +783,7 @@ function renderBonds(){
   }
 
   if(!allPeriods.length){
-    html=`<div class="empty" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:32px 0">
-      <div>No bond campaigns yet.</div>
-      <button class="ghost-btn" style="font-size:11px" onclick="seedBondData()">⬆ Import Season 1 Data</button>
-    </div>`;
+    html=`<div class="empty">No bond campaigns yet.</div>`;
   }
   document.getElementById('bondsContent').innerHTML=html;
 }
@@ -1021,18 +1002,65 @@ function taskCardHtml(id,t){
   const isPending=t.status==='pending';
   const badgeClass=t.status==='completed'?'badge-completed':t.status==='cancelled'?'badge-cancelled':'badge-pending';
   const typeIcon=t.type==='payment_out'?'💸':t.type==='payment_in'?'💰':'📋';
-  const amtLine=t.amount?`<div class="task-amount">${typeIcon} ${fmtS(t.amount)}${t.notes?` — ${t.notes}`:''} ${fundLabel(t.fundType)}</div>`:'';
-  const actions=isPending?`<div class="task-actions">
+  const paid=t.paidAmount||0;
+  const target=t.amount||0;
+  const pct=target>0?Math.min(100,Math.round(paid/target*100)):0;
+  const progressHtml=target>0&&isPending?`
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:6px">
+      <span>${fmtS(paid)} paid</span>
+      <span>${fmtS(target-paid)} remaining · ${pct}%</span>
+    </div>
+    <div class="task-progress"><div class="task-progress-bar${pct>=100?' full':''}" style="width:${pct}%"></div></div>`:'';
+  const paymentsHtml=t.payments&&isPending?`<div class="task-payments">${Object.values(t.payments).sort((a,b)=>(a.at||0)-(b.at||0)).map(p=>`<div class="task-payment-row"><span>${p.by} · ${fmtDate(p.at)}${p.note?' — '+p.note:''}</span><span style="color:#2a5a2a">+${fmtS(p.amount)}</span></div>`).join('')}</div>`:'';
+  const amtLine=target?`<div class="task-amount">${typeIcon} ${fmtS(target)}${t.notes?` — ${t.notes}`:''} ${fundLabel(t.fundType)}</div>`:'';
+  const partialForm=`<div id="pf-${id}" style="display:none;margin-top:8px;display:none;gap:8px;flex-wrap:wrap;align-items:center">
+    <input type="number" id="pf-amt-${id}" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);width:130px">
+    <input type="text" id="pf-note-${id}" placeholder="Note (optional)" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);flex:1;min-width:120px">
+    <button class="gold-btn" style="font-size:11px;padding:5px 12px" onclick="recordPayment('${id}')">Record</button>
+    <button class="ghost-btn" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('pf-${id}').style.display='none'">✕</button>
+  </div>`;
+  const actions=isPending?`<div class="task-actions" style="margin-top:8px">
+    ${target>0?`<button class="ghost-btn" style="font-size:11px" onclick="document.getElementById('pf-${id}').style.display=document.getElementById('pf-${id}').style.display==='none'?'flex':'none'">+ Payment</button>`:''}
     <button class="gold-btn" onclick="completeTask('${id}')">✓ Complete</button>
     <button class="red-btn" onclick="cancelTask('${id}')">✕ Cancel</button>
-  </div>`:`<div class="task-meta">${t.status==='completed'?(t.completedBy?`Completed by ${t.completedBy}`:'Completed'):(t.cancelledBy?`Cancelled by ${t.cancelledBy}`:'Cancelled')}${t.completedAt||t.cancelledAt?' · '+fmtDate(t.completedAt||t.cancelledAt):''}</div>`;
+  </div>${target>0?partialForm:''}`:`<div class="task-meta" style="margin-top:6px">${t.status==='completed'?(t.completedBy?`Completed by ${t.completedBy}`:'Completed'):(t.cancelledBy?`Cancelled by ${t.cancelledBy}`:'Cancelled')}${t.completedAt||t.cancelledAt?' · '+fmtDate(t.completedAt||t.cancelledAt):''}</div>`;
   return`<div class="task-card ${t.status!=='pending'?t.status:''}">
     <span class="task-status-badge ${badgeClass}">${t.status||'pending'}</span>
     <div class="task-title">${t.title||'Task'}</div>
     <div class="task-meta">Created by ${t.createdBy||'?'} · ${t.createdAt?fmtDate(t.createdAt):''}</div>
-    ${amtLine}${actions}
+    ${amtLine}${progressHtml}${paymentsHtml}${actions}
   </div>`;
 }
+
+window.recordPayment=async function(id){
+  const t=tasks[id];if(!t)return;
+  const rawAmt=parseInt(document.getElementById('pf-amt-'+id)?.value)||0;
+  const note=document.getElementById('pf-note-'+id)?.value.trim()||'';
+  if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
+  const by=currentUserData.name;const at=Date.now();
+  const sign=t.type==='payment_out'?-1:1;
+  const newPaid=(t.paidAmount||0)+rawAmt;
+  // Write payment record
+  await push(ref(db,`tasks/${id}/payments`),{amount:rawAmt,by,at,note});
+  await update(ref(db,'tasks/'+id),{paidAmount:newPaid});
+  // Write to fund + treasury
+  if(t.fundType){
+    const entry={amount:sign*rawAmt,reason:`[Part] ${t.title}`,by,at,auto:true,taskId:id};
+    if(t.fundType==='quest')await push(ref(db,'funds/quest/entries'),entry);
+    else if(t.fundType==='events')await push(ref(db,'funds/events/entries'),entry);
+    else if(t.fundType==='island')await push(ref(db,'funds/island/entries'),entry);
+    await push(ref(db,'treasury/entries'),{...entry,fund:t.fundType});
+  }
+  // Auto-complete if fully paid
+  if(t.amount&&newPaid>=t.amount){
+    await update(ref(db,'tasks/'+id),{status:'completed',completedAt:at,completedBy:by,fullyPaid:true});
+    toast(`Payment recorded — task complete! (${fmtS(newPaid)} / ${fmtS(t.amount)})`);
+  } else {
+    document.getElementById('pf-amt-'+id).value='';
+    document.getElementById('pf-note-'+id).value='';
+    toast(`Payment recorded: +${fmtS(rawAmt)} (${fmtS(newPaid)} / ${fmtS(t.amount||0)})`);
+  }
+};
 
 window.createTask=async function(){
   const title=document.getElementById('taskTitle').value.trim();
@@ -1054,16 +1082,15 @@ window.completeTask=async function(id){
   if(!confirm(`Mark "${t.title}" as complete?`))return;
   const at=Date.now();const by=currentUserData.name;
   await update(ref(db,'tasks/'+id),{status:'completed',completedAt:at,completedBy:by});
-  if(t.amount&&t.amount>0&&t.fundType){
+  // Only write fund/treasury entry for the unpaid remainder (partial payments already wrote their share)
+  const alreadyPaid=t.paidAmount||0;
+  const remainder=(t.amount||0)-alreadyPaid;
+  if(remainder>0&&t.fundType){
     const sign=t.type==='payment_out'?-1:1;
-    const entry={amount:sign*t.amount,reason:t.title,by,at,auto:true,taskId:id};
-    if(t.fundType==='quest'){
-      await push(ref(db,'funds/quest/entries'),entry);
-    } else if(t.fundType==='events'){
-      await push(ref(db,'funds/events/entries'),{...entry,eventId:t.eventId||null,eventTitle:t.eventTitle||null});
-    } else if(t.fundType==='island'){
-      await push(ref(db,'funds/island/entries'),entry);
-    }
+    const entry={amount:sign*remainder,reason:t.title,by,at,auto:true,taskId:id};
+    if(t.fundType==='quest')await push(ref(db,'funds/quest/entries'),entry);
+    else if(t.fundType==='events')await push(ref(db,'funds/events/entries'),{...entry,eventId:t.eventId||null,eventTitle:t.eventTitle||null});
+    else if(t.fundType==='island')await push(ref(db,'funds/island/entries'),entry);
     await push(ref(db,'treasury/entries'),{...entry,fund:t.fundType});
   }
   // Auto-redeem bond if this task is a bond repayment

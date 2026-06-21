@@ -75,6 +75,18 @@
   .join-btn.joined{background:rgba(200,160,74,0.2);color:#7a5a10;border-color:rgba(200,160,74,0.5);}
   .join-btn.joined:hover{background:rgba(140,36,36,0.1);color:var(--seal-red);border-color:rgba(140,36,36,0.35);}
 
+  /* PAST EVENTS LIST */
+  .past-list{display:flex;flex-direction:column;gap:0;}
+  .past-row{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid rgba(120,90,50,0.12);cursor:pointer;transition:background 0.12s;}
+  .past-row:hover{background:rgba(200,160,74,0.07);}
+  .past-row-date{font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);min-width:130px;flex-shrink:0;}
+  .past-row-title{font-size:13px;color:var(--ink);flex:1;font-weight:500;}
+  .past-row-meta{font-size:11px;color:var(--ink-soft);display:flex;gap:10px;flex-shrink:0;}
+  .past-row-pts{font-variant:small-caps;letter-spacing:1px;color:#7a5a10;}
+  .past-pagination{display:flex;justify-content:center;gap:8px;margin-top:14px;align-items:center;}
+  .past-detail{background:var(--parchment);border:1px solid rgba(120,90,50,0.2);padding:14px 18px;margin:0 0 2px;display:none;}
+  .past-detail.open{display:block;}
+
   /* PARTICIPANT LIST (organizer/admin) */
   .participants-panel{display:none;margin-top:12px;border-top:1px dashed rgba(120,90,50,0.25);padding-top:10px;}
   .participants-panel.open{display:block;}
@@ -206,6 +218,9 @@ function fmtTime(ts){const d=new Date(ts);return d.toLocaleTimeString('en-GB',{h
 function timeUntil(ts){const diff=ts-Date.now();if(diff<0)return null;const h=Math.floor(diff/3600000);const d=Math.floor(h/24);if(d>0)return`in ${d} day${d!==1?'s':''}`;if(h>0)return`in ${h}h`;return'soon';}
 
 // ── RENDER ──
+let _pastPage=0;
+const PAST_PAGE_SIZE=10;
+
 function renderEvents(){
   const now=Date.now();
   const list=Object.entries(events).map(([id,e])=>({id,...e}));
@@ -213,11 +228,56 @@ function renderEvents(){
   const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*3)).sort((a,b)=>b.date-a.date);
 
   const upEl=document.getElementById('upcomingContainer');
-  const paEl=document.getElementById('pastContainer');
-
   upEl.innerHTML=upcoming.length?`<div class="events-grid">${upcoming.map(e=>buildCard(e)).join('')}</div>`:'<div class="empty">No upcoming events. Be the first to organise one!</div>';
-  paEl.innerHTML=past.length?`<div class="events-grid">${past.map(e=>buildCard(e)).join('')}</div>`:'<div class="empty">No past events yet.</div>';
+
+  renderPastList(past);
 }
+
+function renderPastList(past){
+  const paEl=document.getElementById('pastContainer');
+  if(!past||!past.length){paEl.innerHTML='<div class="empty">No past events yet.</div>';return;}
+  const totalPages=Math.ceil(past.length/PAST_PAGE_SIZE);
+  if(_pastPage>=totalPages)_pastPage=totalPages-1;
+  const page=past.slice(_pastPage*PAST_PAGE_SIZE,(_pastPage+1)*PAST_PAGE_SIZE);
+
+  const rows=page.map(ev=>{
+    const parts=ev.participants?Object.values(ev.participants):[];
+    const isCancelled=ev.status==='cancelled';
+    const loot=ev.guildIncome?`${ev.guildIncome>=1000000?(ev.guildIncome/1000000).toFixed(2).replace(/\.?0+$/,'')+'M':ev.guildIncome>=1000?Math.round(ev.guildIncome/1000)+'K':ev.guildIncome} S`:'';
+    return`<div class="past-row" onclick="togglePastDetail('${ev.id}')">
+      <div class="past-row-date">${new Date(ev.date||0).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+      <div class="past-row-title" style="${isCancelled?'opacity:.5;text-decoration:line-through':''}">${ev.title||'Untitled'}</div>
+      <div class="past-row-meta">
+        ${parts.length?`<span>👥 ${parts.length}</span>`:''}
+        ${ev.prestige?`<span class="past-row-pts">⬡ ${ev.prestige} pts</span>`:''}
+        ${loot?`<span>${loot}</span>`:''}
+      </div>
+    </div>
+    <div id="past-detail-${ev.id}" class="past-detail">${buildCard(ev)}</div>`;
+  }).join('');
+
+  const pager=totalPages>1?`<div class="past-pagination">
+    <button class="ghost-btn" style="padding:4px 12px;font-size:11px" onclick="changePastPage(-1)" ${_pastPage===0?'disabled':''}>← Prev</button>
+    <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">${_pastPage+1} / ${totalPages}</span>
+    <button class="ghost-btn" style="padding:4px 12px;font-size:11px" onclick="changePastPage(1)" ${_pastPage>=totalPages-1?'disabled':''}>Next →</button>
+  </div>`:'';
+
+  paEl.innerHTML=`<div class="past-list">${rows}</div>${pager}`;
+}
+
+window.changePastPage=function(dir){
+  _pastPage+=dir;
+  const now=Date.now();
+  const list=Object.entries(events).map(([id,e])=>({id,...e}));
+  const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*3)).sort((a,b)=>b.date-a.date);
+  renderPastList(past);
+};
+
+window.togglePastDetail=function(id){
+  const el=document.getElementById('past-detail-'+id);
+  if(!el)return;
+  el.classList.toggle('open');
+};
 
 function buildCard(ev){
   const isOrganizer=currentUser&&ev.organizerUid===currentUser.uid;
@@ -243,6 +303,7 @@ function buildCard(ev){
   const completeBtn=isAdmin&&isUpcoming?`<button class="gold-btn" style="font-size:11px;padding:4px 12px;margin-top:8px" onclick="togglePanel('complete-${ev.id}')">⚔ Complete</button>`:'';
   const cancelBtn=canManage&&isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="cancelEvent('${ev.id}')">Cancel Event</button>`:'';
   const deleteBtn=isAdmin&&!isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="deleteEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')">🗑 Delete</button>`:'';
+  const recalcBtn=isAdmin&&isCompleted&&ev.guildIncome?`<button class="ghost-btn" style="margin-top:8px;font-size:11px" onclick="recalcPrestige('${ev.id}')">↻ Recalculate Prestige</button>`:'';
 
 
   // Participants panel (organizer/admin for upcoming; everyone for completed)
@@ -301,7 +362,7 @@ function buildCard(ev){
     </div>
     ${partsPanel}
     ${completePanel}
-    ${completeBtn||cancelBtn||deleteBtn?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${completeBtn}${cancelBtn}${deleteBtn}</div>`:''}
+    ${completeBtn||cancelBtn||deleteBtn||recalcBtn?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${completeBtn}${cancelBtn}${deleteBtn}${recalcBtn}</div>`:''}
   </div>`;
 }
 
@@ -325,6 +386,13 @@ window.togglePanel=function(id){
   if(el)el.classList.toggle('open');
 };
 
+function calcPrestigeRate(income){
+  if(income>=5000000)return 50000;
+  if(income>=3000000)return 25000;
+  if(income>=1000000)return 15000;
+  return window._silverPerPrestige||10000;
+}
+
 window.updateCompletePreview=function(evId){
   const ev=events[evId];if(!ev)return;
   const parts=ev.participants?Object.keys(ev.participants).length:0;
@@ -333,7 +401,7 @@ window.updateCompletePreview=function(evId){
   if(!prev)return;
   if(!parts){prev.textContent='No participants yet.';return;}
   if(!income){prev.textContent=`${parts} participant${parts!==1?'s':''} · enter income above`;return;}
-  const rate=window._silverPerPrestige||10000;
+  const rate=calcPrestigeRate(income);
   const total=Math.floor(income/rate);
   const per=Math.floor(total/parts);
   const rem=total-(per*parts);
@@ -423,6 +491,42 @@ window.backfillEventPrestige=async function(evId){
   toast(`Backfilled ${found}/${parts.length} participants.`);
 };
 
+window.recalcPrestige=async function(evId){
+  const ev=events[evId];if(!ev||!ev.guildIncome){toast('No income data for this event.');return;}
+  const parts=Object.entries(ev.participants||{});
+  if(!parts.length){toast('No participants.');return;}
+  const newRate=calcPrestigeRate(ev.guildIncome);
+  const newTotal=Math.floor(ev.guildIncome/newRate);
+  const oldTotal=ev.prestige||0;
+  const perPerson=Math.floor(newTotal/parts.length);
+  const remainder=newTotal-(perPerson*parts.length);
+  if(!confirm(`Recalculate prestige for "${ev.title}"?\n\nOld: ${oldTotal} pts total\nNew: ${newTotal} pts total (${perPerson}–${perPerson+(remainder>0?1:0)} per person)\n\nThis will reverse old awards and apply new ones.`))return;
+
+  const pmSnap=await get(ref(db,'prestige/members'));
+  const pmData=pmSnap.val()||{};
+  const byName={};
+  Object.entries(pmData).forEach(([id,m])=>{if(m.name)byName[m.name.toLowerCase()]={id,...m};});
+
+  const by=currentUserData?.name||'Admin';const at=Date.now();
+
+  for(let i=0;i<parts.length;i++){
+    const[uid,p]=parts[i];
+    const oldDelta=p.prestigeAwarded||0;
+    const newDelta=perPerson+(i<remainder?1:0);
+    await update(ref(db,`events/${evId}/participants/${uid}`),{prestigeAwarded:newDelta});
+    const pm=byName[p.name?.toLowerCase()];
+    if(pm){
+      const adjusted=(pm.points||0)-oldDelta+newDelta;
+      pm.points=adjusted;
+      await update(ref(db,'prestige/members/'+pm.id),{points:Math.max(0,adjusted)});
+      if(oldDelta>0)await push(ref(db,'prestige/members/'+pm.id+'/log'),{delta:-oldDelta,reason:`[Recalc] Reversed: ${ev.title}`,by,at});
+      await push(ref(db,'prestige/members/'+pm.id+'/log'),{delta:newDelta,reason:`[Recalc] ${ev.title}`,by,at});
+    }
+  }
+  await update(ref(db,'events/'+evId),{prestige:newTotal});
+  toast(`Prestige recalculated: ${oldTotal} → ${newTotal} pts`);
+};
+
 window.deleteEvent=async function(evId,title){
   if(!isAdmin){toast('Admin access required.');return;}
   if(!confirm(`Delete "${title}"? This cannot be undone.`))return;
@@ -441,7 +545,7 @@ window.completeEvent=async function(evId){
   if(!isAdmin){toast('Admin access required.');return;}
   const ev=events[evId];if(!ev)return;
   const income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
-  const rate=window._silverPerPrestige||10000;
+  const rate=calcPrestigeRate(income);
   const total=Math.floor(income/rate);
   const parts=ev.participants?Object.entries(ev.participants):[];
   if(!income||income<1){toast('Guild income girin.');return;}
