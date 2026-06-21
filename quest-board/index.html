@@ -897,10 +897,6 @@
 
     if (isAdmin) {
       document.getElementById('adminToggle').style.display = 'flex';
-      // Listen for pending quest requests
-      db.ref('questRequests').orderByChild('status').equalTo('pending').on('value', snap => {
-        renderPendingRequests(snap.val() || {});
-      });
     }
   });
 
@@ -1035,7 +1031,8 @@
   }
 
   function extractRewardValue(rewards, iconChar) {
-    const item = (rewards || []).find(r => r.icon === iconChar);
+    const list = Array.isArray(rewards) ? rewards : Object.values(rewards || {});
+    const item = list.find(r => r.icon === iconChar);
     if (!item) return 0;
     return parseInt(String(item.text).replace(/[^\d]/g, ''), 10) || 0;
   }
@@ -1162,6 +1159,23 @@
     }
 
     await db.ref().update(updates);
+
+    // Create payment task for silver reward
+    const silverReward = extractRewardValue(def.rewards, '⛀');
+
+    if (silverReward > 0) {
+      await db.ref('tasks').push({
+        title: `Pay ${name} — ${def.name || id}`,
+        type: 'payment_out',
+        amount: silverReward,
+        fundType: 'quest',
+        holder: name,
+        notes: `Quest reward: ${silverReward.toLocaleString()} Silver`,
+        status: 'pending',
+        createdAt: Date.now(),
+        createdBy: currentUserData ? currentUserData.name : 'System',
+      });
+    }
   }
 
   async function toggleActive(id, currentlyActive) {
@@ -1774,11 +1788,9 @@
       db.ref('treasury/funds').once('value'),
     ]);
     const def = defSnap.val() || {};
-    const questData = questSnap.val() || {};
-    const claimants = Array.isArray(questData.claimedBy) ? questData.claimedBy : [];
-    // Request contracts are member-initiated — guild doesn't pay
-    const isRequest = !!def.ownerUid;
-    const silverAmt = isRequest ? 0 : (def.silver || 0);
+    const questVal = questSnap.val();
+    const claimants = Array.isArray(questVal) ? questVal : Object.values(questVal || {});
+    const silverAmt = extractRewardValue(def.rewards, '⛀');
 
     await db.ref('questDefs/' + id).remove();
     await db.ref('quests/' + id).remove();

@@ -340,7 +340,8 @@
       <div class="live-stat"><span class="live-num" id="statSilverRate">—</span><span class="live-lbl">Silver / Prestige</span></div>
     </div>
 
-    <div id="myPaymentNotices" style="max-width:980px;margin:0 auto 20px;display:flex;flex-direction:column;gap:8px"></div>
+    <div id="myClaimNotices" style="max-width:980px;margin:0 auto 0;display:flex;flex-direction:column;gap:8px"></div>
+    <div id="myPaymentNotices" style="max-width:980px;margin:8px auto 20px;display:flex;flex-direction:column;gap:8px"></div>
 
     <hr class="divider">
 
@@ -516,6 +517,41 @@ onAuthStateChanged(auth,async user=>{
         </div>
       </div>`;
     }).join('');
+  });
+
+  // Personal claim notices
+  let _questDefs={},_questClaims={};
+  function _renderClaimNotices(){
+    const container=document.getElementById('myClaimNotices');
+    if(!container)return;
+    const uname=currentUserData?.name?.toLowerCase();
+    if(!uname){container.innerHTML='';return;}
+    const cards=[];
+    for(const[id,def]of Object.entries(_questDefs)){
+      const claimants=_questClaims[id]||[];
+      if(!Array.isArray(claimants))continue;
+      if(!claimants.some(n=>n?.toLowerCase()===uname))continue;
+      const silver=def.silver||0;
+      const silverTxt=silver?(` — <strong>${silver>=1000000?(silver/1000000).toFixed(1)+'M':silver>=1000?Math.round(silver/100)/10+'K':silver.toLocaleString()} S</strong> reward`):'';
+      cards.push(`<div style="background:rgba(30,60,100,.06);border:1px solid rgba(30,60,100,.35);border-radius:3px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-family:Georgia,serif">
+        <span style="font-size:22px">📜</span>
+        <div>
+          <div style="font-size:13px;color:#1c3a6a">Active contract: <strong>${def.name||'Quest'}</strong>${silverTxt}</div>
+          ${def.description?`<div style="font-size:11px;color:var(--ink-soft);margin-top:2px;font-style:italic">${def.description}</div>`:''}
+        </div>
+      </div>`);
+    }
+    container.innerHTML=cards.join('');
+    container.style.marginBottom=cards.length?'8px':'0';
+  }
+  onValue(ref(db,'questDefs'),snap=>{_questDefs=snap.val()||{};_renderClaimNotices();});
+  onValue(ref(db,'quests'),snap=>{
+    const raw=snap.val()||{};
+    _questClaims={};
+    for(const[id,v]of Object.entries(raw)){
+      _questClaims[id]=Array.isArray(v)?v:Object.values(v||{});
+    }
+    _renderClaimNotices();
   });
 
   // Listen for Guild Notice
