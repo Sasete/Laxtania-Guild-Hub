@@ -662,13 +662,7 @@ function loadLiveStats(){
   function _fmtNum(n){return n>=1000000?parseFloat((Math.round(n/10000)/100).toFixed(2))+'M':n>=1000?parseFloat((Math.round(n/100)/10).toFixed(1))+'K':n.toLocaleString();}
   function _updateStatPrestige(){
     const total=_statMemberPts+_statFamilyBonus;
-    let arrow='';
-    if(_statPrestigePrev&&total!==_statPrestigePrev){
-      arrow=total>_statPrestigePrev
-        ?'<span style="font-size:18px;color:#2a7a2a;margin-left:4px">▲</span>'
-        :'<span style="font-size:18px;color:#8c2424;margin-left:4px">▼</span>';
-    }
-    document.getElementById('statPrestige').innerHTML=_fmtNum(total)+arrow;
+    document.getElementById('statPrestige').textContent=_fmtNum(total);
   }
   onValue(ref(db,'prestige/snapshot/lastTotal'),snap=>{
     _statPrestigePrev=snap.exists()?snap.val():0;
