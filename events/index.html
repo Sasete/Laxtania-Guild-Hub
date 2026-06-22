@@ -388,7 +388,7 @@ window.togglePanel=function(id){
 
 function calcPrestigeRate(income){
   const X=window._silverPerPrestige||10000;
-  return X*Math.max(1,Math.pow(income/500000,0.6));
+  return X*Math.max(1,Math.pow(income/500000,0.4));
 }
 
 window.updateCompletePreview=function(evId){
