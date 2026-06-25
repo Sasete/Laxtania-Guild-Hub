@@ -203,12 +203,14 @@
     /* Wrap tables in scrollable container */
     #membersContainer,.families-table-wrap{overflow-x:auto;}
     /* Edit rows */
-    .edit-row{padding:12px 10px;}
+    .edit-row{padding:12px 10px;max-width:calc(100vw - 24px);box-sizing:border-box;overflow:hidden;}
+    .edit-row input,.edit-row select{max-width:100%;box-sizing:border-box;}
     .form-row{flex-direction:column;gap:8px;}
     .pts-adjust-row{flex-wrap:wrap;gap:6px;}
     .pts-adjust-row input[type=number]{width:70px;}
-    .pts-adjust-row input[type=text]{flex:1 1 100%;}
+    .pts-adjust-row input[type=text]{flex:1 1 100%;min-width:0;}
     .add-pts-btn,.rem-pts-btn{flex:1;min-height:38px;}
+    .rank-checkboxes{display:flex;flex-wrap:wrap;gap:6px;}
     /* My family / family detail */
     #myFamilyContainer{padding:14px 10px;}
     #familyDetailContainer .family-detail-inner{padding:14px 10px;}

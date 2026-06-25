@@ -16,8 +16,13 @@
   }
   .nav-links {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
   .nav-item {
     font-family: Georgia, serif;
