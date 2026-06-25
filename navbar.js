@@ -30,23 +30,22 @@
   .nav-item {
     font-family: Georgia, serif;
     font-variant: small-caps;
-    font-size: 11px;
-    letter-spacing: 1.5px;
+    font-size: 12px;
+    letter-spacing: 1.2px;
     color: rgba(230, 200, 120, 0.75);
     text-decoration: none;
-    padding: 6px 14px;
+    padding: 5px 11px;
     border: 1px solid rgba(200, 160, 74, 0.4);
     border-radius: 2px;
     transition: all 0.15s;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-width: 76px;
+    gap: 6px;
   }
   .nav-item span.nav-icon {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1;
   }
   .nav-item span.nav-text {
     line-height: 1;
