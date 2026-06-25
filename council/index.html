@@ -16,12 +16,22 @@
   .parchment-wrap{max-width:1040px;margin:0 auto;background-color:var(--parchment);background-image:radial-gradient(ellipse at 25% 20%,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 50%);border-radius:3px 9px 4px 10px/9px 4px 10px 3px;padding:24px 28px 32px;box-shadow:inset 0 0 0 1px rgba(120,90,50,.25),inset 0 0 40px rgba(120,90,50,.18),0 14px 28px rgba(0,0,0,.45);}
 
   /* ── TABS ── */
-  .tabs{display:flex;border-bottom:1px solid rgba(120,90,50,.3);margin-bottom:22px;gap:2px;flex-wrap:wrap;}
+  .tabs{display:flex;border-bottom:1px solid rgba(120,90,50,.3);margin-bottom:22px;gap:2px;flex-wrap:wrap;align-items:flex-end;}
   .tab-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;color:var(--ink-soft);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:8px 18px 10px;cursor:pointer;transition:all .15s;position:relative;white-space:nowrap;}
   .tab-btn:hover{color:var(--ink);}
   .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold);}
   .tab-badge{position:absolute;top:4px;right:4px;background:var(--seal-red);color:#fff;border-radius:10px;font-size:9px;padding:1px 5px;font-variant:normal;letter-spacing:0;}
   .tab-panel{display:none;}.tab-panel.active{display:block;}
+  .tab-dropdown{position:relative;display:inline-block;margin-bottom:-1px;}
+  .tab-dropdown-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;color:var(--ink-soft);background:none;border:none;border-bottom:2px solid transparent;padding:8px 18px 10px;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+  .tab-dropdown-btn:hover,.tab-dropdown:hover .tab-dropdown-btn{color:var(--ink);}
+  .tab-dropdown-btn.active{color:var(--navy);border-bottom-color:var(--gold);}
+  .tab-dropdown-btn::after{content:'▾';font-size:10px;font-variant:normal;opacity:.6;}
+  .tab-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:var(--parchment);border:1px solid rgba(120,90,50,.3);border-top:none;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:100;min-width:160px;}
+  .tab-dropdown:hover .tab-dropdown-menu{display:block;}
+  .tab-dropdown-item{display:block;width:100%;font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:12px;color:var(--ink-soft);background:none;border:none;padding:9px 16px;cursor:pointer;text-align:left;white-space:nowrap;transition:background .1s;}
+  .tab-dropdown-item:hover{background:rgba(120,90,50,.08);color:var(--ink);}
+  .tab-dropdown-item.active{color:var(--navy);font-weight:bold;}
 
   /* ── COMMON ── */
   .section-eyebrow{font-size:10px;font-variant:small-caps;letter-spacing:3px;color:var(--ink-soft);margin-bottom:12px;}
@@ -60,13 +70,18 @@
   .adj-form-inline input[type=number]{width:110px;}
   .adj-form-inline input[type=text]{width:160px;}
 
-  .fund-summary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:4px;}
-  .fund-summary-card{background:rgba(255,255,255,.3);border:1px solid rgba(120,90,50,.2);border-radius:3px;padding:12px 16px;}
+  .fund-summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px;align-items:start;}
+  @media(max-width:900px){.fund-summary-row{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:500px){.fund-summary-row{grid-template-columns:1fr;}}
+  .fund-summary-card{background:rgba(255,255,255,.3);border:1px solid rgba(120,90,50,.2);border-radius:3px;padding:12px 16px;position:relative;}
+  .fs-pct{position:absolute;top:10px;right:12px;font-size:10px;font-family:Georgia,serif;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);opacity:.8;}
+  .fund-action-row{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;}
+  .fund-action-row .action-btn-in,.fund-action-row .action-btn-out{flex:1;text-align:center;padding:4px 6px;min-width:0;}
   .fs-label{font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:4px;}
   .fs-value{font-size:20px;font-weight:bold;color:var(--navy);}
 
   /* ── FUND HEADER ── */
-  .fund-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .fund-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
   .fund-bal-label{font-size:10px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:2px;}
   .fund-bal-value{font-size:32px;font-weight:bold;color:var(--navy);}
   .fund-bal-value.neg{color:var(--seal-red);}
@@ -122,6 +137,9 @@
 
   /* ── ACTION STRIP ── */
   .action-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .fund-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;width:100%;}
+  .fund-action-grid .action-btn-in,.fund-action-grid .action-btn-out{width:100%;text-align:center;padding:5px 6px;}
+  .fund-action-divider{grid-column:1/-1;height:1px;background:rgba(120,90,50,.15);margin:2px 0;}
   .action-group{display:flex;align-items:center;gap:5px;}
   .action-group-label{font-size:9px;font-variant:small-caps;letter-spacing:1.5px;color:rgba(46,32,20,.5);white-space:nowrap;}
   .action-sep{width:1px;height:20px;background:rgba(120,90,50,.25);flex-shrink:0;}
@@ -152,15 +170,21 @@
 
 <div class="board-header">
   <h1>⚜ Council Chamber</h1>
-  <p>Treasury · Funds · Bonds — Restricted Access</p>
+  <p>Treasury · Budgets · Bonds — Restricted Access</p>
 </div>
 
 <div class="parchment-wrap">
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
-    <button class="tab-btn" onclick="switchTab('quest')">Quest Budget</button>
-    <button class="tab-btn" onclick="switchTab('events')">Events Budget</button>
-    <button class="tab-btn" onclick="switchTab('island')">Island Budget</button>
+    <div class="tab-dropdown" id="budgetDropdown">
+      <button class="tab-dropdown-btn" id="budgetDropdownBtn">Budgets</button>
+      <div class="tab-dropdown-menu">
+        <button class="tab-dropdown-item" id="bdItem-quest" onclick="switchTab('quest')">Quest Budget</button>
+        <button class="tab-dropdown-item" id="bdItem-events" onclick="switchTab('events')">Events Budget</button>
+        <button class="tab-dropdown-item" id="bdItem-island" onclick="switchTab('island')">Island Budget</button>
+        <button class="tab-dropdown-item" id="bdItem-recruitment" onclick="switchTab('recruitment')">Recruitment</button>
+      </div>
+    </div>
     <button class="tab-btn" onclick="switchTab('bonds')">Bonds</button>
     <button class="tab-btn" onclick="switchTab('tasks')" id="tasksTabBtn">Tasks <span id="taskTabBadge" class="tab-badge" style="display:none"></span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
@@ -168,99 +192,134 @@
 
   <!-- ══ OVERVIEW ══ -->
   <div id="tab-overview" class="tab-panel active">
-    <div class="metric-grid">
-      <div class="metric-card primary" style="grid-column:span 2">
-        <div class="metric-label">Treasury</div>
-        <div class="metric-value" id="ovTreasury">—</div>
-        <div class="metric-sub">Sum of all treasury entries</div>
-        <div class="action-strip" style="margin-top:14px">
-          <button class="action-btn-in" onclick="openAction(1,null,'treasury-income')">+ Income</button>
-          <button class="action-btn-out" onclick="openAction(-1,null,'treasury-expense')">− Expense</button>
-        </div>
-        <div id="actionPanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
-          <div id="actionLabel" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="number" id="actionAmt" placeholder="Amount" step="100000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
-            <input type="text" id="actionReason" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
-            <button class="gold-btn" onclick="submitAction()">Record</button>
-            <button class="ghost-btn" onclick="closeAction()">Cancel</button>
+    <!-- pie tooltip -->
+    <div id="pieTooltip" style="display:none;position:fixed;background:rgba(28,42,64,.92);color:var(--parchment);font-family:Georgia,serif;font-size:12px;padding:7px 12px;border-radius:4px;pointer-events:none;z-index:999;white-space:nowrap"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
+      <!-- Left column: Treasury + Free Treasury stacked -->
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0;height:100%">
+        <div class="metric-card primary" style="flex:1">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+            <div>
+              <div class="metric-label">Treasury</div>
+              <div class="metric-value" id="ovTreasury">—</div>
+              <div class="metric-sub">Sum of all treasury entries</div>
+            </div>
+            <div id="ovButtons-treasury" style="display:none;flex-shrink:0;padding-top:2px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <button class="action-btn-in" onclick="openAction(1,null,'treasury-income')">+ Income</button>
+                <button class="action-btn-out" onclick="openAction(-1,null,'treasury-expense')">− Expense</button>
+              </div>
+            </div>
+          </div>
+          <div id="actionPanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid rgba(120,90,50,.2)">
+            <div id="actionLabel" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input type="number" id="actionAmt" placeholder="Amount" step="100000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+              <input type="text" id="actionReason" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+              <button class="gold-btn" onclick="submitAction()">Record</button>
+              <button class="ghost-btn" onclick="closeAction()">Cancel</button>
+            </div>
           </div>
         </div>
+        <div class="metric-card" style="padding:14px 18px;width:100%;box-sizing:border-box">
+          <div class="fs-label">Free Treasury</div>
+          <div id="ovFree" style="font-size:20px;font-family:Georgia,serif;font-weight:bold;color:var(--forest)">—</div>
+        </div>
       </div>
-      <div class="metric-card" style="grid-column:span 2">
-        <div class="metric-label">Free Treasury</div>
-        <div class="metric-value" id="ovFree">—</div>
+      <!-- Right column: Pie chart filling full height -->
+      <div class="metric-card" style="display:flex;align-items:center;justify-content:center;padding:24px">
+        <svg id="budgetPie" width="260" height="260" viewBox="-1 -1 2 2" style="transform:rotate(-90deg)"></svg>
       </div>
     </div>
 
     <!-- fund cards with inline actions -->
     <div class="fund-summary-row" style="margin-bottom:4px">
-      <div>
-        <div class="fund-summary-card">
-          <div class="fs-label">Quest Budget</div>
-          <div class="fs-value" id="ovQuestBal">—</div>
-          <div class="action-strip" style="margin-top:10px">
+      <div class="fund-summary-card">
+        <div class="fs-pct" id="ovPct-quest">—</div>
+        <div class="fs-label">Quest Budget</div>
+        <div class="fs-value" id="ovQuestBal">—</div>
+        <div id="ovButtons-quest" style="display:none">
+          <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('quest',1,'income')">+ Income</button>
             <button class="action-btn-out" onclick="openFundOverviewAction('quest',-1,'expense')">− Expense</button>
-          </div>
-          <div class="action-strip" style="margin-top:6px">
             <button class="action-btn-in" style="background:rgba(28,42,64,.08);border-color:rgba(28,42,64,.3);color:var(--navy)" onclick="openFundOverviewAction('quest',1,'transfer-in')">← In</button>
             <button class="action-btn-out" style="background:rgba(28,42,64,.06);border-color:rgba(28,42,64,.25);color:var(--navy)" onclick="openFundOverviewAction('quest',-1,'transfer-out')">→ Out</button>
           </div>
         </div>
-        <div id="ovFundPanel-quest" class="add-form" style="display:none;margin-top:4px">
-          <div id="ovFundLabel-quest" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="number" id="ovFundAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
-            <input type="text" id="ovFundReason-quest" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
-            <button class="gold-btn" onclick="submitFundOverviewAction('quest')">Record</button>
+        <div id="ovFundPanel-quest" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
+          <div id="ovFundLabel-quest" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
+          <input type="number" id="ovFundAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" id="ovFundReason-quest" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
+          <div style="display:flex;gap:6px">
+            <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('quest')">Record</button>
             <button class="ghost-btn" onclick="closeFundOverviewAction('quest')">Cancel</button>
           </div>
         </div>
       </div>
-      <div>
-        <div class="fund-summary-card">
-          <div class="fs-label">Events Budget</div>
-          <div class="fs-value" id="ovEventsBal">—</div>
-          <div class="action-strip" style="margin-top:10px">
+      <div class="fund-summary-card">
+        <div class="fs-pct" id="ovPct-events">—</div>
+        <div class="fs-label">Events Budget</div>
+        <div class="fs-value" id="ovEventsBal">—</div>
+        <div id="ovButtons-events" style="display:none">
+          <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('events',1,'income')">+ Income</button>
             <button class="action-btn-out" onclick="openFundOverviewAction('events',-1,'expense')">− Expense</button>
-          </div>
-          <div class="action-strip" style="margin-top:6px">
             <button class="action-btn-in" style="background:rgba(28,42,64,.08);border-color:rgba(28,42,64,.3);color:var(--navy)" onclick="openFundOverviewAction('events',1,'transfer-in')">← In</button>
             <button class="action-btn-out" style="background:rgba(28,42,64,.06);border-color:rgba(28,42,64,.25);color:var(--navy)" onclick="openFundOverviewAction('events',-1,'transfer-out')">→ Out</button>
           </div>
         </div>
-        <div id="ovFundPanel-events" class="add-form" style="display:none;margin-top:4px">
-          <div id="ovFundLabel-events" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="number" id="ovFundAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
-            <input type="text" id="ovFundReason-events" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
-            <button class="gold-btn" onclick="submitFundOverviewAction('events')">Record</button>
+        <div id="ovFundPanel-events" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
+          <div id="ovFundLabel-events" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
+          <input type="number" id="ovFundAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" id="ovFundReason-events" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
+          <div style="display:flex;gap:6px">
+            <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('events')">Record</button>
             <button class="ghost-btn" onclick="closeFundOverviewAction('events')">Cancel</button>
           </div>
         </div>
       </div>
-      <div>
-        <div class="fund-summary-card">
-          <div class="fs-label">Island Budget</div>
-          <div class="fs-value" id="ovIslandBal">—</div>
-          <div class="action-strip" style="margin-top:10px">
+      <div class="fund-summary-card">
+        <div class="fs-pct" id="ovPct-island">—</div>
+        <div class="fs-label">Island Budget</div>
+        <div class="fs-value" id="ovIslandBal">—</div>
+        <div id="ovButtons-island" style="display:none">
+          <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('island',1,'income')">+ Income</button>
             <button class="action-btn-out" onclick="openFundOverviewAction('island',-1,'expense')">− Expense</button>
-          </div>
-          <div class="action-strip" style="margin-top:6px">
             <button class="action-btn-in" style="background:rgba(28,42,64,.08);border-color:rgba(28,42,64,.3);color:var(--navy)" onclick="openFundOverviewAction('island',1,'transfer-in')">← In</button>
             <button class="action-btn-out" style="background:rgba(28,42,64,.06);border-color:rgba(28,42,64,.25);color:var(--navy)" onclick="openFundOverviewAction('island',-1,'transfer-out')">→ Out</button>
           </div>
         </div>
-        <div id="ovFundPanel-island" class="add-form" style="display:none;margin-top:4px">
-          <div id="ovFundLabel-island" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="number" id="ovFundAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
-            <input type="text" id="ovFundReason-island" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
-            <button class="gold-btn" onclick="submitFundOverviewAction('island')">Record</button>
+        <div id="ovFundPanel-island" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
+          <div id="ovFundLabel-island" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
+          <input type="number" id="ovFundAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" id="ovFundReason-island" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
+          <div style="display:flex;gap:6px">
+            <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('island')">Record</button>
             <button class="ghost-btn" onclick="closeFundOverviewAction('island')">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="fund-summary-card">
+        <div class="fs-pct" id="ovPct-recruitment">—</div>
+        <div class="fs-label">Recruitment Budget</div>
+        <div class="fs-value" id="ovRecruitmentBal">—</div>
+        <div id="ovButtons-recruitment" style="display:none">
+          <div class="fund-action-grid" style="margin-top:10px">
+            <button class="action-btn-in" onclick="openFundOverviewAction('recruitment',1,'income')">+ Income</button>
+            <button class="action-btn-in" style="background:rgba(28,42,64,.08);border-color:rgba(28,42,64,.3);color:var(--navy)" onclick="openFundOverviewAction('recruitment',1,'transfer-in')">← In</button>
+            <button class="action-btn-out" onclick="openFundOverviewAction('recruitment',-1,'expense')">− Expense</button>
+            <button class="action-btn-out" style="background:rgba(28,42,64,.06);border-color:rgba(28,42,64,.25);color:var(--navy)" onclick="openFundOverviewAction('recruitment',-1,'transfer-out')">→ Out</button>
+          </div>
+        </div>
+        <div id="ovFundPanel-recruitment" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
+          <div id="ovFundLabel-recruitment" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
+          <input type="number" id="ovFundAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" id="ovFundReason-recruitment" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
+          <div style="display:flex;gap:6px">
+            <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('recruitment')">Record</button>
+            <button class="ghost-btn" onclick="closeFundOverviewAction('recruitment')">Cancel</button>
           </div>
         </div>
       </div>
@@ -272,16 +331,21 @@
     <div id="adjPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
-  <!-- ══ QUEST FUND ══ -->
+  <!-- ══ QUEST BUDGET ══ -->
   <div id="tab-quest" class="tab-panel">
     <div class="fund-header">
       <div>
         <div class="fund-bal-label">Quest Budget Balance</div>
         <div class="fund-bal-value" id="questBal">—</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(28,42,64,.06);border-radius:20px">
+          <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Available</span>
+          <span id="questAvailable" style="font-size:14px;font-family:Georgia,serif;font-weight:bold">—</span>
+        </div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div id="fundTabActions-quest" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('quest',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('quest',-1)">− Expense</button>
+        <button id="fundTransferOut-quest" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('quest',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
     <div id="fundActionPanel-quest" class="add-form" style="display:none;margin-bottom:18px">
@@ -293,6 +357,34 @@
         <button class="ghost-btn" onclick="closeFundAction('quest')">Cancel</button>
       </div>
     </div>
+
+    <!-- Market Wishlist -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Market Wishlist</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleWishlistForm()">+ Add Item</button>
+    </div>
+    <div id="wishlistForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="wishItemName" placeholder="Item name..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <input type="number" id="wishItemQty" placeholder="Qty" step="1" min="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
+        <input type="number" id="wishItemPrice" placeholder="Target price" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:140px">
+        <button class="gold-btn" onclick="addWishlistItem()">Add</button>
+        <button class="ghost-btn" onclick="toggleWishlistForm()">Cancel</button>
+      </div>
+    </div>
+    <div id="questWishlist" style="margin-bottom:20px"></div>
+
+    <!-- Active Commitments -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span>Active Commitments</span>
+      <div style="display:flex;gap:16px;align-items:center">
+        <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)" id="questCommitmentCounts"></span>
+        <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Committed: <strong id="questCommitted" style="font-family:Georgia,serif;color:var(--seal-red)">—</strong></span>
+      </div>
+    </div>
+    <div id="questCommitments" style="margin-bottom:20px"></div>
+
+    <!-- Transaction History -->
     <div class="section-eyebrow">Transaction History</div>
     <div id="questEntryList"><div class="empty">No entries yet.</div></div>
     <div id="questEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
@@ -305,9 +397,10 @@
         <div class="fund-bal-label">Events Budget Balance</div>
         <div class="fund-bal-value" id="eventsBal">—</div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div id="fundTabActions-events" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('events',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('events',-1)">− Expense</button>
+        <button id="fundTransferOut-events" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('events',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
     <div id="fundActionPanel-events" class="add-form" style="display:none;margin-bottom:18px">
@@ -331,9 +424,10 @@
         <div class="fund-bal-label">Island Budget Balance</div>
         <div class="fund-bal-value" id="islandBal">—</div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div id="fundTabActions-island" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('island',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('island',-1)">− Expense</button>
+        <button id="fundTransferOut-island" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('island',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
     <div id="fundActionPanel-island" class="add-form" style="display:none;margin-bottom:18px">
@@ -348,6 +442,33 @@
     <div class="section-eyebrow">Transaction History</div>
     <div id="islandEntryList"><div class="empty">No entries yet.</div></div>
     <div id="islandEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
+  </div>
+
+  <!-- ══ RECRUITMENT FUND ══ -->
+  <div id="tab-recruitment" class="tab-panel">
+    <div class="fund-header">
+      <div>
+        <div class="fund-bal-label">Recruitment Budget Balance</div>
+        <div class="fund-bal-value" id="recruitmentBal">—</div>
+      </div>
+      <div id="fundTabActions-recruitment" style="display:none;gap:8px;flex-wrap:wrap">
+        <button class="green-btn" onclick="openFundAction('recruitment',1)">+ Income</button>
+        <button class="red-btn" onclick="openFundAction('recruitment',-1)">− Expense</button>
+        <button id="fundTransferOut-recruitment" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('recruitment',-1,'transfer-out')">→ Transfer to Treasury</button>
+      </div>
+    </div>
+    <div id="fundActionPanel-recruitment" class="add-form" style="display:none;margin-bottom:18px">
+      <div id="fundActionLabel-recruitment" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="number" id="fAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" id="fReason-recruitment" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="submitFundAction('recruitment')">Record</button>
+        <button class="ghost-btn" onclick="closeFundAction('recruitment')">Cancel</button>
+      </div>
+    </div>
+    <div class="section-eyebrow">Transaction History</div>
+    <div id="recruitmentEntryList"><div class="empty">No entries yet.</div></div>
+    <div id="recruitmentEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
   <!-- ══ BONDS ══ -->
@@ -457,21 +578,59 @@
 
   <!-- ══ SETTINGS ══ -->
   <div id="tab-settings" class="tab-panel">
-    <div class="section-eyebrow">Prestige Conversion Rate</div>
-    <div class="add-form" style="max-width:360px">
-      <div class="form-group">
-        <label>1 Prestige = how many Silver</label>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-          <input type="number" id="silverRateInput" value="10000" step="1000" min="1" style="width:130px">
-          <button class="gold-btn" onclick="saveRate()">Save</button>
-        </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px">
+      <div class="add-form" style="flex:2;min-width:280px" id="prestigeValueCard">
+        <div style="font-size:11px;color:var(--ink-soft);font-style:italic">Loading…</div>
       </div>
-      <div id="rateHint" style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:8px"></div>
+      <div class="add-form" style="flex:1;min-width:220px">
+        <div class="section-eyebrow" style="margin:0 0 12px">Prestige Rate</div>
+        <div class="form-group">
+          <label>1 Prestige = how many Silver</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+            <input type="number" id="silverRateInput" value="10000" step="1000" min="1" style="width:130px">
+            <button class="gold-btn" onclick="saveRate()">Save</button>
+          </div>
+        </div>
+        <div id="rateHint" style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:8px"></div>
+      </div>
     </div>
 
-    <div class="section-eyebrow" style="margin-top:28px">Prestige Real Value</div>
-    <div class="add-form" style="max-width:480px" id="prestigeValueCard">
-      <div style="font-size:11px;color:var(--ink-soft);font-style:italic">Loading…</div>
+    <div id="budgetManagerSection" style="display:none">
+      <div class="section-eyebrow" style="margin-top:28px">Budget Managers</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:960px">
+        <div class="add-form" id="bmPanel-quest">
+          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Quest Budget</div>
+          <div id="bmList-quest" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="bmSelect-quest" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
+            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('quest')">Assign</button>
+          </div>
+        </div>
+        <div class="add-form" id="bmPanel-events">
+          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Events Budget</div>
+          <div id="bmList-events" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="bmSelect-events" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
+            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('events')">Assign</button>
+          </div>
+        </div>
+        <div class="add-form" id="bmPanel-island">
+          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Island Budget</div>
+          <div id="bmList-island" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="bmSelect-island" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
+            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('island')">Assign</button>
+          </div>
+        </div>
+        <div class="add-form" id="bmPanel-recruitment">
+          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Recruitment Budget</div>
+          <div id="bmList-recruitment" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="bmSelect-recruitment" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
+            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('recruitment')">Assign</button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -492,7 +651,7 @@ const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
-let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={};
+let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={};
 
 // ── HELPERS ──
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
@@ -506,18 +665,102 @@ function fmtS(n){
 }
 window.toggleEl=function(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';};
 function isEligible(d){return(d.ranks||[]).some(r=>RANKS[r]?.w>=5);}
+function isAdmin(d){return(d?.ranks||[]).some(r=>RANKS[r]?.admin);}
+function canManageBudget(key){
+  if(!currentUserData)return false;
+  if(isAdmin(currentUserData))return true;
+  const uid=currentUser?.uid;
+  return uid&&_budgetManagers[key]&&_budgetManagers[key][uid]===true;
+}
+
+function renderBudgetPermissions(){
+  const admin=isAdmin(currentUserData);
+  // Treasury overview buttons
+  const tb=document.getElementById('ovButtons-treasury');
+  if(tb)tb.style.display=admin?'block':'none';
+  // Budget overview cards — admin only (all 4 buttons incl Transfer In)
+  ['quest','events','island','recruitment'].forEach(key=>{
+    const ob=document.getElementById('ovButtons-'+key);
+    if(ob)ob.style.display=admin?'flex':'none';
+    // Budget tab actions
+    const ta=document.getElementById('fundTabActions-'+key);
+    const can=canManageBudget(key);
+    if(ta){ta.style.display=can?'flex':'none';}
+    // Transfer Out button inside tab — show if can manage; Transfer In stays in overview (admin only)
+    const to=document.getElementById('fundTransferOut-'+key);
+    if(to)to.style.display=can?'inline-flex':'none';
+  });
+  // Budget Manager section in Settings — admin only
+  const bms=document.getElementById('budgetManagerSection');
+  if(bms)bms.style.display=admin?'block':'none';
+  if(admin)renderBudgetManagerPanels();
+}
+
+function renderBudgetManagerPanels(){
+  ['quest','events','island','recruitment'].forEach(key=>{
+    const listEl=document.getElementById('bmList-'+key);
+    const selectEl=document.getElementById('bmSelect-'+key);
+    if(!listEl||!selectEl)return;
+    const managers=_budgetManagers[key]||{};
+    const managerUids=Object.keys(managers).filter(uid=>managers[uid]===true);
+    if(!managerUids.length){
+      listEl.innerHTML='<div style="font-size:12px;font-style:italic;color:var(--ink-soft);margin-bottom:6px">No managers assigned.</div>';
+    }else{
+      listEl.innerHTML=managerUids.map(uid=>{
+        const name=_allUsers[uid]?.name||uid;
+        return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(120,90,50,.12)">
+          <span style="flex:1;font-size:13px">${name}</span>
+          <button onclick="removeBudgetManager('${key}','${uid}')" style="font-size:11px;background:none;border:none;color:var(--seal-red);cursor:pointer">✕ Remove</button>
+        </div>`;
+      }).join('');
+    }
+    // populate select with non-manager approved users
+    const assigned=new Set(managerUids);
+    const options=Object.entries(_allUsers)
+      .filter(([uid,u])=>u.status==='approved'&&!assigned.has(uid))
+      .sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+    selectEl.innerHTML='<option value="">— Select member —</option>'+options.map(([uid,u])=>`<option value="${uid}">${u.name||uid}</option>`).join('');
+  });
+}
+
+window.addBudgetManager=async function(key){
+  const sel=document.getElementById('bmSelect-'+key);
+  const uid=sel?.value;
+  if(!uid)return;
+  await set(ref(db,`budgetManagers/${key}/${uid}`),true);
+};
+
+window.removeBudgetManager=async function(key,uid){
+  await remove(ref(db,`budgetManagers/${key}/${uid}`));
+};
 
 // ── TABS ──
+const VALID_TABS=new Set(['overview','quest','events','island','recruitment','bonds','tasks','settings']);
+const BUDGET_TABS=new Set(['quest','events','island','recruitment']);
 window.switchTab=function(tab){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick').includes("'"+tab+"'")));
+  if(!VALID_TABS.has(tab))tab='overview';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+tab+"'")));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
+  history.replaceState(null,'','#'+tab);
+  // Dropdown state
+  const isBudget=BUDGET_TABS.has(tab);
+  const btn=document.getElementById('budgetDropdownBtn');
+  const labels={quest:'Quest Budget',events:'Events Budget',island:'Island Budget',recruitment:'Recruitment'};
+  if(btn){btn.classList.toggle('active',isBudget);btn.firstChild.textContent=isBudget?labels[tab]:'Budgets';}
+  document.querySelectorAll('.tab-dropdown-item').forEach(it=>it.classList.toggle('active',it.id==='bdItem-'+tab));
 };
+// Restore tab from URL hash on load
+(function(){
+  const hash=location.hash.replace('#','');
+  if(VALID_TABS.has(hash))switchTab(hash);
+})();
 
 // ── OVERVIEW ──
 function calcQuestBal(){return Object.values(questEntries).reduce((s,e)=>s+(e.amount||0),0);}
 function calcEventsBal(){return Object.values(eventsEntries).reduce((s,e)=>s+(e.amount||0),0);}
 function calcIslandBal(){return Object.values(islandEntries).reduce((s,e)=>s+(e.amount||0),0);}
+function calcRecruitmentBal(){return Object.values(recruitmentEntries).reduce((s,e)=>s+(e.amount||0),0);}
 function calcBondLiability(){
   return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.repayment||0),0);
 }
@@ -528,12 +771,57 @@ function calcActivatedBonds(){
   return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.quantity||0),0);
 }
 
+function renderBudgetPie(qBal,eBal,iBal,rBal,free){
+  const svg=document.getElementById('budgetPie');
+  if(!svg)return;
+  const tooltip=document.getElementById('pieTooltip');
+  const slices=[
+    {label:'Quest Budget',val:qBal,color:'#4a7c59'},
+    {label:'Events Budget',val:eBal,color:'#7c6a2f'},
+    {label:'Island Budget',val:iBal,color:'#2f5c7c'},
+    {label:'Recruitment',val:rBal,color:'#7c3f2f'},
+    {label:'Free Treasury',val:Math.max(0,free),color:'rgba(180,160,110,.5)'},
+  ].filter(s=>s.val>0);
+  const total=slices.reduce((s,sl)=>s+sl.val,0);
+  if(!total){svg.innerHTML='';return;}
+  let angle=0;
+  let paths='';
+  slices.forEach((sl,i)=>{
+    const pct=sl.val/total;
+    const a=pct*2*Math.PI;
+    const x1=Math.cos(angle),y1=Math.sin(angle);
+    const x2=Math.cos(angle+a),y2=Math.sin(angle+a);
+    const large=a>Math.PI?1:0;
+    const d=`M0,0 L${x1},${y1} A1,1,0,${large},1,${x2},${y2}Z`;
+    paths+=`<path d="${d}" fill="${sl.color}" stroke="rgba(241,228,196,.8)" stroke-width="0.02" data-idx="${i}" style="cursor:pointer;transition:opacity .15s"/>`;
+    angle+=a;
+  });
+  svg.innerHTML=paths;
+  // hover interactions
+  svg.querySelectorAll('path').forEach(p=>{
+    const sl=slices[+p.dataset.idx];
+    const pct=Math.round(sl.val/total*100);
+    p.addEventListener('mouseenter',e=>{
+      p.style.opacity='.75';
+      if(tooltip){tooltip.style.display='block';tooltip.textContent=`${sl.label} — ${pct}% · ${fmtS(sl.val)}`;}
+    });
+    p.addEventListener('mousemove',e=>{
+      if(tooltip){tooltip.style.left=(e.clientX+12)+'px';tooltip.style.top=(e.clientY-28)+'px';}
+    });
+    p.addEventListener('mouseleave',()=>{
+      p.style.opacity='1';
+      if(tooltip)tooltip.style.display='none';
+    });
+  });
+}
+
 function renderOverview(){
   const liability=calcBondLiability();
   const qBal=calcQuestBal();
   const eBal=calcEventsBal();
   const iBal=calcIslandBal();
-  const free=treasuryBalance-qBal-eBal-iBal;
+  const rBal=calcRecruitmentBal();
+  const free=treasuryBalance-qBal-eBal-iBal-rBal;
 
   const ovT=document.getElementById('ovTreasury');
   ovT.textContent=fmtS(treasuryBalance);
@@ -546,6 +834,15 @@ function renderOverview(){
   document.getElementById('ovQuestBal').textContent=fmtS(qBal);
   document.getElementById('ovEventsBal').textContent=fmtS(eBal);
   document.getElementById('ovIslandBal').textContent=fmtS(iBal);
+  document.getElementById('ovRecruitmentBal').textContent=fmtS(rBal);
+  renderBudgetPie(qBal,eBal,iBal,rBal,free);
+  if(treasuryBalance){
+    const pct=v=>Math.round(v/treasuryBalance*100)+'%';
+    document.getElementById('ovPct-quest').textContent=pct(qBal);
+    document.getElementById('ovPct-events').textContent=pct(eBal);
+    document.getElementById('ovPct-island').textContent=pct(iBal);
+    document.getElementById('ovPct-recruitment').textContent=pct(rBal);
+  }
 
   // Treasury entry log
   const FUND_LABELS={quest:'Quest Budget',events:'Events Budget',island:'Island Budget'};
@@ -561,7 +858,7 @@ function renderOverview(){
 
 // ── TREASURY ACTIONS ──
 let _activeAction=null;
-const FUND_LABELS_MAP={quest:'Quest Budget',events:'Events Budget',island:'Island Budget'};
+const FUND_LABELS_MAP={quest:'Quest Budget',events:'Events Budget',island:'Island Budget',recruitment:'Recruitment Budget'};
 
 window.openAction=function(sign,fund){
   _activeAction={sign,fund};
@@ -601,11 +898,11 @@ window.submitAction=async function(){
 };
 
 // ── FUNDS ──
-const FUND_BAL_ELS={quest:'questBal',events:'eventsBal',island:'islandBal'};
-const FUND_LIST_ELS={quest:'questEntryList',events:'eventsEntryList',island:'islandEntryList'};
+const FUND_BAL_ELS={quest:'questBal',events:'eventsBal',island:'islandBal',recruitment:'recruitmentBal'};
+const FUND_LIST_ELS={quest:'questEntryList',events:'eventsEntryList',island:'islandEntryList',recruitment:'recruitmentEntryList'};
 
-function getFundEntries(k){return k==='quest'?questEntries:k==='events'?eventsEntries:islandEntries;}
-function getFundBal(k){return k==='quest'?calcQuestBal():k==='events'?calcEventsBal():calcIslandBal();}
+function getFundEntries(k){return k==='quest'?questEntries:k==='events'?eventsEntries:k==='island'?islandEntries:recruitmentEntries;}
+function getFundBal(k){return k==='quest'?calcQuestBal():k==='events'?calcEventsBal():k==='island'?calcIslandBal():calcRecruitmentBal();}
 
 function renderFundEntries(fundKey){
   const bal=getFundBal(fundKey);
@@ -620,9 +917,167 @@ function renderFundEntries(fundKey){
     </div>`);
 }
 
-function renderQuestFund(){renderFundEntries('quest');}
+let _wishlistItems={};
+
+function renderQuestFund(){
+  renderFundEntries('quest');
+  renderQuestCommitments();
+  renderWishlist();
+}
 function renderEventsFund(){renderFundEntries('events');}
 function renderIslandFund(){renderFundEntries('island');}
+function renderRecruitmentFund(){renderFundEntries('recruitment');}
+
+function _extractSilver(rewards){
+  const list=Array.isArray(rewards)?rewards:Object.values(rewards||{});
+  const item=list.find(r=>r.icon==='⛀');
+  if(!item)return 0;
+  return parseInt(String(item.text).replace(/[^\d]/g,''),10)||0;
+}
+
+function renderQuestCommitments(){
+  const el=document.getElementById('questCommitments');
+  const committedEl=document.getElementById('questCommitted');
+  const availEl=document.getElementById('questAvailable');
+  if(!el)return;
+
+  // Build list of active quests from questDefs (not archived/deleted)
+  const activeRows=Object.entries(_questDefs)
+    .filter(([,d])=>d&&d.active!==false)
+    .map(([id,d])=>{
+      const silver=_extractSilver(d.rewards);
+      const claimedVal=_activeQuests[id];
+      const claimants=claimedVal?(Array.isArray(claimedVal)?claimedVal:Object.values(claimedVal)):[];
+      const slots=d.slots||1;
+      return{id,name:d.name||id,silver,slots,claimants};
+    })
+    .filter(r=>r.silver>0);
+
+  if(!activeRows.length){
+    el.innerHTML='<div class="empty" style="margin-bottom:8px">No active quests.</div>';
+    if(committedEl)committedEl.textContent='0 S';
+    if(availEl){const bal=calcQuestBal();availEl.textContent=fmtS(bal);availEl.style.color='';}
+    return;
+  }
+
+  const totalCommitted=activeRows.reduce((s,r)=>s+r.silver*r.slots,0);
+  const bal=calcQuestBal();
+  const available=bal-totalCommitted;
+
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+    ${activeRows.map(r=>{
+      const claimed=r.claimants.length;
+      const claimText=claimed===0?'Unclaimed':claimed>=r.slots?'Claimed':`${claimed}/${r.slots} Claimed`;
+      const isClaimed=claimed>0;
+      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${isClaimed?'rgba(140,36,36,.06)':'rgba(120,90,50,.06)'};border-left:3px solid ${isClaimed?'rgba(140,36,36,.4)':'rgba(120,90,50,.3)'};border-radius:2px">
+        <span style="flex:1;font-size:13px;color:var(--ink)">${r.name}</span>
+        <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap">${claimText}</span>
+        <span style="font-size:13px;font-family:Georgia,serif;color:${isClaimed?'var(--seal-red)':'var(--ink-soft)'};white-space:nowrap">${fmtS(r.silver)}${r.slots>1?' ×'+r.slots:''}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  const totalSlots=activeRows.reduce((s,r)=>s+r.slots,0);
+  const claimedSlots=activeRows.reduce((s,r)=>s+Math.min(r.claimants.length,r.slots),0);
+  if(committedEl)committedEl.textContent=fmtS(totalCommitted);
+  if(availEl){
+    availEl.textContent=fmtS(available);
+    availEl.style.color=available<0?'var(--seal-red)':available>0?'var(--forest)':'var(--ink)';
+  }
+  const countEl=document.getElementById('questCommitmentCounts');
+  if(countEl)countEl.textContent=`${claimedSlots} / ${totalSlots} slots claimed`;
+}
+
+window.toggleWishlistForm=function(){
+  const f=document.getElementById('wishlistForm');
+  if(!f)return;
+  const open=f.style.display==='block';
+  f.style.display=open?'none':'block';
+  if(!open){document.getElementById('wishItemName').focus();}
+};
+
+window.addWishlistItem=async function(){
+  const name=document.getElementById('wishItemName').value.trim();
+  const qty=parseInt(document.getElementById('wishItemQty').value)||1;
+  const price=parseInt(document.getElementById('wishItemPrice').value)||0;
+  if(!name)return;
+  const by=currentUserData?.name||'?';
+  await push(ref(db,'questBudget/wishlist'),{name,qty,targetPrice:price,inStock:true,addedAt:Date.now(),addedBy:by});
+  document.getElementById('wishItemName').value='';
+  document.getElementById('wishItemQty').value='';
+  document.getElementById('wishItemPrice').value='';
+  document.getElementById('wishlistForm').style.display='none';
+};
+
+window.removeWishlistItem=async function(id){
+  await remove(ref(db,'questBudget/wishlist/'+id));
+};
+
+window.toggleWishlistStock=async function(id,current){
+  await update(ref(db,'questBudget/wishlist/'+id),{inStock:!current});
+};
+
+window.openWishlistEdit=function(id){
+  document.querySelectorAll('.wishlist-edit-row').forEach(r=>r.style.display='none');
+  const row=document.getElementById('wish-edit-'+id);
+  if(row)row.style.display='flex';
+};
+
+window.cancelWishlistEdit=function(id){
+  const row=document.getElementById('wish-edit-'+id);
+  if(row)row.style.display='none';
+};
+
+window.saveWishlistEdit=async function(id){
+  const name=document.getElementById('wish-name-'+id).value.trim();
+  const qty=parseInt(document.getElementById('wish-qty-'+id).value)||1;
+  const price=parseInt(document.getElementById('wish-price-'+id).value)||0;
+  if(!name)return;
+  await update(ref(db,'questBudget/wishlist/'+id),{name,qty,targetPrice:price});
+  const row=document.getElementById('wish-edit-'+id);
+  if(row)row.style.display='none';
+};
+
+const _INP='font-family:Georgia,serif;font-size:12px;padding:4px 7px;background:rgba(255,255,255,.8);border:1px solid rgba(46,32,20,.3);color:var(--ink)';
+
+function renderWishlist(){
+  const el=document.getElementById('questWishlist');
+  if(!el)return;
+  const items=Object.entries(_wishlistItems).sort((a,b)=>(b[1].addedAt||0)-(a[1].addedAt||0));
+  if(!items.length){el.innerHTML='<div class="empty">No items on the wishlist yet.</div>';return;}
+  const totalTarget=items.reduce((s,[,i])=>s+(i.targetPrice||0),0);
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px">
+      ${items.map(([id,i])=>{
+        const inStock=i.inStock!==false;
+        const border=inStock?'rgba(200,160,74,.5)':'rgba(140,36,36,.5)';
+        const bg=inStock?'rgba(28,42,64,.04)':'rgba(140,36,36,.05)';
+        const stockLabel=inStock?'✓ In Stock':'✕ Not Found';
+        const stockColor=inStock?'var(--forest)':'var(--seal-red)';
+        const qtyTxt=i.qty&&i.qty>1?` ×${i.qty}`:'';
+        return`<div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${bg};border-left:3px solid ${border};border-radius:2px">
+            <span style="flex:1;font-size:13px;color:var(--ink)">${i.name}${qtyTxt?`<span style='font-size:11px;color:var(--ink-soft)'>${qtyTxt}</span>`:''}</span>
+            <span style="font-size:13px;font-family:Georgia,serif;color:var(--ink-soft);white-space:nowrap">${i.targetPrice?fmtS(i.targetPrice):'—'}</span>
+            <button onclick="toggleWishlistStock('${id}',${inStock})" style="font-size:11px;background:none;border:1px solid ${stockColor};border-radius:10px;color:${stockColor};cursor:pointer;padding:2px 8px;white-space:nowrap">${stockLabel}</button>
+            <button onclick="openWishlistEdit('${id}')" style="font-size:12px;background:none;border:none;color:var(--ink-soft);cursor:pointer;padding:0 4px" title="Edit">✎</button>
+            <button onclick="removeWishlistItem('${id}')" style="font-size:11px;background:none;border:none;color:var(--seal-red);cursor:pointer;padding:0 4px;opacity:.6" title="Remove">✕</button>
+          </div>
+          <div id="wish-edit-${id}" class="wishlist-edit-row" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px;background:rgba(28,42,64,.06);border-left:3px solid rgba(28,42,64,.2);margin-bottom:2px">
+            <input id="wish-name-${id}" type="text" value="${(i.name||'').replace(/"/g,'&quot;')}" placeholder="Name" style="${_INP};flex:1;min-width:140px">
+            <input id="wish-qty-${id}" type="number" value="${i.qty||1}" placeholder="Qty" min="1" style="${_INP};width:60px">
+            <input id="wish-price-${id}" type="number" value="${i.targetPrice||''}" placeholder="Target price" step="10000" style="${_INP};width:130px">
+            <button class="gold-btn" style="font-size:11px;padding:4px 12px" onclick="saveWishlistEdit('${id}')">Save</button>
+            <button class="ghost-btn" style="font-size:11px;padding:4px 10px" onclick="cancelWishlistEdit('${id}')">Cancel</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);padding-top:6px;border-top:1px solid rgba(120,90,50,.15)">
+      <span>${items.length} item${items.length!==1?'s':''}</span>
+      <span>Est. cost: <strong style="font-family:Georgia,serif">${fmtS(totalTarget)}</strong></span>
+    </div>`;
+}
 
 // ── FUND OVERVIEW ACTIONS (with Transfer support) ──
 window.openFundOverviewAction=function(fund,sign,mode){
@@ -632,7 +1087,7 @@ window.openFundOverviewAction=function(fund,sign,mode){
   const label=document.getElementById('ovFundLabel-'+fund);
   if(!panel)return;
   panel._sign=sign;panel._mode=mode;
-  const labels={income:`${FUND_LABELS_MAP[fund]} — Income (treasury +, fund +)`,expense:`${FUND_LABELS_MAP[fund]} — Expense (treasury −, fund −)`, 'transfer-in':`Transfer from Free Treasury → ${FUND_LABELS_MAP[fund]} (treasury total unchanged)`,'transfer-out':`Transfer ${FUND_LABELS_MAP[fund]} → Free Treasury (treasury total unchanged)`};
+  const labels={income:`${FUND_LABELS_MAP[fund]} — Income (treasury +, budget +)`,expense:`${FUND_LABELS_MAP[fund]} — Expense (treasury −, budget −)`,'transfer-in':`Transfer from Free Treasury → ${FUND_LABELS_MAP[fund]} (treasury total unchanged)`,'transfer-out':`Transfer ${FUND_LABELS_MAP[fund]} → Free Treasury (treasury total unchanged)`};
   if(label)label.textContent=labels[mode]||mode;
   panel.style.display='block';
   document.getElementById('ovFundAmt-'+fund).value='';
@@ -1265,7 +1720,10 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();});
   safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();});
   safeOnValue('bonds',snap=>{bondPeriods=snap.val()||{};renderBonds();renderOverview();});
-  safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();});
+  safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();});
+  safeOnValue('questBudget/wishlist',snap=>{_wishlistItems=snap.val()||{};renderWishlist();});
+  safeOnValue('questDefs',snap=>{_questDefs=snap.val()||{};renderQuestCommitments();});
+  safeOnValue('quests',snap=>{_activeQuests=snap.val()||{};renderQuestCommitments();});
   onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
     if(snap.exists()){silverRate=snap.val();document.getElementById('silverRateInput').value=silverRate;}
     document.getElementById('rateHint').textContent=`1 Prestige = ${silverRate.toLocaleString()} Silver`;
@@ -1274,6 +1732,14 @@ onAuthStateChanged(auth,async user=>{
   });
   safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
   safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});
+  safeOnValue('budgetManagers',snap=>{
+    const v=snap.val()||{};
+    _budgetManagers={quest:v.quest||{},events:v.events||{},island:v.island||{},recruitment:v.recruitment||{}};
+    renderBudgetPermissions();
+  });
+  safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();});
+  safeOnValue('users',snap=>{_allUsers=snap.val()||{};if(isAdmin(currentUserData))renderBudgetManagerPanels();});
+  renderBudgetPermissions();
 });
 </script>
 </body>
