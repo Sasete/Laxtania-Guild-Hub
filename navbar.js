@@ -23,7 +23,10 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    min-width: 0;
+    flex: 1;
   }
+  .nav-links::-webkit-scrollbar { display: none; }
   .nav-item {
     font-family: Georgia, serif;
     font-variant: small-caps;

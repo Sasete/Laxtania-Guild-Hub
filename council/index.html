@@ -174,14 +174,20 @@
     .fund-summary-row{grid-template-columns:repeat(2,1fr);}
     /* bonds 4-col → 2-col */
     .metric-grid-4{grid-template-columns:repeat(2,1fr);}
-    /* tab bar scrollable */
-    .tab-bar{overflow-x:auto;flex-wrap:nowrap !important;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
-    .tab-bar::-webkit-scrollbar{display:none;}
-    .tab-bar .tab-btn,.tab-bar .tab-dropdown{flex-shrink:0;}
+    /* Tab bar: shrink text to fit without overflow (avoids clipping dropdown) */
+    .tab-bar{flex-wrap:nowrap !important;}
+    .tab-btn{padding:8px 7px 10px;font-size:10px;letter-spacing:0.5px;}
+    .tab-dropdown-btn{padding:8px 7px 10px;font-size:10px;letter-spacing:0.5px;}
+    /* Bond table scrollable on mobile */
+    .bond-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    /* Budget manager 2-col → 1-col on mobile */
+    .budget-manager-grid{grid-template-columns:1fr !important;}
   }
   @media(max-width:400px){
     .fund-summary-row{grid-template-columns:1fr;}
     .metric-grid-4{grid-template-columns:1fr 1fr;}
+    .tab-btn{padding:8px 5px 10px;font-size:9px;}
+    .tab-dropdown-btn{padding:8px 5px 10px;font-size:9px;}
   }
 </style>
 </head>
@@ -628,7 +634,7 @@
 
     <div id="budgetManagerSection" style="display:none">
       <div class="section-eyebrow" style="margin-top:28px">Budget Managers</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:960px">
+      <div class="budget-manager-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:960px">
         <div class="add-form" id="bmPanel-quest">
           <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Quest Budget</div>
           <div id="bmList-quest" style="margin-bottom:10px"></div>
@@ -897,7 +903,7 @@ function renderTreasuryChart(){
   g+=`<rect x="${PAD.l}" y="${PAD.t}" width="${cx}" height="${cy}" fill="transparent" id="tcOverlay" style="cursor:crosshair"/>`;
 
   svg.innerHTML=g;
-  if(meta)meta.textContent=`${inWindow.length} entr${inWindow.length===1?'y':'ies'} · ${new Date(inWindow[0].at).toLocaleDateString('tr-TR')} – bugün`;
+  if(meta)meta.textContent=`${inWindow.length} entr${inWindow.length===1?'y':'ies'} · ${new Date(inWindow[0].at).toLocaleDateString('en-GB')} – today`;
 
   // interactivity
   const overlay=svg.getElementById('tcOverlay');
@@ -1367,7 +1373,7 @@ function renderBonds(){
           <div style="margin-left:auto;font-size:16px;color:var(--ink-soft);padding:0 4px" id="${bodyId}-chevron">${defaultOpen?'▾':'▸'}</div>
         </div>
         <div id="${bodyId}" ${defaultOpen?'':'style="display:none"'}>
-        <table class="bond-table">
+        <div class="bond-table-wrap"><table class="bond-table">
           <thead><tr>
             <th>Coupon ID</th><th>Holder</th><th class="r">Qty</th><th class="r">Value</th><th class="r">Repayment</th><th></th>
           </tr></thead>
@@ -1390,7 +1396,7 @@ function renderBonds(){
               <td></td>
             </tr>
           </tbody>
-        </table>
+        </table></div>
         ${!isClosed?`<div style="padding:12px 14px;border-top:1px solid rgba(120,90,50,.15);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           ${isSaleLocked
             ?'<span style="font-size:11px;font-style:italic;color:var(--ink-soft)">Bond sales closed — 2 days past due date</span>'
