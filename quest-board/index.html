@@ -916,6 +916,13 @@
       document.getElementById('adminToggle').style.display = 'flex';
     }
 
+    // Google Analytics: tag the signed-in user (UID is anonymous, GDPR-safe)
+    if (typeof gtag === 'function') {
+      const topRank = (currentUserData.ranks || ['serf']).slice(-1)[0] || 'serf';
+      gtag('config', 'G-72QH8KN6M5', { user_id: user.uid });
+      gtag('set', 'user_properties', { guild_rank: topRank });
+    }
+
     // ── Navbar Prestige (compat SDK, since navbar.js uses modular SDK which can't see this app) ──
     let _qbNavMyMid=null, _qbNavAllMembers={}, _qbNavAllFamilies={}, _qbNavMyPoints=0, _qbNavMyFid=null;
 

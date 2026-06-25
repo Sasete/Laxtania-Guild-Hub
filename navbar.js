@@ -272,6 +272,13 @@
               const cl=document.getElementById('councilNavLink');if(cl)cl.classList.add('council-visible');
             }
 
+            // Google Analytics: tag the signed-in user (UID is anonymous, GDPR-safe)
+            if(typeof gtag==='function'){
+              const topRank=(ud?.ranks||['serf']).slice(-1)[0]||'serf';
+              gtag('config','G-72QH8KN6M5',{user_id:user.uid});
+              gtag('set','user_properties',{guild_rank:topRank});
+            }
+
             // Prestige families
             onValue(ref(db,'prestige/families'),fsnap=>{
               _navAllFamilies=fsnap.val()||{};
