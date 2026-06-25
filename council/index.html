@@ -152,6 +152,14 @@
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--gold-bright);font-variant:small-caps;letter-spacing:2px;font-size:12px;padding:10px 24px;transition:transform .3s;z-index:999;pointer-events:none;white-space:nowrap;border:1px solid var(--gold);}
   #toast.show{transform:translateX(-50%) translateY(0);}
 
+  /* Overview top: Treasury+Free left, Pie right */
+  .ov-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch;}
+  /* Bonds 4-col metric grid */
+  .metric-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+
+  @media(max-width:900px){
+    .metric-grid-4{grid-template-columns:repeat(2,1fr);}
+  }
   @media(max-width:640px){
     body{padding:10px 8px;}
     .board-header{padding:14px 12px;}.board-header h1{font-size:22px;}
@@ -160,6 +168,20 @@
     .metric-value{font-size:22px;}
     .bond-period-header{grid-template-columns:repeat(3,1fr);}
     .form-row{flex-direction:column;}
+    /* Overview top stacks vertically */
+    .ov-top-grid{grid-template-columns:1fr;}
+    /* fund summary 2 col on small */
+    .fund-summary-row{grid-template-columns:repeat(2,1fr);}
+    /* bonds 4-col → 2-col */
+    .metric-grid-4{grid-template-columns:repeat(2,1fr);}
+    /* tab bar scrollable */
+    .tab-bar{overflow-x:auto;flex-wrap:nowrap !important;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+    .tab-bar::-webkit-scrollbar{display:none;}
+    .tab-bar .tab-btn,.tab-bar .tab-dropdown{flex-shrink:0;}
+  }
+  @media(max-width:400px){
+    .fund-summary-row{grid-template-columns:1fr;}
+    .metric-grid-4{grid-template-columns:1fr 1fr;}
   }
 </style>
 </head>
@@ -174,7 +196,7 @@
 </div>
 
 <div class="parchment-wrap">
-  <div class="tabs">
+  <div class="tabs tab-bar">
     <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
     <div class="tab-dropdown" id="budgetDropdown">
       <button class="tab-dropdown-btn" id="budgetDropdownBtn">Budgets</button>
@@ -195,7 +217,7 @@
     <!-- pie tooltip -->
     <div id="pieTooltip" style="display:none;position:fixed;background:rgba(28,42,64,.92);color:var(--parchment);font-family:Georgia,serif;font-size:12px;padding:7px 12px;border-radius:4px;pointer-events:none;z-index:999;white-space:nowrap"></div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
+    <div class="ov-top-grid">
       <!-- Left column: Treasury + Free Treasury stacked -->
       <div style="display:flex;flex-direction:column;gap:12px;min-width:0;height:100%">
         <div class="metric-card primary" style="flex:1">
@@ -323,6 +345,15 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- treasury line chart -->
+    <div class="metric-card" style="margin-bottom:16px;padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div class="fs-label" style="margin:0">Treasury Balance — Last 30 Days</div>
+        <div style="font-size:11px;color:var(--ink-soft);font-family:Georgia,serif;font-style:italic" id="treasuryChartMeta"></div>
+      </div>
+      <svg id="treasuryLineChart" width="100%" style="display:block;overflow:visible" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
     </div>
 
     <hr class="divider">
@@ -473,7 +504,7 @@
 
   <!-- ══ BONDS ══ -->
   <div id="tab-bonds" class="tab-panel">
-    <div class="metric-grid" style="margin-bottom:20px;grid-template-columns:repeat(4,1fr)">
+    <div class="metric-grid-4">
       <div class="metric-card">
         <div class="metric-label">Total Raised</div>
         <div class="metric-value" id="bondTotalIn">—</div>
@@ -769,6 +800,134 @@ function calcBondTotalIn(){
 }
 function calcActivatedBonds(){
   return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.quantity||0),0);
+}
+
+function renderTreasuryChart(){
+  const svg=document.getElementById('treasuryLineChart');
+  const meta=document.getElementById('treasuryChartMeta');
+  if(!svg)return;
+  const W=800,H=200,PAD={t:10,r:16,b:32,l:72};
+  const now=Date.now();
+  const windowMs=30*24*60*60*1000;
+  const cutoff=now-windowMs;
+
+  // all entries sorted by time
+  const all=Object.values(treasuryEntries||{})
+    .filter(e=>e&&e.at)
+    .sort((a,b)=>a.at-b.at);
+
+  // balance before cutoff = sum of everything before window
+  const baseBal=all.filter(e=>e.at<cutoff).reduce((s,e)=>s+(e.amount||0),0);
+
+  // entries within window
+  const inWindow=all.filter(e=>e.at>=cutoff);
+
+  if(!inWindow.length){
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="rgba(120,90,50,.5)">No entries in the last 30 days</text>`;
+    if(meta)meta.textContent='';
+    return;
+  }
+
+  // group by day: compute end-of-day balance for each day that has entries
+  const dayKey=ts=>{const d=new Date(ts);return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;};
+  const dayMap={};
+  let runBal=baseBal;
+  inWindow.forEach(e=>{
+    runBal+=(e.amount||0);
+    const k=dayKey(e.at);
+    dayMap[k]={t:new Date(e.at).setHours(12,0,0,0),v:runBal};
+  });
+
+  // sorted daily points
+  const dayPoints=Object.values(dayMap).sort((a,b)=>a.t-b.t);
+
+  // build step-line: add start (cutoff with baseBal) and end (now with last bal)
+  const points=[];
+  points.push({t:cutoff,v:baseBal,dot:false});
+  dayPoints.forEach(p=>points.push({...p,dot:true}));
+  points.push({t:now,v:runBal,dot:false});
+
+  const minT=cutoff,maxT=now;
+  const vals=points.map(p=>p.v);
+  let minV=Math.min(...vals),maxV=Math.max(...vals);
+  if(minV===maxV){minV=minV-1;maxV=maxV+1;}
+  const pad=(maxV-minV)*0.08;
+  minV-=pad;maxV+=pad;
+
+  const cx=W-PAD.l-PAD.r,cy=H-PAD.t-PAD.b;
+  const tx=t=>PAD.l+((t-minT)/(maxT-minT))*cx;
+  const ty=v=>PAD.t+cy-((v-minV)/(maxV-minV))*cy;
+
+  // gridlines + y labels
+  let g='';
+  const yTicks=4;
+  for(let i=0;i<=yTicks;i++){
+    const v=minV+(maxV-minV)*(i/yTicks);
+    const y=ty(v);
+    g+=`<line x1="${PAD.l}" x2="${W-PAD.r}" y1="${y}" y2="${y}" stroke="rgba(120,90,50,.12)" stroke-width="1"/>`;
+    g+=`<text x="${PAD.l-6}" y="${y+4}" text-anchor="end" font-family="Georgia,serif" font-size="10" fill="rgba(120,90,50,.6)">${fmtS(v)}</text>`;
+  }
+
+  // x axis date labels
+  const xTicks=5;
+  for(let i=0;i<=xTicks;i++){
+    const t=minT+(maxT-minT)*(i/xTicks);
+    const x=tx(t);
+    const d=new Date(t);
+    const lbl=`${d.getDate()}/${d.getMonth()+1}`;
+    g+=`<text x="${x}" y="${H-PAD.b+14}" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="rgba(120,90,50,.6)">${lbl}</text>`;
+  }
+
+  // area fill
+  const ptStr=points.map(p=>`${tx(p.t)},${ty(p.v)}`).join(' ');
+  const areaPts=`${tx(points[0].t)},${ty(minV)} `+ptStr+` ${tx(points[points.length-1].t)},${ty(minV)}`;
+  g+=`<polygon points="${areaPts}" fill="rgba(28,42,64,.07)"/>`;
+
+  // line
+  g+=`<polyline points="${ptStr}" fill="none" stroke="rgba(28,42,64,.7)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // dots only on day points
+  dayPoints.forEach(p=>{
+    g+=`<circle cx="${tx(p.t)}" cy="${ty(p.v)}" r="3.5" fill="rgba(28,42,64,.85)" stroke="var(--parchment)" stroke-width="1.5"/>`;
+  });
+
+  // crosshair + hover target
+  g+=`<line id="tcHair" x1="0" x2="0" y1="${PAD.t}" y2="${H-PAD.b}" stroke="rgba(28,42,64,.35)" stroke-width="1" stroke-dasharray="3,3" style="display:none"/>`;
+  g+=`<circle id="tcDot" cx="0" cy="0" r="5" fill="rgba(28,42,64,.9)" stroke="var(--parchment)" stroke-width="2" style="display:none"/>`;
+  g+=`<rect x="${PAD.l}" y="${PAD.t}" width="${cx}" height="${cy}" fill="transparent" id="tcOverlay" style="cursor:crosshair"/>`;
+
+  svg.innerHTML=g;
+  if(meta)meta.textContent=`${inWindow.length} entr${inWindow.length===1?'y':'ies'} · ${new Date(inWindow[0].at).toLocaleDateString('tr-TR')} – bugün`;
+
+  // interactivity
+  const overlay=svg.getElementById('tcOverlay');
+  const hair=svg.getElementById('tcHair');
+  const dot=svg.getElementById('tcDot');
+  const tip=document.getElementById('pieTooltip'); // reuse existing tooltip
+  overlay.addEventListener('mousemove',e=>{
+    const rect=svg.getBoundingClientRect();
+    const scaleX=W/rect.width;
+    const mx=(e.clientX-rect.left)*scaleX;
+    // find nearest day point
+    let nearest=dayPoints[0];
+    let best=Infinity;
+    dayPoints.forEach(p=>{const d=Math.abs(tx(p.t)-mx);if(d<best){best=d;nearest=p;}});
+    const nx=tx(nearest.t),ny=ty(nearest.v);
+    hair.setAttribute('x1',nx);hair.setAttribute('x2',nx);hair.style.display='';
+    dot.setAttribute('cx',nx);dot.setAttribute('cy',ny);dot.style.display='';
+    const d=new Date(nearest.t);
+    const lbl=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    if(tip){
+      tip.style.display='block';
+      tip.textContent=`${lbl} — ${fmtS(nearest.v)}`;
+      tip.style.left=(e.clientX+14)+'px';
+      tip.style.top=(e.clientY-30)+'px';
+    }
+  });
+  overlay.addEventListener('mouseleave',()=>{
+    hair.style.display='none';dot.style.display='none';
+    if(tip)tip.style.display='none';
+  });
 }
 
 function renderBudgetPie(qBal,eBal,iBal,rBal,free){
@@ -1714,7 +1873,7 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('treasury/entries',snap=>{
     treasuryEntries=snap.val()||{};
     treasuryBalance=Object.values(treasuryEntries).reduce((s,e)=>s+(e.amount||0),0);
-    renderOverview();renderPrestigeValue();
+    renderOverview();renderPrestigeValue();renderTreasuryChart();
   });
   safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();renderPrestigeValue();});
   safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();});
