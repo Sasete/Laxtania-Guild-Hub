@@ -910,6 +910,17 @@
 
     // ── Navbar Prestige (compat SDK, since navbar.js uses modular SDK which can't see this app) ──
     let _qbNavMyMid=null, _qbNavAllMembers={}, _qbNavAllFamilies={}, _qbNavMyPoints=0, _qbNavMyFid=null;
+
+    // Council task badge
+    db.ref('tasks').on('value', taskSnap => {
+      const tasks = taskSnap.val() || {};
+      const count = Object.values(tasks).filter(t => t.status === 'pending').length;
+      const badge = document.getElementById('councilTaskBadge');
+      if (!badge) return;
+      if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
+      else { badge.style.display = 'none'; }
+    });
+
     db.ref('prestige/families').on('value', fsnap => { _qbNavAllFamilies = fsnap.val() || {}; });
     db.ref('prestige/members').on('value', memberSnap => {
       _qbNavAllMembers = memberSnap.val() || {};
