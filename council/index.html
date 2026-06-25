@@ -158,9 +158,9 @@
 <div class="parchment-wrap">
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
-    <button class="tab-btn" onclick="switchTab('quest')">Quest Fund</button>
-    <button class="tab-btn" onclick="switchTab('events')">Events Fund</button>
-    <button class="tab-btn" onclick="switchTab('island')">Island Fund</button>
+    <button class="tab-btn" onclick="switchTab('quest')">Quest Budget</button>
+    <button class="tab-btn" onclick="switchTab('events')">Events Budget</button>
+    <button class="tab-btn" onclick="switchTab('island')">Island Budget</button>
     <button class="tab-btn" onclick="switchTab('bonds')">Bonds</button>
     <button class="tab-btn" onclick="switchTab('tasks')" id="tasksTabBtn">Tasks <span id="taskTabBadge" class="tab-badge" style="display:none"></span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
@@ -197,7 +197,7 @@
     <div class="fund-summary-row" style="margin-bottom:4px">
       <div>
         <div class="fund-summary-card">
-          <div class="fs-label">Quest Fund</div>
+          <div class="fs-label">Quest Budget</div>
           <div class="fs-value" id="ovQuestBal">—</div>
           <div class="action-strip" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('quest',1,'income')">+ Income</button>
@@ -220,7 +220,7 @@
       </div>
       <div>
         <div class="fund-summary-card">
-          <div class="fs-label">Events Fund</div>
+          <div class="fs-label">Events Budget</div>
           <div class="fs-value" id="ovEventsBal">—</div>
           <div class="action-strip" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('events',1,'income')">+ Income</button>
@@ -243,7 +243,7 @@
       </div>
       <div>
         <div class="fund-summary-card">
-          <div class="fs-label">Island Fund</div>
+          <div class="fs-label">Island Budget</div>
           <div class="fs-value" id="ovIslandBal">—</div>
           <div class="action-strip" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('island',1,'income')">+ Income</button>
@@ -276,7 +276,7 @@
   <div id="tab-quest" class="tab-panel">
     <div class="fund-header">
       <div>
-        <div class="fund-bal-label">Quest Fund Balance</div>
+        <div class="fund-bal-label">Quest Budget Balance</div>
         <div class="fund-bal-value" id="questBal">—</div>
       </div>
       <div style="display:flex;gap:8px">
@@ -302,7 +302,7 @@
   <div id="tab-events" class="tab-panel">
     <div class="fund-header">
       <div>
-        <div class="fund-bal-label">Events Fund Balance</div>
+        <div class="fund-bal-label">Events Budget Balance</div>
         <div class="fund-bal-value" id="eventsBal">—</div>
       </div>
       <div style="display:flex;gap:8px">
@@ -328,7 +328,7 @@
   <div id="tab-island" class="tab-panel">
     <div class="fund-header">
       <div>
-        <div class="fund-bal-label">Island Fund Balance</div>
+        <div class="fund-bal-label">Island Budget Balance</div>
         <div class="fund-bal-value" id="islandBal">—</div>
       </div>
       <div style="display:flex;gap:8px">
@@ -432,12 +432,12 @@
           <input type="text" id="taskNotes" placeholder="Details, etc.">
         </div>
         <div class="form-group">
-          <label>Fund</label>
+          <label>Budget</label>
           <select id="taskFundType">
             <option value="">— General —</option>
-            <option value="quest">Quest Fund</option>
-            <option value="events">Events Fund</option>
-            <option value="island">Island Fund</option>
+            <option value="quest">Quest Budget</option>
+            <option value="events">Events Budget</option>
+            <option value="island">Island Budget</option>
           </select>
         </div>
       </div>
@@ -548,7 +548,7 @@ function renderOverview(){
   document.getElementById('ovIslandBal').textContent=fmtS(iBal);
 
   // Treasury entry log
-  const FUND_LABELS={quest:'Quest Fund',events:'Events Fund',island:'Island Fund'};
+  const FUND_LABELS={quest:'Quest Budget',events:'Events Budget',island:'Island Budget'};
   const sorted=Object.entries(treasuryEntries).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
   renderEntryPage(sorted,'adjList','adjPagination','treasury',
     ([,e])=>`<div class="adj-row">
@@ -561,7 +561,7 @@ function renderOverview(){
 
 // ── TREASURY ACTIONS ──
 let _activeAction=null;
-const FUND_LABELS_MAP={quest:'Quest Fund',events:'Events Fund',island:'Island Fund'};
+const FUND_LABELS_MAP={quest:'Quest Budget',events:'Events Budget',island:'Island Budget'};
 
 window.openAction=function(sign,fund){
   _activeAction={sign,fund};
@@ -1069,9 +1069,9 @@ function renderTasks(){
 }
 
 function fundLabel(ft){
-  if(ft==='quest')return'<span class="fund-tag">Quest Fund</span>';
-  if(ft==='events')return'<span class="fund-tag">Events Fund</span>';
-  if(ft==='island')return'<span class="fund-tag">Island Fund</span>';
+  if(ft==='quest')return'<span class="fund-tag">Quest Budget</span>';
+  if(ft==='events')return'<span class="fund-tag">Events Budget</span>';
+  if(ft==='island')return'<span class="fund-tag">Island Budget</span>';
   return'';
 }
 

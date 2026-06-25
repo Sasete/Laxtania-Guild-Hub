@@ -576,7 +576,7 @@ window.completeEvent=async function(evId){
 
   const incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
   await push(ref(db,'tasks'),{
-    title:`Event Loot Tasfiyesi — ${ev.title} — ~${incFmt}S`,
+    title:`Event Loot Settlement — ${ev.title} — ~${incFmt}S`,
     type:'payment_in',amount:income,fundType:'events',status:'pending',
     eventId:evId,eventTitle:ev.title,estimated:true,
     notes:`Tahmini loot geliri: ${income.toLocaleString()} S`,

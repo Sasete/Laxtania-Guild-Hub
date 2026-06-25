@@ -1184,7 +1184,7 @@
 
     if (silverReward > 0) {
       await db.ref('tasks').push({
-        title: `Pay ${name} — ${def.name || id}`,
+        title: `Quest Reward —${name} — ${def.name || id}`,
         type: 'payment_out',
         amount: silverReward,
         fundType: 'quest',
@@ -1831,7 +1831,7 @@
     // Auto-create payment task only for guild-issued quests with a silver reward
     if (silverAmt > 0) {
       const task = {
-        title: `Pay ${claimants.length ? claimants.join(', ') : '?'} — ${name}`,
+        title: `Quest Reward —${claimants.length ? claimants.join(', ') : '?'} — ${name}`,
         type: 'payment_out',
         amount: silverAmt,
         fundType: 'quest',
