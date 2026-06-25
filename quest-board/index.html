@@ -907,6 +907,93 @@
     if (isAdmin) {
       document.getElementById('adminToggle').style.display = 'flex';
     }
+
+    // ── Navbar Prestige (compat SDK, since navbar.js uses modular SDK which can't see this app) ──
+    let _qbNavMyMid=null, _qbNavAllMembers={}, _qbNavAllFamilies={}, _qbNavMyPoints=0, _qbNavMyFid=null;
+    db.ref('prestige/families').on('value', fsnap => { _qbNavAllFamilies = fsnap.val() || {}; });
+    db.ref('prestige/members').on('value', memberSnap => {
+      _qbNavAllMembers = memberSnap.val() || {};
+      const myName = (currentUserData.name||'').toLowerCase();
+      const entry = myName ? Object.entries(_qbNavAllMembers).find(([,m]) => m.name?.toLowerCase() === myName) : null;
+      if (entry) { _qbNavMyMid=entry[0]; _qbNavMyPoints=entry[1].points||0; _qbNavMyFid=entry[1].familyId||null; }
+      // Retry until navbar HTML is injected by navbar.js
+      function applyNavPrestige() {
+        const el = document.getElementById('myPrestigeCount');
+        const btn = document.getElementById('prestigeTransferBtn');
+        if (!el || !btn) { requestAnimationFrame(applyNavPrestige); return; }
+        el.textContent = _qbNavMyPoints;
+        btn.style.display = 'flex';
+      }
+      applyNavPrestige();
+    });
+
+    window.openPrestigeTransfer = function() {
+      const modal = document.getElementById('prestigeTransferModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      document.getElementById('ptError').style.display = 'none';
+      document.getElementById('ptAmount').value = '';
+      document.getElementById('ptNote').value = '';
+      document.getElementById('ptMyBalance').textContent = `Your prestige: ${_qbNavMyPoints} pts`;
+      const sel = document.getElementById('ptRecipient');
+      sel.innerHTML = '<option value="">— Select —</option>';
+      if (_qbNavMyFid && _qbNavAllFamilies[_qbNavMyFid]) {
+        const famBal = _qbNavAllFamilies[_qbNavMyFid].bonusPoints||0;
+        const famName = _qbNavAllFamilies[_qbNavMyFid].name||'My Family';
+        const o = document.createElement('option'); o.value='family:'+_qbNavMyFid;
+        o.textContent = `🏛 ${famName} (pool — ${famBal} pts)`; sel.appendChild(o);
+      }
+      Object.entries(_qbNavAllMembers).filter(([mid])=>mid!==_qbNavMyMid).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'')).forEach(([mid,m])=>{
+        const o=document.createElement('option'); o.value='member:'+mid; o.textContent=m.name||mid; sel.appendChild(o);
+      });
+      db.ref('prestige/transfers').orderByChild('at').limitToLast(12).on('value', logSnap => {
+        const logs = logSnap.val();
+        const logList = document.getElementById('ptLogList');
+        const logWrap = document.getElementById('ptTransferLog');
+        if (!logList||!logWrap) return;
+        if (!logs) { logWrap.style.display='none'; return; }
+        logWrap.style.display='block';
+        logList.innerHTML = Object.values(logs).reverse().map(l => {
+          const arrow=l.type==='family-family'?'🏛→🏛':l.type==='family-member'?'🏛→👤':l.type==='member-family'?'👤→🏛':'👤→👤';
+          return `<div style="font-size:11px;padding:4px 0;border-bottom:1px solid rgba(120,90,50,0.12);color:#5a4632">${arrow} <strong>${l.fromName||'?'}</strong> → <strong>${l.toName||'?'}</strong>: ${l.amount} pts${l.note?` <em>— ${l.note}</em>`:''}</div>`;
+        }).join('');
+      });
+    };
+    window.closePrestigeTransfer = function() {
+      const modal = document.getElementById('prestigeTransferModal'); if(modal) modal.style.display='none';
+    };
+    window.doPrestigeTransfer = async function() {
+      const errEl = document.getElementById('ptError'); errEl.style.display='none';
+      const toVal = document.getElementById('ptRecipient').value;
+      const amount = parseInt(document.getElementById('ptAmount').value,10);
+      const note = document.getElementById('ptNote').value.trim();
+      if(!toVal){errEl.textContent='Please select a recipient.';errEl.style.display='block';return;}
+      if(!amount||amount<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
+      if(amount>_qbNavMyPoints){errEl.textContent='Not enough personal prestige.';errEl.style.display='block';return;}
+      if(!_qbNavMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
+      const btn = document.getElementById('ptSendBtn'); btn.disabled=true; btn.textContent='Sending…';
+      try {
+        const upd = {}; const myName=_qbNavAllMembers[_qbNavMyMid]?.name||'?'; let toName,type;
+        if(toVal.startsWith('family:')){
+          const toFid=toVal.replace('family:',''); const famBal=_qbNavAllFamilies[toFid]?.bonusPoints||0;
+          toName=(_qbNavAllFamilies[toFid]?.name||'?')+' (pool)'; type='member-family';
+          upd['prestige/members/'+_qbNavMyMid+'/points']=_qbNavMyPoints-amount;
+          upd['prestige/families/'+toFid+'/bonusPoints']=famBal+amount;
+        } else {
+          const toMid=toVal.replace('member:',''); toName=_qbNavAllMembers[toMid]?.name||'?'; type='member-member';
+          upd['prestige/members/'+_qbNavMyMid+'/points']=_qbNavMyPoints-amount;
+          upd['prestige/members/'+toMid+'/points']=(_qbNavAllMembers[toMid]?.points||0)+amount;
+        }
+        await db.ref().update(upd);
+        await db.ref('prestige/transfers').push({type,fromName:myName,toName,amount,note,at:Date.now(),by:myName});
+        document.getElementById('ptAmount').value=''; document.getElementById('ptNote').value='';
+        document.getElementById('ptMyBalance').textContent=`Your prestige: ${_qbNavMyPoints-amount} pts`;
+        btn.textContent='Sent ✓'; setTimeout(()=>{btn.disabled=false;btn.textContent='Send';},2000);
+      } catch(e) {
+        errEl.textContent='Transfer failed: '+e.message; errEl.style.display='block';
+        btn.disabled=false; btn.textContent='Send';
+      }
+    };
   });
 
   window.toggleAdminMode = function() {
