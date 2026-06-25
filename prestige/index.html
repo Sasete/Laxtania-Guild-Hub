@@ -442,13 +442,18 @@ function renderTierLegend(){
 }
 
 // ── MEMBERS ──
+window.goMembersPage=function(p){_membersPage=p;renderMembers();};
+
 function renderMembers(){
   const c=document.getElementById('membersContainer');
   const myName=currentPM?.name?.toLowerCase();
   const list=Object.entries(members).map(([id,m])=>({id,...m})).sort((a,b)=>(b.points||0)-(a.points||0));
   if(!list.length){c.innerHTML='<div class="empty">No members recorded yet.</div>';return;}
+  const totalPages=Math.ceil(list.length/MEMBERS_PER_PAGE);
+  if(_membersPage>=totalPages)_membersPage=totalPages-1;
+  const pageList=list.slice(_membersPage*MEMBERS_PER_PAGE,(_membersPage+1)*MEMBERS_PER_PAGE);
   const allowed=assignableRanks();
-  const rows=list.map((m,i)=>{
+  const rows=pageList.map((m,pi)=>{const i=_membersPage*MEMBERS_PER_PAGE+pi;
     const tier=getTier(m.points||0);
     const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const fName=m.familyId&&families[m.familyId]?families[m.familyId].name:'—';
@@ -500,7 +505,12 @@ function renderMembers(){
     </td></tr>`:''}`;
   }).join('');
   const editTh=adminMode?'<th></th>':'';
-  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>`;
+  const mPag=totalPages>1?`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px 2px;">
+    <button onclick="goMembersPage(${_membersPage-1})" ${_membersPage===0?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 14px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;${_membersPage===0?'opacity:0.35;cursor:default;':''}">← Prev</button>
+    <span style="font-size:11px;color:var(--ink-soft);font-variant:small-caps;letter-spacing:1px;">Page ${_membersPage+1} / ${totalPages} &nbsp;·&nbsp; ${list.length} members</span>
+    <button onclick="goMembersPage(${_membersPage+1})" ${_membersPage>=totalPages-1?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 14px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;${_membersPage>=totalPages-1?'opacity:0.35;cursor:default;':''}">Next →</button>
+  </div>`:'';
+  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>${mPag}`;
 }
 
 window.toggleEdit=function(id){
@@ -623,6 +633,8 @@ window.addMember=async function(){
 };
 
 // ── FAMILIES ──
+window.goFamiliesPage=function(p){_familiesPage=p;renderFamilies();};
+
 function renderFamilies(){
   const c=document.getElementById('familiesContainer');
   const mList=Object.entries(members).map(([id,m])=>({id,...m}));
@@ -634,10 +646,13 @@ function renderFamilies(){
     const lordName=lordMember?lordMember.name:'—';
     return{id,...f,mTotal,bonus,total:mTotal+bonus,lordName,fams};
   }).sort((a,b)=>b.total-a.total);
-  
+
   if(!list.length){c.innerHTML='<div class="empty">No families established yet.</div>';return;}
-  
-  const rows=list.map((f,i)=>{
+  const totalPages=Math.ceil(list.length/FAMILIES_PER_PAGE);
+  if(_familiesPage>=totalPages)_familiesPage=totalPages-1;
+  const pageList=list.slice(_familiesPage*FAMILIES_PER_PAGE,(_familiesPage+1)*FAMILIES_PER_PAGE);
+
+  const rows=pageList.map((f,pi)=>{const i=_familiesPage*FAMILIES_PER_PAGE+pi;
     const rk=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const isMine=currentPM?.familyId===f.id;
     const ce=adminMode;
@@ -676,6 +691,11 @@ function renderFamilies(){
   }).join('');
   
   const editTh=adminMode?'<th></th>':'';
+  const fPag=totalPages>1?`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px 2px;">
+    <button onclick="goFamiliesPage(${_familiesPage-1})" ${_familiesPage===0?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 14px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;${_familiesPage===0?'opacity:0.35;cursor:default;':''}">← Prev</button>
+    <span style="font-size:11px;color:var(--ink-soft);font-variant:small-caps;letter-spacing:1px;">Page ${_familiesPage+1} / ${totalPages} &nbsp;·&nbsp; ${list.length} families</span>
+    <button onclick="goFamiliesPage(${_familiesPage+1})" ${_familiesPage>=totalPages-1?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 14px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;${_familiesPage>=totalPages-1?'opacity:0.35;cursor:default;':''}">Next →</button>
+  </div>`:'';
   c.innerHTML=`<table class="lb-table">
     <thead>
       <tr>
@@ -689,7 +709,7 @@ function renderFamilies(){
       </tr>
     </thead>
     <tbody id="familiesTbody">${rows}</tbody>
-  </table>`;
+  </table>${fPag}`;
 
   document.getElementById('familiesTbody').addEventListener('click', e => {
     const editCell = e.target.closest('td[data-noprop]');
@@ -762,17 +782,31 @@ function renderMyFamilySection(){
     const isMemberLord = (m.ranks || []).includes('lord');
     const isMe = m.name?.toLowerCase() === currentPM.name?.toLowerCase();
     const showDischarge = isLordOfFamily && !isMemberLord;
-    
-    return `<div class="fam-member-row" style="padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(120,90,50,0.1);">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span class="fam-member-rank ${idx===0?'r1':''}" style="font-size: 13px; font-weight: bold; width: 20px;">${idx+1}</span>
-        <span class="fam-member-name ${isMe?'is-me':''}" style="font-size: 14px; ${isMe?'font-weight: bold; color: var(--navy);':''}">${m.name || m.id}${isMe?' <span class="me-tag">You</span>':''}</span>
-        ${isMemberLord?'<span class="fam-lord-tag" style="background: #701515; color: white; border: none; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 2px; margin-left: 6px;">Lord</span>':''}
+    const showGive = isLordOfFamily;
+
+    return `<div>
+      <div class="fam-member-row" style="padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(120,90,50,0.1);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="fam-member-rank ${idx===0?'r1':''}" style="font-size: 13px; font-weight: bold; width: 20px;">${idx+1}</span>
+          <span class="fam-member-name ${isMe?'is-me':''}" style="font-size: 14px; ${isMe?'font-weight: bold; color: var(--navy);':''}">${m.name || m.id}${isMe?' <span class="me-tag">You</span>':''}</span>
+          ${isMemberLord?'<span class="fam-lord-tag" style="background: #701515; color: white; border: none; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 2px; margin-left: 6px;">Lord</span>':''}
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="fam-member-pts" style="font-size: 14px; font-weight: bold; color: var(--navy); min-width: 80px; text-align: right;">${(m.points||0).toLocaleString()} pts</span>
+          ${showGive?`<button class="ghost-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleGiveRow('${m.id}')">Give ▾</button>`:''}
+          ${showDischarge?`<button class="red-btn" style="font-size:11px; padding:4px 10px;" onclick="removeMemberFromFamily('${m.id}')">Discharge</button>`:''}
+        </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <span class="fam-member-pts" style="font-size: 14px; font-weight: bold; color: var(--navy);">${(m.points||0).toLocaleString()} pts</span>
-        ${showDischarge?`<button class="red-btn" style="font-size:11px; padding:4px 10px;" onclick="removeMemberFromFamily('${m.id}')">Discharge</button>`:''}
-      </div>
+      ${showGive?`<div id="giveRow-${m.id}" style="display:none;padding:10px 12px;background:rgba(200,160,74,0.07);border-bottom:1px solid rgba(120,90,50,0.1);">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);white-space:nowrap;">Pool → ${m.name||m.id}:</span>
+          <input type="number" id="giveAmt-${m.id}" min="1" placeholder="pts" style="width:72px;padding:4px 6px;font-family:Georgia,serif;font-size:12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+          <input type="text" id="giveNote-${m.id}" placeholder="note (optional)" style="flex:1;min-width:100px;padding:4px 6px;font-family:Georgia,serif;font-size:12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+          <button class="gold-btn" style="font-size:11px;padding:4px 12px;" onclick="submitFamilyGive('${m.id}','${(m.name||m.id).replace(/'/g,"\\'")}')">Send</button>
+          <button class="ghost-btn" style="font-size:11px;padding:4px 8px;" onclick="toggleGiveRow('${m.id}')">✕</button>
+        </div>
+        <div id="giveErr-${m.id}" style="display:none;color:#8c2424;font-size:11px;margin-top:4px;"></div>
+      </div>`:''}
     </div>`;
   }).join('');
 
@@ -808,6 +842,29 @@ function renderMyFamilySection(){
       `;
     }
 
+    // Family-to-family send panel
+    const otherFamilies = Object.entries(families).filter(([fid])=>fid!==myFamId);
+    const familyOptions = otherFamilies.map(([fid,f])=>`<option value="${fid}">${f.name||fid}</option>`).join('');
+    const sendToFamilyHTML = `
+      <div style="margin-top:14px;padding-top:12px;border-top:1px dashed rgba(120,90,50,0.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;" onclick="toggleFamSendPanel()">
+          <label style="font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);cursor:pointer;">Send Pool Prestige to Another Family</label>
+          <span id="famSendChevron" style="font-size:11px;color:var(--ink-soft);">▾</span>
+        </div>
+        <div id="famSendPanel" style="display:none;margin-top:10px;">
+          ${otherFamilies.length===0?'<div style="font-style:italic;color:var(--ink-soft);font-size:13px;">No other families exist yet.</div>':`
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+            <select id="famSendTarget" class="rank-select" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;flex:1;">${familyOptions}</select>
+            <input type="number" id="famSendAmt" min="1" placeholder="pts" style="width:80px;padding:6px 8px;font-family:Georgia,serif;font-size:13px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="famSendNote" placeholder="Note (optional)" style="flex:1;min-width:120px;padding:6px 8px;font-family:Georgia,serif;font-size:13px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+            <button class="gold-btn" style="font-size:12px;padding:7px 16px;" onclick="submitFamilySend()">Send</button>
+          </div>
+          <div id="famSendErr" style="display:none;color:#8c2424;font-size:11px;margin-top:6px;"></div>`}
+        </div>
+      </div>`;
+
     if (nonFamilyMembers.length > 0) {
       inviteBoxHTML = `
         <div class="family-invite-box" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(120,90,50,0.3);">
@@ -819,6 +876,7 @@ function renderMyFamilySection(){
             <button class="gold-btn" style="font-size:12px; padding:8px 18px;" onclick="inviteMember()">Add Member</button>
           </div>
           ${sentInvitesHTML}
+          ${sendToFamilyHTML}
         </div>`;
     } else {
       inviteBoxHTML = `
@@ -827,6 +885,7 @@ function renderMyFamilySection(){
             No unaligned members available to invite.
           </div>
           ${sentInvitesHTML}
+          ${sendToFamilyHTML}
         </div>`;
     }
   }
@@ -854,17 +913,182 @@ function renderMyFamilySection(){
         <div class="score-block"><div class="score-lbl" style="font-size: 9px; font-variant: small-caps; letter-spacing: 1px; color: var(--ink-soft);">Family Own Prestige</div><div class="score-val bonus" style="font-size: 15px; color: #4a7a90;">${bonus.toLocaleString()}</div></div>
       </div>
       
-      <div class="family-mini-lb" style="margin-top: 10px;">
-        <div class="family-mini-lb-title" style="font-size: 11px; font-variant: small-caps; letter-spacing: 2px; color: var(--ink-soft); margin-bottom: 8px; font-weight: bold;">Family Roster</div>
-        <div style="background: rgba(255,255,255,0.25); border: 1px solid rgba(120,90,50,0.15); border-radius: 2px;">
-          ${rosterRows}
+      <div style="margin-top:10px;">
+        <div style="display:flex;gap:0;border-bottom:2px solid rgba(120,90,50,0.18);margin-bottom:12px;">
+          <button id="famTab-roster" onclick="switchFamTab('roster')" style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1.5px;padding:6px 16px;border:none;border-bottom:2px solid var(--gold);margin-bottom:-2px;background:transparent;cursor:pointer;color:var(--navy);font-weight:bold;">Roster</button>
+          <button id="famTab-history" onclick="switchFamTab('history')" style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1.5px;padding:6px 16px;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;background:transparent;cursor:pointer;color:var(--ink-soft);">History</button>
+          ${isLordOfFamily?`<button id="famTab-manage" onclick="switchFamTab('manage')" style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1.5px;padding:6px 16px;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;background:transparent;cursor:pointer;color:var(--ink-soft);">Manage</button>`:''}
         </div>
+        <div id="famTabPanel-roster">
+          <div style="background: rgba(255,255,255,0.25); border: 1px solid rgba(120,90,50,0.15); border-radius: 2px;">
+            ${rosterRows}
+          </div>
+        </div>
+        <div id="famTabPanel-history" style="display:none;">
+          <div id="famHistoryList" style="background:rgba(255,255,255,0.25);border:1px solid rgba(120,90,50,0.15);border-radius:2px;min-height:60px;padding:8px 12px;">
+            <div style="text-align:center;color:var(--ink-soft);font-style:italic;font-size:13px;padding:20px 0;">Loading…</div>
+          </div>
+        </div>
+        ${isLordOfFamily?`<div id="famTabPanel-manage" style="display:none;">${inviteBoxHTML}</div>`:''}
       </div>
-      
-      ${inviteBoxHTML}
     </div>`;
   c.style.display = 'block';
 }
+
+window.switchFamTab = function(tab) {
+  ['roster','history','manage'].forEach(t=>{
+    const panel = document.getElementById('famTabPanel-'+t);
+    const btn = document.getElementById('famTab-'+t);
+    if(!panel||!btn) return;
+    const active = t===tab;
+    panel.style.display = active?'block':'none';
+    btn.style.borderBottomColor = active?'var(--gold)':'transparent';
+    btn.style.color = active?'var(--navy)':'var(--ink-soft)';
+    btn.style.fontWeight = active?'bold':'normal';
+  });
+  if(tab==='history') loadFamHistory();
+};
+
+let _famHistoryAll = [];
+let _famHistoryPage = 0;
+const FAM_HISTORY_PER_PAGE = 10;
+let _membersPage = 0;
+let _familiesPage = 0;
+const MEMBERS_PER_PAGE = 15;
+const FAMILIES_PER_PAGE = 10;
+
+window.loadFamHistory = async function(page) {
+  const el = document.getElementById('famHistoryList');
+  if(!el) return;
+  const myFamId = currentPM?.familyId;
+  if(!myFamId){el.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-style:italic;font-size:13px;padding:20px 0;">No family found.</div>';return;}
+  const fam = families[myFamId];
+  const famName = fam?.name||'';
+  const famMemberNames = new Set(Object.values(members).filter(m=>m.familyId===myFamId).map(m=>(m.name||'').toLowerCase()));
+
+  // Only fetch from Firebase on first load
+  if(page===undefined){
+    el.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-style:italic;font-size:13px;padding:20px 0;">Loading…</div>';
+    try{
+      const snap = await get(ref(db,'prestige/transfers'));
+      const all = snap.val();
+      if(!all){el.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-style:italic;font-size:13px;padding:20px 0;">No transfers yet.</div>';return;}
+      _famHistoryAll = Object.values(all).filter(l=>{
+        const fn=(l.fromName||'').toLowerCase();
+        const tn=(l.toName||'').toLowerCase();
+        const famLow=famName.toLowerCase();
+        return fn.startsWith(famLow)||tn.startsWith(famLow)||famMemberNames.has(fn)||famMemberNames.has(tn);
+      }).sort((a,b)=>(b.at||0)-(a.at||0));
+      _famHistoryPage = 0;
+    }catch(e){
+      el.innerHTML=`<div style="color:#8c2424;font-size:12px;padding:12px;">Failed to load: ${e.message}</div>`;
+      return;
+    }
+  } else {
+    _famHistoryPage = page;
+  }
+
+  if(!_famHistoryAll.length){
+    el.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-style:italic;font-size:13px;padding:20px 0;">No transfers involving this family yet.</div>';
+    return;
+  }
+
+  const totalPages = Math.ceil(_famHistoryAll.length / FAM_HISTORY_PER_PAGE);
+  const slice = _famHistoryAll.slice(_famHistoryPage * FAM_HISTORY_PER_PAGE, (_famHistoryPage + 1) * FAM_HISTORY_PER_PAGE);
+  const typeIcon={'family-family':'🏛→🏛','family-member':'🏛→👤','member-family':'👤→🏛','member-member':'👤→👤'};
+
+  const rows = slice.map(l=>{
+    const icon=typeIcon[l.type]||'⇄';
+    const d=new Date(l.at);
+    const dateStr=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    return`<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:7px 4px;border-bottom:1px solid rgba(120,90,50,0.1);font-size:12px;color:var(--ink);">
+      <span style="flex:0 0 auto;font-size:13px;">${icon}</span>
+      <span style="flex:1;min-width:0;"><strong>${l.fromName||'?'}</strong> → <strong>${l.toName||'?'}</strong>${l.note?` <span style="color:var(--ink-soft);font-style:italic;">— ${l.note}</span>`:''}</span>
+      <span style="flex:0 0 auto;font-weight:bold;color:var(--navy);">${l.amount} pts</span>
+      <span style="flex:0 0 auto;color:var(--ink-soft);font-size:10px;white-space:nowrap;">${dateStr}</span>
+    </div>`;
+  }).join('');
+
+  const pagination = totalPages > 1 ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px 2px;margin-top:4px;">
+      <button onclick="loadFamHistory(${_famHistoryPage-1})" ${_famHistoryPage===0?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;color:var(--ink);${_famHistoryPage===0?'opacity:0.35;cursor:default;':''}">← Prev</button>
+      <span style="font-size:11px;color:var(--ink-soft);font-variant:small-caps;letter-spacing:1px;">Page ${_famHistoryPage+1} / ${totalPages} &nbsp;·&nbsp; ${_famHistoryAll.length} entries</span>
+      <button onclick="loadFamHistory(${_famHistoryPage+1})" ${_famHistoryPage>=totalPages-1?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;color:var(--ink);${_famHistoryPage>=totalPages-1?'opacity:0.35;cursor:default;':''}">Next →</button>
+    </div>` : '';
+
+  el.innerHTML = `<div>${rows}</div>${pagination}`;
+};
+
+window.toggleGiveRow = function(mid) {
+  const row = document.getElementById('giveRow-'+mid);
+  if(!row) return;
+  const open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'block';
+  if(!open) document.getElementById('giveAmt-'+mid)?.focus();
+};
+
+window.submitFamilyGive = async function(toMid, toName) {
+  const errEl = document.getElementById('giveErr-'+toMid);
+  if(errEl) errEl.style.display='none';
+  const amt = parseInt(document.getElementById('giveAmt-'+toMid)?.value,10);
+  const note = document.getElementById('giveNote-'+toMid)?.value?.trim()||'';
+  const myFamId = currentPM?.familyId;
+  if(!myFamId){toast('No family found.');return;}
+  const famBal = families[myFamId]?.bonusPoints||0;
+  const famName = families[myFamId]?.name||'?';
+  if(!amt||amt<=0){if(errEl){errEl.textContent='Enter a valid amount.';errEl.style.display='block';}return;}
+  if(amt>famBal){if(errEl){errEl.textContent=`Not enough pool prestige (${famBal} pts available).`;errEl.style.display='block';}return;}
+  try{
+    const upd={};
+    upd['prestige/families/'+myFamId+'/bonusPoints']=famBal-amt;
+    upd['prestige/members/'+toMid+'/points']=(members[toMid]?.points||0)+amt;
+    await update(ref(db),upd);
+    await push(ref(db,'prestige/transfers'),{type:'family-member',fromName:famName+' (pool)',toName,amount:amt,note,at:Date.now(),by:currentPM.name||'?'});
+    document.getElementById('giveAmt-'+toMid).value='';
+    document.getElementById('giveNote-'+toMid).value='';
+    toggleGiveRow(toMid);
+    toast(`Sent ${amt} pts to ${toName}.`);
+  }catch(e){
+    if(errEl){errEl.textContent='Transfer failed: '+e.message;errEl.style.display='block';}
+  }
+};
+
+window.toggleFamSendPanel = function() {
+  const panel = document.getElementById('famSendPanel');
+  const chevron = document.getElementById('famSendChevron');
+  if(!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if(chevron) chevron.textContent = open ? '▾' : '▴';
+};
+
+window.submitFamilySend = async function() {
+  const errEl = document.getElementById('famSendErr');
+  if(errEl) errEl.style.display='none';
+  const toFid = document.getElementById('famSendTarget')?.value;
+  const amt = parseInt(document.getElementById('famSendAmt')?.value,10);
+  const note = document.getElementById('famSendNote')?.value?.trim()||'';
+  const myFamId = currentPM?.familyId;
+  if(!myFamId||!toFid){toast('Missing family.');return;}
+  const famBal = families[myFamId]?.bonusPoints||0;
+  const famName = families[myFamId]?.name||'?';
+  const toFamName = families[toFid]?.name||'?';
+  if(!amt||amt<=0){if(errEl){errEl.textContent='Enter a valid amount.';errEl.style.display='block';}return;}
+  if(amt>famBal){if(errEl){errEl.textContent=`Not enough pool prestige (${famBal} pts available).`;errEl.style.display='block';}return;}
+  if(!confirm(`Send ${amt} pts from ${famName} pool to ${toFamName}?`)) return;
+  try{
+    const upd={};
+    upd['prestige/families/'+myFamId+'/bonusPoints']=famBal-amt;
+    upd['prestige/families/'+toFid+'/bonusPoints']=(families[toFid]?.bonusPoints||0)+amt;
+    await update(ref(db),upd);
+    await push(ref(db,'prestige/transfers'),{type:'family-family',fromName:famName+' (pool)',toName:toFamName+' (pool)',amount:amt,note,at:Date.now(),by:currentPM.name||'?'});
+    document.getElementById('famSendAmt').value='';
+    document.getElementById('famSendNote').value='';
+    toast(`Sent ${amt} pts to ${toFamName}.`);
+  }catch(e){
+    if(errEl){errEl.textContent='Transfer failed: '+e.message;errEl.style.display='block';}
+  }
+};
 
 window.inviteMember = async function() {
   const sel = document.getElementById('inviteMemberSelect');

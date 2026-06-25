@@ -156,11 +156,13 @@
         <span id="myPrestigeCount" style="font-family:Georgia,serif;font-size:15px;color:var(--gold-bright);font-weight:bold;line-height:1">—</span>
         <span style="font-size:9px;color:rgba(200,160,74,0.5);letter-spacing:0.5px">⇄ transfer</span>
       </button>
-      <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
-        <div class="admin-toggle-dot"></div>
-        Admin Mode
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="admin-toggle" id="adminToggle" style="display:none" onclick="toggleAdminMode()">
+          <div class="admin-toggle-dot"></div>
+          Admin Mode
+        </div>
+        <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
       </div>
-      <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
     </div>
   </div>
 </nav>
@@ -171,22 +173,22 @@
   // Prestige Transfer Modal
   const transferModalHtml = `
 <div id="prestigeTransferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
-  <div style="background:#f1e4c4;border-radius:6px;padding:24px;min-width:320px;max-width:420px;width:90%;font-family:Georgia,serif;box-shadow:0 8px 32px rgba(0,0,0,.4)">
-    <h3 style="color:#2e2014;margin-bottom:4px;font-size:16px">⇄ Prestige Transfer</h3>
-    <p id="ptMyBalance" style="font-size:12px;color:#5a4632;margin-bottom:16px"></p>
+  <div style="background:#f1e4c4;border-radius:6px;padding:24px;min-width:320px;max-width:440px;width:90%;font-family:Georgia,serif;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <h3 style="color:#2e2014;margin-bottom:4px;font-size:16px">⇄ Send Prestige</h3>
+    <p id="ptMyBalance" style="font-size:12px;color:#5a4632;margin-bottom:14px"></p>
     <div style="margin-bottom:12px">
-      <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Recipient</label>
+      <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Send To</label>
       <select id="ptRecipient" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;background:white">
-        <option value="">— Select member —</option>
+        <option value="">— Select —</option>
       </select>
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Amount (pts)</label>
-      <input id="ptAmount" type="number" min="1" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px">
+      <input id="ptAmount" type="number" min="1" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
     </div>
     <div style="margin-bottom:16px">
       <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Note (optional)</label>
-      <input id="ptNote" type="text" placeholder="Reason for transfer..." style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px">
+      <input id="ptNote" type="text" placeholder="Reason for transfer..." style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
     </div>
     <div id="ptTransferLog" style="margin-bottom:16px;max-height:140px;overflow-y:auto;display:none">
       <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;margin-bottom:6px">Recent Transfers</div>
@@ -208,7 +210,7 @@
         const app=getApps()[0];if(!app)return;
         const auth=getAuth(app);
         const db=getDatabase(app);
-        let _navMyMid=null, _navAllMembers={}, _navMyPoints=0;
+        let _navMyMid=null, _navAllMembers={}, _navAllFamilies={}, _navMyPoints=0, _navMyFid=null, _navMyFamilyPoints=0, _navIsLord=false, _navIsAdmin=false;
 
         onAuthStateChanged(auth,user=>{
           if(!user)return;
@@ -222,17 +224,29 @@
             else{badge.style.display='none';}
           });
 
-          // Get user's name first, then match prestige member
+          // Get user's data, then match prestige member + family
           let _navUserName='';
+          const ADMIN_RANKS_PT=['hand','sovereign'];
           import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({ref:r2,get})=>{
             get(r2(db,'users/'+user.uid)).then(usnap=>{
               const ud=usnap.val();
               _navUserName=(ud?.name||'').toLowerCase();
+              _navIsAdmin=(ud?.ranks||[]).some(r=>ADMIN_RANKS_PT.includes(r));
+              onValue(ref(db,'prestige/families'),fsnap=>{
+                _navAllFamilies=fsnap.val()||{};
+                if(_navMyFid) _navMyFamilyPoints=_navAllFamilies[_navMyFid]?.bonusPoints||0;
+              });
               onValue(ref(db,'prestige/members'),snap=>{
                 _navAllMembers=snap.val()||{};
                 const name=_navUserName||document.getElementById('userBarName')?.textContent?.toLowerCase()||'';
                 const entry=name?Object.entries(_navAllMembers).find(([,m])=>m.name?.toLowerCase()===name):null;
-                if(entry){_navMyMid=entry[0];_navMyPoints=entry[1].points||0;}
+                if(entry){
+                  _navMyMid=entry[0];
+                  _navMyPoints=entry[1].points||0;
+                  _navMyFid=entry[1].familyId||null;
+                  _navIsLord=_navIsAdmin||(entry[1].ranks||[]).includes('lord');
+                  if(_navMyFid) _navMyFamilyPoints=_navAllFamilies[_navMyFid]?.bonusPoints||0;
+                }
                 const el=document.getElementById('myPrestigeCount');
                 const btn=document.getElementById('prestigeTransferBtn');
                 if(el) el.textContent=_navMyPoints;
@@ -249,29 +263,33 @@
           document.getElementById('ptError').style.display='none';
           document.getElementById('ptAmount').value='';
           document.getElementById('ptNote').value='';
-          document.getElementById('ptMyBalance').textContent='Your balance: '+_navMyPoints+' pts';
-          // Fill recipient dropdown
+          document.getElementById('ptMyBalance').textContent=`Your prestige: ${_navMyPoints} pts`;
+          // Build recipient list: members + optionally "My Family Pool"
           const sel=document.getElementById('ptRecipient');
-          sel.innerHTML='<option value="">— Select member —</option>';
-          Object.entries(_navAllMembers).filter(([mid])=>mid!==_navMyMid).forEach(([mid,m])=>{
-            const opt=document.createElement('option');
-            opt.value=mid;opt.textContent=m.name||mid;
-            sel.appendChild(opt);
+          sel.innerHTML='<option value="">— Select —</option>';
+          if(_navMyFid&&_navAllFamilies[_navMyFid]){
+            const famBal=_navAllFamilies[_navMyFid].bonusPoints||0;
+            const famName=_navAllFamilies[_navMyFid].name||'My Family';
+            const o=document.createElement('option');
+            o.value='family:'+_navMyFid;
+            o.textContent=`🏛 ${famName} (pool — ${famBal} pts)`;
+            sel.appendChild(o);
+          }
+          Object.entries(_navAllMembers).filter(([mid])=>mid!==_navMyMid).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'')).forEach(([mid,m])=>{
+            const o=document.createElement('option');o.value='member:'+mid;o.textContent=m.name||mid;sel.appendChild(o);
           });
           // Load transfer log
-          onValue(query(ref(db,'prestige/transfers'),orderByChild('at'),limitToLast(10)),logSnap=>{
+          onValue(query(ref(db,'prestige/transfers'),orderByChild('at'),limitToLast(12)),logSnap=>{
             const logs=logSnap.val();
             const logList=document.getElementById('ptLogList');
             const logWrap=document.getElementById('ptTransferLog');
             if(!logList||!logWrap)return;
             if(!logs){logWrap.style.display='none';return;}
-            const entries=Object.values(logs).reverse();
             logWrap.style.display='block';
-            logList.innerHTML=entries.map(l=>`
-              <div style="font-size:11px;padding:4px 0;border-bottom:1px solid rgba(120,90,50,0.12);color:#5a4632">
-                <strong>${l.fromName||'?'}</strong> → <strong>${l.toName||'?'}</strong>: ${l.amount} pts
-                ${l.note?`<span style="font-style:italic"> — ${l.note}</span>`:''}
-              </div>`).join('');
+            logList.innerHTML=Object.values(logs).reverse().map(l=>{
+              const arrow=l.type==='family-family'?'🏛→🏛':l.type==='family-member'?'🏛→👤':l.type==='member-family'?'👤→🏛':'👤→👤';
+              return`<div style="font-size:11px;padding:4px 0;border-bottom:1px solid rgba(120,90,50,0.12);color:#5a4632">${arrow} <strong>${l.fromName||'?'}</strong> → <strong>${l.toName||'?'}</strong>: ${l.amount} pts${l.note?` <em>— ${l.note}</em>`:''}</div>`;
+            }).join('');
           });
         };
 
@@ -283,30 +301,38 @@
         window.doPrestigeTransfer=async function(){
           const errEl=document.getElementById('ptError');
           errEl.style.display='none';
-          const toMid=document.getElementById('ptRecipient').value;
+          const toVal=document.getElementById('ptRecipient').value;
           const amount=parseInt(document.getElementById('ptAmount').value,10);
           const note=document.getElementById('ptNote').value.trim();
-          if(!toMid){errEl.textContent='Please select a recipient.';errEl.style.display='block';return;}
+          if(!toVal){errEl.textContent='Please select a recipient.';errEl.style.display='block';return;}
           if(!amount||amount<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
-          if(amount>_navMyPoints){errEl.textContent='Not enough prestige points.';errEl.style.display='block';return;}
+          if(amount>_navMyPoints){errEl.textContent='Not enough personal prestige.';errEl.style.display='block';return;}
           if(!_navMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
           const btn=document.getElementById('ptSendBtn');
           btn.disabled=true;btn.textContent='Sending…';
           try{
-            const fromEntry=_navAllMembers[_navMyMid];
-            const toEntry=_navAllMembers[toMid];
             const upd={};
-            upd['prestige/members/'+_navMyMid+'/points']=_navMyPoints-amount;
-            upd['prestige/members/'+toMid+'/points']=(toEntry?.points||0)+amount;
+            const myName=_navAllMembers[_navMyMid]?.name||'?';
+            let fromName=myName,toName,type;
+            if(toVal.startsWith('family:')){
+              const toFid=toVal.replace('family:','');
+              const famBal=_navAllFamilies[toFid]?.bonusPoints||0;
+              toName=(_navAllFamilies[toFid]?.name||'?')+' (pool)';
+              type='member-family';
+              upd['prestige/members/'+_navMyMid+'/points']=_navMyPoints-amount;
+              upd['prestige/families/'+toFid+'/bonusPoints']=famBal+amount;
+            } else {
+              const toMid=toVal.replace('member:','');
+              toName=_navAllMembers[toMid]?.name||'?';
+              type='member-member';
+              upd['prestige/members/'+_navMyMid+'/points']=_navMyPoints-amount;
+              upd['prestige/members/'+toMid+'/points']=(_navAllMembers[toMid]?.points||0)+amount;
+            }
             await update(ref(db),upd);
-            await push(ref(db,'prestige/transfers'),{
-              fromMid:_navMyMid,fromName:fromEntry?.name||'?',
-              toMid,toName:toEntry?.name||'?',
-              amount,note,at:Date.now()
-            });
+            await push(ref(db,'prestige/transfers'),{type,fromName,toName,amount,note,at:Date.now(),by:myName});
             document.getElementById('ptAmount').value='';
             document.getElementById('ptNote').value='';
-            document.getElementById('ptMyBalance').textContent='Your balance: '+(_navMyPoints-amount)+' pts';
+            document.getElementById('ptMyBalance').textContent=`Your prestige: ${_navMyPoints-amount} pts`;
             btn.textContent='Sent ✓';
             setTimeout(()=>{btn.disabled=false;btn.textContent='Send';},2000);
           }catch(e){
