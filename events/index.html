@@ -396,7 +396,11 @@ window.togglePanel=function(id){
 
 function calcPrestigeRate(income){
   const X=window._silverPerPrestige||10000;
-  return X*Math.max(1,Math.pow(income/500000,0.4));
+  const exp=window._prestigeDropExponent??0.4;
+  const thr=window._prestigeProtectionLine??500000;
+  if(thr<=0) return X;
+  if(exp>=0) return X*Math.max(1,Math.pow(income/thr,exp));
+  return X/Math.pow(income/thr,-exp);
 }
 
 window.updateCompletePreview=function(evId){
@@ -621,6 +625,15 @@ onAuthStateChanged(auth,async user=>{
 
   onValue(ref(db,'prestige/members'),snap=>{
     window._pmMembers=snap.val()||{};
+  });
+  onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
+    window._silverPerPrestige=snap.exists()?snap.val():10000;
+  });
+  onValue(ref(db,'treasury/settings/prestigeDropExponent'),snap=>{
+    window._prestigeDropExponent=snap.exists()?snap.val():0.4;
+  });
+  onValue(ref(db,'treasury/settings/prestigeProtectionLine'),snap=>{
+    window._prestigeProtectionLine=snap.exists()?snap.val():500000;
   });
 
   onValue(ref(db,'events'),snap=>{
