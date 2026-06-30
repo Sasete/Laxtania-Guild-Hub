@@ -225,6 +225,45 @@
     line-height: 1.6;
     white-space: pre-wrap;
   }
+  /* Guild Notice — ornate override */
+  #guildMessageContainer {
+    background: linear-gradient(160deg, rgba(200,160,74,0.13) 0%, rgba(200,160,74,0.05) 100%);
+    border: 1px solid rgba(200,160,74,0.55);
+    border-top: 3px solid rgba(200,160,74,0.75);
+    border-radius: 3px;
+    padding: 22px 28px 18px;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(200,160,74,0.2);
+  }
+  #guildMessageContainer::before {
+    content: '❧';
+    display: block;
+    text-align: center;
+    font-size: 22px;
+    color: rgba(200,160,74,0.5);
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+  #guildMessageContainer::after {
+    content: '';
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,160,74,0.4), transparent);
+    margin: 14px 0 0;
+  }
+  #guildMessageContainer .message-eyebrow {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(180,130,50,0.9);
+    margin-bottom: 10px;
+  }
+  #guildMessageContainer .message-content {
+    font-size: 15px;
+    color: var(--ink);
+    text-align: center;
+    font-style: italic;
+  }
   .message-content[contenteditable="true"] {
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--gold);
@@ -436,6 +475,7 @@ const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUserData=null,isAdmin=false,pendingUsers={},isEditingMessage=false,currentMessage="",unsubscribeInvite=null;
+let _allTasksData={};
 
 function resolveIsAdmin(d){
   const ranks=d.ranks||['serf'];
@@ -541,6 +581,8 @@ onAuthStateChanged(auth,async user=>{
   // Personal payment notices
   onValue(ref(db,'tasks'),snap=>{
     const tasks=snap.val()||{};
+    _allTasksData=tasks;
+    _updateCouncilNavBadgeMain();
     const uname=currentUserData?.name?.toLowerCase();
     const container=document.getElementById('myPaymentNotices');
     if(!container||!uname){if(container)container.innerHTML='';return;}
@@ -822,8 +864,11 @@ onAuthStateChanged(auth,async user=>{
             const totalSold=Object.values(p.sales||{}).reduce((n,s)=>n+(s.quantity||0),0);
             const remaining=Math.max(0,(p.releasedBonds||0)-totalSold);
             const pct=p.releasedBonds?remaining/p.releasedBonds:1;
-            const color=pct<=0.2?'var(--seal-red)':pct<=0.5?'#8a5a00':'var(--ink-soft)';
-            const label=remaining===0?'🔴 Sold out':pct<=0.2?`🔴 Only ${remaining} left!`:pct<=0.5?`⚠ ${remaining} of ${p.releasedBonds} left`:`${remaining} of ${p.releasedBonds} available`;
+            const color=pct<=0.2?'var(--seal-red)':pct<=0.5?'#8a5a00':'#8a5a00';
+            const label=remaining===0?'✦ All bonds claimed — campaign closed!'
+              :pct<=0.2?`✦ Only ${remaining} left — almost gone!`
+              :pct<=0.5?`✦ ${remaining} remaining — going fast!`
+              :`✦ Only ${remaining} bonds left!`;
             return`<span style="font-size:11px;font-style:italic;color:${color};text-align:center">${label}</span>`;
           })()}
         </div>

@@ -235,14 +235,24 @@
         onAuthStateChanged(auth,user=>{
           if(!user)return;
 
-          // Task badge
-          onValue(ref(db,'tasks'),snap=>{
-            const tasks=snap.val()||{};
-            const count=Object.values(tasks).filter(t=>t.status==='pending').length;
+          // Council nav badge = pending tasks + pending bond requests
+          let _navPendingTasks=0,_navPendingBondReqs=0;
+          function _navUpdateBadge(){
+            const total=_navPendingTasks+_navPendingBondReqs;
             const badge=document.getElementById('councilTaskBadge');
             if(!badge)return;
-            if(count>0){badge.textContent=count;badge.style.display='inline';}
+            if(total>0){badge.textContent=total;badge.style.display='inline';}
             else{badge.style.display='none';}
+          }
+          onValue(ref(db,'tasks'),snap=>{
+            const tasks=snap.val()||{};
+            _navPendingTasks=Object.values(tasks).filter(t=>t.status==='pending').length;
+            _navUpdateBadge();
+          });
+          onValue(ref(db,'bondRequests'),snap=>{
+            const reqs=snap.val()||{};
+            _navPendingBondReqs=Object.values(reqs).filter(r=>r.status==='pending').length;
+            _navUpdateBadge();
           });
 
           const ADMIN_RANKS_PT=['hand','sovereign'];

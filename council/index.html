@@ -221,7 +221,7 @@
         <button class="tab-dropdown-item" id="bdItem-recruitment" onclick="switchTab('recruitment')">Recruitment</button>
       </div>
     </div>
-    <button class="tab-btn" onclick="switchTab('bonds')">Bonds</button>
+    <button class="tab-btn" onclick="switchTab('bonds')" id="bondsTabBtn">Bonds <span id="bondTabBadge" class="tab-badge" style="display:none"></span></button>
     <button class="tab-btn" onclick="switchTab('tasks')" id="tasksTabBtn">Tasks <span id="taskTabBadge" class="tab-badge" style="display:none"></span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </div>
@@ -1602,6 +1602,10 @@ function genCouponId(announcedAt,seq){
 }
 
 function renderBonds(){
+  // Bond requests badge
+  const pendingReqs=Object.values(_bondRequests).filter(r=>r.status==='pending').length;
+  const bondBadge=document.getElementById('bondTabBadge');
+  if(bondBadge){if(pendingReqs>0){bondBadge.textContent=pendingReqs;bondBadge.style.display='inline';}else{bondBadge.style.display='none';}}
   // Top metrics
   const liability=calcBondLiability();
   const totalIn=calcBondTotalIn();
@@ -2069,9 +2073,7 @@ function renderTasks(){
   const pending=Object.entries(tasks).filter(([,t])=>t.status==='pending').sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const done=Object.entries(tasks).filter(([,t])=>t.status!=='pending').sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const badge=document.getElementById('taskTabBadge');
-  const navBadge=document.getElementById('councilTaskBadge');
-  if(pending.length){badge.textContent=pending.length;badge.style.display='inline';if(navBadge){navBadge.textContent=pending.length;navBadge.style.display='inline';}}
-  else{badge.style.display='none';if(navBadge)navBadge.style.display='none';}
+  if(pending.length){badge.textContent=pending.length;badge.style.display='inline';}else{badge.style.display='none';}
   renderTaskPage(pending,'taskListPending','taskPaginationPending',_taskPagePending);
   renderTaskPage(done,'taskListDone','taskPaginationDone',_taskPageDone);
 }

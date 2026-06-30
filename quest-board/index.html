@@ -926,14 +926,24 @@
     // ── Navbar Prestige (compat SDK, since navbar.js uses modular SDK which can't see this app) ──
     let _qbNavMyMid=null, _qbNavAllMembers={}, _qbNavAllFamilies={}, _qbNavMyPoints=0, _qbNavMyFid=null;
 
-    // Council task badge
+    // Council nav badge = pending tasks + pending bond requests
+    let _qbPendingTasks=0, _qbPendingBondReqs=0;
+    function _qbUpdateNavBadge(){
+      const total=_qbPendingTasks+_qbPendingBondReqs;
+      const badge=document.getElementById('councilTaskBadge');
+      if(!badge)return;
+      if(total>0){badge.textContent=total;badge.style.display='inline';}
+      else{badge.style.display='none';}
+    }
     db.ref('tasks').on('value', taskSnap => {
       const tasks = taskSnap.val() || {};
-      const count = Object.values(tasks).filter(t => t.status === 'pending').length;
-      const badge = document.getElementById('councilTaskBadge');
-      if (!badge) return;
-      if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
-      else { badge.style.display = 'none'; }
+      _qbPendingTasks = Object.values(tasks).filter(t => t.status === 'pending').length;
+      _qbUpdateNavBadge();
+    });
+    db.ref('bondRequests').on('value', reqSnap => {
+      const reqs = reqSnap.val() || {};
+      _qbPendingBondReqs = Object.values(reqs).filter(r => r.status === 'pending').length;
+      _qbUpdateNavBadge();
     });
 
     db.ref('prestige/families').on('value', fsnap => { _qbNavAllFamilies = fsnap.val() || {}; });
