@@ -239,6 +239,7 @@
             <div>
               <div class="metric-label">Treasury</div>
               <div class="metric-value" id="ovTreasury">—</div>
+              <div id="ovPending-treasury" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;margin-top:2px;min-height:14px"></div>
               <div class="metric-sub">Sum of all treasury entries</div>
             </div>
             <div id="ovButtons-treasury" style="display:none;flex-shrink:0;padding-top:2px">
@@ -275,6 +276,7 @@
         <div class="fs-pct" id="ovPct-quest">—</div>
         <div class="fs-label">Quest Budget</div>
         <div class="fs-value" id="ovQuestBal">—</div>
+        <div id="ovPending-quest" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
         <div id="ovButtons-quest" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('quest',1,'income')">+ Income</button>
@@ -297,6 +299,7 @@
         <div class="fs-pct" id="ovPct-events">—</div>
         <div class="fs-label">Events Budget</div>
         <div class="fs-value" id="ovEventsBal">—</div>
+        <div id="ovPending-events" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
         <div id="ovButtons-events" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('events',1,'income')">+ Income</button>
@@ -319,6 +322,7 @@
         <div class="fs-pct" id="ovPct-island">—</div>
         <div class="fs-label">Island Budget</div>
         <div class="fs-value" id="ovIslandBal">—</div>
+        <div id="ovPending-island" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
         <div id="ovButtons-island" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('island',1,'income')">+ Income</button>
@@ -341,6 +345,7 @@
         <div class="fs-pct" id="ovPct-recruitment">—</div>
         <div class="fs-label">Recruitment Budget</div>
         <div class="fs-value" id="ovRecruitmentBal">—</div>
+        <div id="ovPending-recruitment" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
         <div id="ovButtons-recruitment" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('recruitment',1,'income')">+ Income</button>
@@ -806,16 +811,18 @@ function calcQuestBal(){return Object.values(questEntries).reduce((s,e)=>s+(e.am
 function calcEventsBal(){return Object.values(eventsEntries).reduce((s,e)=>s+(e.amount||0),0);}
 function calcIslandBal(){return Object.values(islandEntries).reduce((s,e)=>s+(e.amount||0),0);}
 function calcRecruitmentBal(){return Object.values(recruitmentEntries).reduce((s,e)=>s+(e.amount||0),0);}
+function _currentCampaigns(){
+  const active=Object.values(bondPeriods).filter(p=>p.status==='active');
+  return active.length?active:Object.values(bondPeriods).filter(p=>p.status==='completing');
+}
 function calcBondLiability(){
-  return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.repayment||0),0);
+  return _currentCampaigns().flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.repayment||0),0);
 }
 function calcBondTotalIn(){
-  const active=Object.values(bondPeriods).filter(p=>p.status==='active');
-  const src=active.length?active:Object.values(bondPeriods).filter(p=>p.status==='completing');
-  return src.flatMap(p=>Object.values(p.sales||{})).reduce((s,sale)=>s+(sale.value||0),0);
+  return _currentCampaigns().flatMap(p=>Object.values(p.sales||{})).reduce((s,sale)=>s+(sale.value||0),0);
 }
 function calcActivatedBonds(){
-  return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.quantity||0),0);
+  return _currentCampaigns().flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.quantity||0),0);
 }
 
 function renderTreasuryChart(){
@@ -1018,6 +1025,36 @@ function renderOverview(){
     document.getElementById('ovPct-island').textContent=pct(iBal);
     document.getElementById('ovPct-recruitment').textContent=pct(rBal);
   }
+
+  // Pending task indicators
+  const pendingTasks=Object.values(tasks).filter(t=>t.status==='pending');
+  function pendingNet(fund){
+    return pendingTasks.filter(t=>t.fundType===fund).reduce((s,t)=>{
+      const sign=t.type==='payment_out'?-1:1;
+      const remaining=(t.amount||0)-(t.paidAmount||0);
+      return s+sign*remaining;
+    },0);
+  }
+  function fmtPending(net){
+    if(!net)return'';
+    const sign=net>0?'+':'';
+    const col=net>0?'color:#2a5a2a':'color:var(--seal-red)';
+    return`<span style="${col}">${sign}${fmtS(net)} pending</span>`;
+  }
+  const pQuest=pendingNet('quest');
+  const pEvents=pendingNet('events');
+  const pIsland=pendingNet('island');
+  const pRecruitment=pendingNet('recruitment');
+  // Treasury pending = all pending tasks regardless of fund
+  const pTreasury=pendingTasks.reduce((s,t)=>{
+    const sign=t.type==='payment_out'?-1:1;
+    const remaining=(t.amount||0)-(t.paidAmount||0);
+    return s+sign*remaining;
+  },0);
+  ['treasury','quest','events','island','recruitment'].forEach(k=>{
+    const el=document.getElementById('ovPending-'+k);
+    if(el)el.innerHTML=fmtPending(k==='treasury'?pTreasury:k==='quest'?pQuest:k==='events'?pEvents:k==='island'?pIsland:pRecruitment);
+  });
 
   // Treasury entry log
   const FUND_LABELS={quest:'Quest Budget',events:'Events Budget',island:'Island Budget'};
@@ -2004,7 +2041,7 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();});
   safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();});
   safeOnValue('bonds',snap=>{bondPeriods=snap.val()||{};renderBonds();renderOverview();});
-  safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();});
+  safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();renderOverview();});
   safeOnValue('questBudget/wishlist',snap=>{_wishlistItems=snap.val()||{};renderWishlist();});
   safeOnValue('questDefs',snap=>{_questDefs=snap.val()||{};renderQuestCommitments();});
   safeOnValue('quests',snap=>{_activeQuests=snap.val()||{};renderQuestCommitments();});
