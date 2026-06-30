@@ -1842,7 +1842,9 @@ window.approveBondRequest=async function(reqId){
   const qty=req.quantity||1;
   const by=currentUserData?.name||'system';
   const at=Date.now();
-  const existingCoupons=Object.values(p.sales||{}).map(s=>s.couponId||'').filter(Boolean);
+  const liveSalesSnap=await get(ref(db,`bonds/${pid}/sales`));
+  const liveSales=liveSalesSnap.val()||{};
+  const existingCoupons=Object.values(liveSales).map(s=>s.couponId||'').filter(Boolean);
   const maxSeq=existingCoupons.reduce((m,c)=>{const n=parseInt(c.slice(-2)||'0');return n>m?n:m;},0);
   const couponId=genCouponId(p.announcedAt||Date.now(),maxSeq+1);
   const value=qty*(p.bondValue||0);
