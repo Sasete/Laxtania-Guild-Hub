@@ -810,7 +810,9 @@ function calcBondLiability(){
   return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.repayment||0),0);
 }
 function calcBondTotalIn(){
-  return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).reduce((s,sale)=>s+(sale.value||0),0);
+  const active=Object.values(bondPeriods).filter(p=>p.status==='active');
+  const src=active.length?active:Object.values(bondPeriods).filter(p=>p.status==='completing');
+  return src.flatMap(p=>Object.values(p.sales||{})).reduce((s,sale)=>s+(sale.value||0),0);
 }
 function calcActivatedBonds(){
   return Object.values(bondPeriods).flatMap(p=>Object.values(p.sales||{})).filter(s=>!s.redeemed).reduce((s,sale)=>s+(sale.quantity||0),0);
