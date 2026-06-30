@@ -357,13 +357,53 @@
     <div id="familyInviteNotification" style="display:none; margin-bottom: 20px;"></div>
 
     <!-- Guild Notice -->
-    <div id="guildMessageContainer" class="message-box">
+    <div id="guildMessageContainer" class="message-box" style="max-width:980px;margin:0 auto 16px">
       <span class="message-eyebrow">Notice from the Sovereign</span>
       <div id="guildMessageText" class="message-content">Consulting the Oracle for the daily notice…</div>
       <div id="messageEditControls" style="display:none; text-align:right; margin-top:8px;">
         <button id="editMessageBtn" class="edit-btn" onclick="toggleEditMessage()">Edit Notice</button>
       </div>
     </div>
+
+    <!-- Bond Sections -->
+    <div id="bondCampaignSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
+    <div id="bondPendingSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
+    <div id="bondOwnedSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
+
+    <!-- Bond Modal -->
+    <div id="bondModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:center;justify-content:center">
+      <div style="background:var(--parchment);border:2px solid var(--gold);border-radius:4px;padding:28px 32px;max-width:460px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:Georgia,serif;position:relative">
+        <div style="font-variant:small-caps;letter-spacing:2px;font-size:11px;color:var(--gold);margin-bottom:6px">Bond Purchase</div>
+        <div id="bondModalTitle" style="font-size:18px;font-weight:400;color:var(--ink);margin-bottom:16px;border-bottom:1px solid rgba(120,90,50,.2);padding-bottom:12px"></div>
+        <div id="bondModalInfo" style="font-size:13px;color:var(--ink-soft);margin-bottom:18px;line-height:1.7"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <span style="font-size:13px;color:var(--ink-soft);font-variant:small-caps;letter-spacing:1px">Quantity</span>
+          <button onclick="bondModalQty(-1)" style="width:32px;height:32px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.6);border-radius:2px;font-size:16px;cursor:pointer;font-family:Georgia,serif">−</button>
+          <input type="number" id="bondModalQty" min="1" value="1" style="width:70px;text-align:center;font-family:Georgia,serif;font-size:15px;padding:5px;border:1px solid rgba(46,32,20,.3);border-radius:2px;background:rgba(255,255,255,.8)" oninput="bondModalUpdate()">
+          <button onclick="bondModalQty(1)" style="width:32px;height:32px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.6);border-radius:2px;font-size:16px;cursor:pointer;font-family:Georgia,serif">+</button>
+        </div>
+        <div id="bondModalPreview" style="display:none;background:rgba(200,160,74,.08);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:12px 16px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+            <span style="color:var(--ink-soft)">You invest</span><strong id="bondModalCost"></strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px">
+            <span style="color:var(--ink-soft)">You receive back</span><strong style="color:#2a5a2a" id="bondModalRepay"></strong>
+          </div>
+          <div style="background:rgba(200,160,74,.15);border:1px solid rgba(200,160,74,.4);border-radius:2px;padding:8px 12px;font-size:12px;color:#7a5a10;line-height:1.6">
+            ⚠ After confirming, please send <strong id="bondModalSendAmt"></strong> to the Guild Treasury in-game. Your bonds will be issued upon payment confirmation.
+          </div>
+        </div>
+        <div id="bondModalMsg" style="font-size:12px;font-style:italic;color:#2a5a2a;min-height:18px;margin-bottom:10px;text-align:center"></div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button onclick="closeBondModal()" style="font-family:Georgia,serif;font-size:13px;background:none;border:1px solid rgba(46,32,20,.3);border-radius:2px;padding:8px 18px;cursor:pointer;color:var(--ink-soft)">Cancel</button>
+          <button id="bondModalConfirmBtn" onclick="submitBondRequest()"
+            style="font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;background:linear-gradient(180deg,#c8a04a,#9a7830);color:#fff;border:1px solid #7a5a10;border-radius:3px;padding:8px 22px;cursor:pointer">
+            Confirm Request
+          </button>
+        </div>
+      </div>
+    </div>
+
 
 
 
@@ -461,6 +501,7 @@ onAuthStateChanged(auth,async user=>{
     show('viewPending');return;
   }
   currentUserData=data;
+  currentUserData.uid=user.uid;
   isAdmin=resolveIsAdmin(data);
 
   // Auto-correct adminAccess in users/{uid} if ranks dictate admin rights but it is false in the database
@@ -722,6 +763,228 @@ onAuthStateChanged(auth,async user=>{
   });
 
   loadLiveStats();
+
+  // ── BOND SECTIONS ──
+  const _bFmt=n=>n>=1000000?(n/1000000).toFixed(n%1000000===0?0:1)+'M S':n>=1000?Math.round(n/1000)+'k S':n+' S';
+  let _bondsData={},_bondReqsData={},_bondModalPid=null,_bondModalBondVal=0,_bondModalRepayPer=0,_bondModalDueDate=null;
+
+  function _startBondListener(){
+    onValue(ref(db,'bonds'),snap=>{_bondsData=snap.val()||{};_renderAllBondSections();});
+    onValue(ref(db,'bondRequests'),snap=>{_bondReqsData=snap.val()||{};_renderAllBondSections();});
+  }
+  function _renderAllBondSections(){
+    _renderBondCampaign();
+    _renderBondPending();
+    _renderOwnedBonds();
+  }
+  function _renderBondCampaign(){
+    const el=document.getElementById('bondCampaignSection');if(!el)return;
+    const entry=Object.entries(_bondsData).find(([,p])=>p.status==='active'&&!p.salesLocked);
+    if(!entry){el.style.display='none';el.innerHTML='';return;}
+    const [pid,p]=entry;
+    const interestPct=p.interestRate!=null?Math.round(p.interestRate*100):0;
+    const bondVal=p.bondValue||0;
+    const repayPer=Math.round(bondVal*(1+(p.interestRate||0)));
+    const matDate=p.dueDate?new Date(p.dueDate).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+    el.style.display='block';
+    el.innerHTML=`<div class="message-box" style="border-color:rgba(200,160,74,.55);background:rgba(200,160,74,.07)">
+      <span class="message-eyebrow" style="color:#7a5a10">Bond Campaign Open</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:16px;font-weight:bold;color:var(--ink);margin-bottom:10px">${p.name||'Guild Bond'}</div>
+          <table style="border-collapse:collapse;font-size:13px">
+            <tr>
+              <td style="color:var(--ink-soft);padding-right:16px;padding-bottom:4px">Per bond</td>
+              <td style="font-weight:bold;color:var(--ink)">${_bFmt(bondVal)}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--ink-soft);padding-right:16px;padding-bottom:4px">Interest</td>
+              <td style="font-weight:bold;color:#2a5a2a">+${interestPct}%</td>
+            </tr>
+            <tr>
+              <td style="color:var(--ink-soft);padding-right:16px;padding-bottom:4px">Repayment</td>
+              <td style="font-weight:bold;color:var(--ink)">${_bFmt(repayPer)} / bond</td>
+            </tr>
+            ${p.dueDate?`<tr><td style="color:var(--ink-soft);padding-right:16px">Matures</td><td style="font-weight:bold;color:var(--ink)">${matDate}</td></tr>`:''}
+          </table>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;align-self:center">
+          <button onclick="openBondModal('${pid}',${bondVal},${repayPer},${p.dueDate||0})"
+            style="font-family:Georgia,serif;font-variant:small-caps;letter-spacing:2px;font-size:14px;
+                   background:linear-gradient(180deg,#c8a04a,#9a7830);color:#fff;
+                   border:1px solid #7a5a10;border-radius:3px;padding:13px 32px;
+                   cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);white-space:nowrap;
+                   transition:transform .08s"
+            onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+            ⚜ Buy Bond
+          </button>
+          ${(()=>{
+            const totalSold=Object.values(p.sales||{}).reduce((n,s)=>n+(s.quantity||0),0);
+            const remaining=Math.max(0,(p.releasedBonds||0)-totalSold);
+            const pct=p.releasedBonds?remaining/p.releasedBonds:1;
+            const color=pct<=0.2?'var(--seal-red)':pct<=0.5?'#8a5a00':'var(--ink-soft)';
+            const label=remaining===0?'🔴 Sold out':pct<=0.2?`🔴 Only ${remaining} left!`:pct<=0.5?`⚠ ${remaining} of ${p.releasedBonds} left`:`${remaining} of ${p.releasedBonds} available`;
+            return`<span style="font-size:11px;font-style:italic;color:${color};text-align:center">${label}</span>`;
+          })()}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function _renderBondPending(){
+    const el=document.getElementById('bondPendingSection');if(!el||!currentUserData)return;
+    const myPending=Object.entries(_bondReqsData).filter(([,r])=>r.memberId===currentUserData.uid&&r.status==='pending');
+    if(!myPending.length){el.style.display='none';el.innerHTML='';return;}
+    el.style.display='block';
+    el.innerHTML=`<div class="message-box" style="border-color:rgba(46,32,20,.2)">
+      <span class="message-eyebrow">My Pending Bond Requests</span>
+      ${myPending.map(([rid,r])=>{
+        const p=_bondsData[r.bondPeriodId]||{};
+        const matDate=p.dueDate?new Date(p.dueDate).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+        return`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(120,90,50,.1);flex-wrap:wrap">
+          <div style="font-size:13px;color:var(--ink)">
+            <strong>${p.name||r.bondPeriodId}</strong> &nbsp;·&nbsp;
+            ${r.quantity} bond${r.quantity>1?'s':''} &nbsp;·&nbsp;
+            <span style="color:var(--ink-soft)">You invest <strong style="color:var(--ink)">${_bFmt(r.amount)}</strong></span>
+            <span style="color:var(--ink-soft)">&nbsp;→&nbsp;receive <strong style="color:#2a5a2a">${_bFmt(r.repayment)}</strong>${p.dueDate?' on '+matDate:''}</span>
+          </div>
+          <button onclick="cancelBondRequest('${rid}')"
+            style="font-family:Georgia,serif;font-size:12px;background:none;border:1px solid rgba(140,36,36,.4);border-radius:2px;padding:4px 14px;cursor:pointer;color:var(--seal-red);white-space:nowrap">
+            Cancel Request
+          </button>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  function _renderOwnedBonds(){
+    const el=document.getElementById('bondOwnedSection');if(!el||!currentUserData)return;
+    const myName=currentUserData.name||'';
+    const owned=[];
+    for(const[pid,p]of Object.entries(_bondsData)){
+      for(const[sid,s]of Object.entries(p.sales||{})){
+        if(s.holder===myName)owned.push({pid,sid,p,s});
+      }
+    }
+    const active=owned.filter(o=>!o.s.redeemed);
+    const past=owned.filter(o=>o.s.redeemed);
+    if(!owned.length){el.style.display='none';el.innerHTML='';return;}
+    const matFmt=ts=>ts?new Date(ts).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+    el.style.display='block';
+    el.innerHTML=`<div class="message-box" style="border-color:rgba(42,90,42,.3);background:rgba(42,90,42,.04)">
+      <span class="message-eyebrow" style="color:#2a5a2a">My Bonds</span>
+      ${active.length?`
+        <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px">Active</div>
+        ${active.map(({pid,s,p})=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(120,90,50,.1);flex-wrap:wrap">
+          <div style="font-size:13px">
+            <strong style="color:var(--ink)">${p.name||pid.slice(-4)}</strong>
+            &nbsp;·&nbsp; <span style="color:var(--ink-soft)">${s.quantity} bond${s.quantity>1?'s':''}</span>
+          </div>
+          <div style="font-size:13px;text-align:right">
+            <span style="color:var(--ink-soft)">Invested: </span><strong>${_bFmt(s.value)}</strong>
+            &nbsp;·&nbsp;
+            <span style="color:var(--ink-soft)">Receive: </span><strong style="color:#2a5a2a">${_bFmt(s.repayment)}</strong>
+            ${p.dueDate?`<br><span style="font-size:11px;color:var(--ink-soft)">Maturity: ${matFmt(p.dueDate)}</span>`:''}
+          </div>
+        </div>`).join('')}`:''}
+      ${past.length?`
+        <details style="margin-top:${active.length?'14px':'0'}">
+          <summary style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);cursor:pointer;padding:4px 0">Past Bonds (${past.length})</summary>
+          ${past.map(({pid,s,p})=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(120,90,50,.08);flex-wrap:wrap;opacity:.7">
+            <div style="font-size:13px"><strong>${p.name||pid.slice(-4)}</strong> &nbsp;·&nbsp; ${s.quantity} bond${s.quantity>1?'s':''}</div>
+            <div style="font-size:12px;color:var(--ink-soft)">Redeemed ${_bFmt(s.repayment)}</div>
+          </div>`).join('')}
+        </details>`:''}
+    </div>`;
+  }
+
+  window.openBondModal=function(pid,bondVal,repayPer,dueTs){
+    _bondModalPid=pid;_bondModalBondVal=bondVal;_bondModalRepayPer=repayPer;_bondModalDueDate=dueTs||null;
+    const p=_bondsData[pid]||{};
+    document.getElementById('bondModalTitle').textContent=p.name||'Guild Bond';
+    const matDate=dueTs?new Date(dueTs).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+    document.getElementById('bondModalInfo').innerHTML=
+      `Per bond: <strong>${_bFmt(bondVal)}</strong> &nbsp;·&nbsp; Interest: <strong style="color:#2a5a2a">+${Math.round((p.interestRate||0)*100)}%</strong> &nbsp;·&nbsp; Repayment: <strong>${_bFmt(repayPer)}</strong> / bond`+
+      (dueTs?`<br>Matures: <strong>${matDate}</strong>`:'');
+    document.getElementById('bondModalQty').value='1';
+    document.getElementById('bondModalMsg').textContent='';
+    const modal=document.getElementById('bondModal');
+    modal.style.display='flex';
+    bondModalUpdate();
+    document.getElementById('bondModalQty').focus();
+  };
+  window.closeBondModal=function(){
+    document.getElementById('bondModal').style.display='none';
+    _bondModalPid=null;
+  };
+  window.bondModalQty=function(delta){
+    const el=document.getElementById('bondModalQty');
+    el.value=Math.max(1,(parseInt(el.value)||1)+delta);
+    bondModalUpdate();
+  };
+  window.bondModalUpdate=function(){
+    const qty=parseInt(document.getElementById('bondModalQty').value)||0;
+    const prev=document.getElementById('bondModalPreview');
+    if(qty>0&&_bondModalBondVal){
+      const cost=qty*_bondModalBondVal,repay=qty*_bondModalRepayPer;
+      const matDate=_bondModalDueDate?new Date(_bondModalDueDate).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+      document.getElementById('bondModalCost').textContent=_bFmt(cost);
+      document.getElementById('bondModalRepay').textContent=_bFmt(repay)+(_bondModalDueDate?' on '+matDate:'');
+      document.getElementById('bondModalSendAmt').textContent=_bFmt(cost);
+      prev.style.display='block';
+    } else {
+      prev.style.display='none';
+    }
+  };
+  window.submitBondRequest=async function(){
+    const qty=parseInt(document.getElementById('bondModalQty').value)||0;
+    if(!qty||qty<1||!_bondModalPid){return;}
+    if(!currentUserData){closeBondModal();alert('Please sign in first.');return;}
+    document.getElementById('bondModalConfirmBtn').disabled=true;
+    await push(ref(db,'bondRequests'),{
+      bondPeriodId:_bondModalPid,
+      memberId:currentUserData.uid||'',
+      memberName:currentUserData.name||'Unknown',
+      quantity:qty,
+      amount:qty*_bondModalBondVal,
+      repayment:qty*_bondModalRepayPer,
+      status:'pending',
+      createdAt:Date.now()
+    });
+    document.getElementById('bondModalMsg').textContent='✓ Request submitted — awaiting council approval.';
+    document.getElementById('bondModalConfirmBtn').disabled=false;
+    setTimeout(closeBondModal,1800);
+  };
+  window.cancelBondRequest=async function(rid){
+    if(!confirm('Cancel this bond request? If already approved, the bond sale will also be removed.'))return;
+    const reqSnap=await get(ref(db,'bondRequests/'+rid));
+    const req=reqSnap.val();
+    if(!req)return;
+    // Delete linked sale + task if approval already happened
+    if(req.bondPeriodId){
+      if(req.saleId){
+        // Direct lookup via stored saleId (most reliable)
+        if(req.saleTaskId)await remove(ref(db,'tasks/'+req.saleTaskId));
+        await remove(ref(db,`bonds/${req.bondPeriodId}/sales/${req.saleId}`));
+      } else {
+        // Fallback: scan sales for fromRequest match
+        const salesSnap=await get(ref(db,`bonds/${req.bondPeriodId}/sales`));
+        const sales=salesSnap.val()||{};
+        for(const[sid,s]of Object.entries(sales)){
+          if(s.fromRequest===rid){
+            if(s.taskId)await remove(ref(db,'tasks/'+s.taskId));
+            await remove(ref(db,`bonds/${req.bondPeriodId}/sales/${sid}`));
+            break;
+          }
+        }
+      }
+    }
+    await remove(ref(db,'bondRequests/'+rid));
+  };
+  _startBondListener();
+
   show('viewHall');
 });
 

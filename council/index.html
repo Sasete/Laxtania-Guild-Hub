@@ -736,7 +736,7 @@ const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
-let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={};
+let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={};
 
 // ── HELPERS ──
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
@@ -1683,6 +1683,20 @@ function renderBonds(){
             </tr>
           </tbody>
         </table></div>
+        ${(()=>{
+          const reqs=Object.entries(_bondRequests).filter(([,r])=>r.bondPeriodId===pid&&r.status==='pending');
+          if(!reqs.length||isClosed)return'';
+          return`<div style="padding:10px 14px;border-top:1px solid rgba(120,90,50,.15);background:rgba(200,160,74,.06)">
+            <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px">Bond Requests (${reqs.length})</div>
+            ${reqs.map(([rid,r])=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(120,90,50,.1);flex-wrap:wrap">
+              <span style="font-size:13px;color:var(--ink);flex:1;min-width:120px"><strong>${r.memberName}</strong> — ${fmtS(r.amount)}</span>
+              ${r.note?`<span style="font-size:11px;font-style:italic;color:var(--ink-soft);flex:2">"${r.note}"</span>`:''}
+              <span style="font-size:10px;color:var(--ink-soft)">${r.createdAt?fmtDay(r.createdAt):''}</span>
+              <button class="green-btn" style="font-size:11px;padding:3px 12px" onclick="approveBondRequest('${rid}')">✓ Approve</button>
+              <button class="red-btn" style="font-size:11px;padding:3px 12px" onclick="rejectBondRequest('${rid}')">✗ Reject</button>
+            </div>`).join('')}
+          </div>`;
+        })()}
         ${isClosed?'<div style="padding:8px 14px;font-size:11px;font-variant:small-caps;color:#2a5a2a;border-top:1px solid rgba(120,90,50,.15)">✓ All bonds redeemed — campaign completed</div>':isCompleting?`<div style="padding:10px 14px;border-top:1px solid rgba(120,90,50,.15);font-size:11px;font-style:italic;color:var(--ink-soft)">Campaign is paying out — closes automatically when all bonds are redeemed.</div>`:`<div style="padding:12px 14px;border-top:1px solid rgba(120,90,50,.15);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           ${!salesLocked?`<input type="text" id="bs-holder-${pid}" placeholder="Holder name" style="font-family:Georgia,serif;font-size:13px;padding:5px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);width:160px">
           <input type="number" id="bs-qty-${pid}" placeholder="Qty" min="1" style="font-family:Georgia,serif;font-size:13px;padding:5px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);width:80px" oninput="previewBondSale('${pid}')">
@@ -1815,6 +1829,38 @@ window.redeemBondSale=async function(pid,sid,holder,repayment){
 window.toggleBondSalesLock=async function(pid,currentlyLocked){
   await update(ref(db,`bonds/${pid}`),{salesLocked:!currentlyLocked});
   toast(currentlyLocked?'Sales unlocked — new buyers can be added.':'Sales locked — no new buyers.');
+};
+
+window.approveBondRequest=async function(reqId){
+  const req=_bondRequests[reqId];if(!req)return;
+  const p=bondPeriods[req.bondPeriodId];if(!p){toast('Campaign not found.');return;}
+  const pid=req.bondPeriodId;
+  const qty=req.quantity||1;
+  const by=currentUserData?.name||'system';
+  const at=Date.now();
+  const existingCoupons=Object.values(p.sales||{}).map(s=>s.couponId||'').filter(Boolean);
+  const maxSeq=existingCoupons.reduce((m,c)=>{const n=parseInt(c.slice(-2)||'0');return n>m?n:m;},0);
+  const couponId=genCouponId(p.announcedAt||Date.now(),maxSeq+1);
+  const value=qty*(p.bondValue||0);
+  const repayment=Math.round(value*(1+(p.interestRate||0)));
+  const saleRef=await push(ref(db,`bonds/${pid}/sales`),{couponId,holder:req.memberName,quantity:qty,value,repayment,at,redeemed:false,fromRequest:reqId});
+  const taskRef=await push(ref(db,'tasks'),{
+    title:`Bond Payment — ${couponId} — ${req.memberName}`,
+    type:'payment_in',amount:value,
+    notes:`${qty} bond(s) · Campaign: ${p.name||pid.slice(-4)} · Due back: ${fmtS(repayment)} at maturity`,
+    status:'pending',createdAt:at,createdBy:by,
+    bondPeriodId:pid,couponId,holder:req.memberName
+  });
+  await update(saleRef,{taskId:taskRef.key});
+  await update(ref(db,`bondRequests/${reqId}`),{status:'approved',approvedBy:by,approvedAt:at,saleId:saleRef.key,saleTaskId:taskRef.key});
+  toast(`Approved — ${couponId} issued to ${req.memberName}`);
+};
+
+window.rejectBondRequest=async function(reqId){
+  const req=_bondRequests[reqId];if(!req)return;
+  if(!confirm(`Reject bond request from ${req.memberName}?`))return;
+  await update(ref(db,`bondRequests/${reqId}`),{status:'rejected',rejectedBy:currentUserData?.name||'system',rejectedAt:Date.now()});
+  toast(`Request from ${req.memberName} rejected.`);
 };
 
 window.closeBondPeriod=async function(pid){
@@ -2221,11 +2267,22 @@ window.cancelTask=async function(id){
   if(!confirm(`Cancel "${t.title}"?`))return;
   const at=Date.now();const by=currentUserData.name;
   await update(ref(db,'tasks/'+id),{status:'cancelled',cancelledAt:at,cancelledBy:by});
-  // If bond payment_in and partial payments were already received, reverse them from treasury
   if(t.type==='payment_in'&&t.bondPeriodId){
     const alreadyPaid=t.paidAmount||0;
     if(alreadyPaid>0){
       await push(ref(db,'treasury/entries'),{amount:-alreadyPaid,reason:`Bond payment cancelled — ${t.couponId||''} (${t.holder||''})`,by,at,auto:true,taskId:id});
+    }
+    // Delete the linked bond sale (find sale where taskId===id)
+    const salesSnap=await get(ref(db,`bonds/${t.bondPeriodId}/sales`));
+    const sales=salesSnap.val()||{};
+    for(const[sid,s]of Object.entries(sales)){
+      if(s.taskId===id){
+        await remove(ref(db,`bonds/${t.bondPeriodId}/sales/${sid}`));
+        if(s.fromRequest){
+          await update(ref(db,'bondRequests/'+s.fromRequest),{status:'cancelled',cancelledAt:at,cancelledBy:by});
+        }
+        break;
+      }
     }
   }
   toast('Task cancelled.'+(t.type==='payment_in'&&t.bondPeriodId&&(t.paidAmount||0)>0?` Treasury reversed by ${fmtS(t.paidAmount)}.`:''));
@@ -2306,6 +2363,7 @@ onAuthStateChanged(auth,async user=>{
   });
   safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();});
   safeOnValue('users',snap=>{_allUsers=snap.val()||{};if(isAdmin(currentUserData))renderBudgetManagerPanels();});
+  safeOnValue('bondRequests',snap=>{_bondRequests=snap.val()||{};renderBonds();});
   renderBudgetPermissions();
 });
 </script>
