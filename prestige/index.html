@@ -11,7 +11,7 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laxtania — Prestige Registry</title>
+<title>Laxtania — Laxi Registry</title>
 <style>
   :root{
     --wood-dark:#3a2718;--wood-mid:#4f3622;--wood-light:#6b4a30;
@@ -238,7 +238,7 @@
   <div class="banner">
     <span class="banner-eyebrow">Hall of Honours</span>
     <h1>Members & Families</h1>
-    <span class="banner-sub">Prestige Registry — Laxtania Guild</span>
+    <span class="banner-sub">Laxi Registry — Laxtania Guild</span>
   </div>
 </div>
 
@@ -293,7 +293,7 @@
     </div>
     <div>
       <div class="my-pts-disp" id="myPts">—</div>
-      <span class="my-pts-lbl">Prestige Points</span>
+      <span class="my-pts-lbl">Laxi</span>
     </div>
   </div>
 
@@ -489,7 +489,7 @@ function renderMembers(){
           <div class="form-group"><label>Family</label><select id="mf-${m.id}" class="family-dd"><option value="">— None —</option>${Object.entries(families).map(([fid,f])=>`<option value="${fid}" ${m.familyId===fid?'selected':''}>${f.name}</option>`).join('')}</select></div>
         </div>
         <div class="pts-adjust">
-          <span class="pts-adjust-label">Prestige Points</span>
+          <span class="pts-adjust-label">Laxi</span>
           <div class="pts-adjust-current">Current: <strong>${(m.points||0).toLocaleString()}</strong> pts</div>
           <div class="pts-adjust-row">
             <input type="number" id="padj-${m.id}" value="10" min="1">
@@ -518,7 +518,7 @@ function renderMembers(){
     <span style="font-size:11px;color:var(--ink-soft);font-variant:small-caps;letter-spacing:1px;">Page ${_membersPage+1} / ${totalPages} &nbsp;·&nbsp; ${list.length} members</span>
     <button onclick="goMembersPage(${_membersPage+1})" ${_membersPage>=totalPages-1?'disabled':''} style="font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:4px 14px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.5);cursor:pointer;border-radius:2px;${_membersPage>=totalPages-1?'opacity:0.35;cursor:default;':''}">Next →</button>
   </div>`:'';
-  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Prestige</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>${mPag}`;
+  c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Laxi</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>${mPag}`;
 }
 
 window.toggleEdit=function(id){
@@ -575,7 +575,7 @@ window.adjustPrestige=async function(id,name,sign){
   const entry={delta,reason,by:currentUserData?.name||'Admin',at:Date.now()};
   await update(ref(db,'prestige/members/'+id),{points:newPts});
   await push(ref(db,'prestige/members/'+id+'/log'),entry);
-  toast(`${name}: ${delta>0?'+':''}${delta} pts`);
+  toast(`${name}: ${delta>0?'+':''}${delta} laxi`);
   loadMemberLog(id);
 };
 
@@ -590,7 +590,7 @@ window.adjustFamilyBonus=async function(id,name,sign){
   const entry={delta,reason,by:currentUserData?.name||'Admin',at:Date.now()};
   await update(ref(db,'prestige/families/'+id),{bonusPoints:newPts});
   await push(ref(db,'prestige/families/'+id+'/log'),entry);
-  toast(`${name}: ${delta>0?'+':''}${delta} bonus pts`);
+  toast(`${name}: ${delta>0?'+':''}${delta} laxi bonus`);
   loadFamilyLog(id);
 };
 window.saveMember=async function(id){
@@ -679,7 +679,7 @@ function renderFamilies(){
           <div class="form-group"><label>Family Name</label><input type="text" id="fn-${f.id}" value="${f.name||''}"></div>
         </div>
         <div class="pts-adjust">
-          <span class="pts-adjust-label">Family Own Prestige (Bonus)</span>
+          <span class="pts-adjust-label">Family Own Laxi (Bonus)</span>
           <div class="pts-adjust-current">Current: <strong>${(f.bonusPoints||0).toLocaleString()}</strong> pts</div>
           <div class="pts-adjust-row">
             <input type="number" id="fadj-${f.id}" value="10" min="1">
@@ -711,8 +711,8 @@ function renderFamilies(){
         <th>Family</th>
         <th>Lord</th>
         <th>Members</th>
-        <th class="r">Own Prestige</th>
-        <th class="r">Total Prestige</th>
+        <th class="r">Own Laxi</th>
+        <th class="r">Total Laxi</th>
         ${editTh}
       </tr>
     </thead>
@@ -800,7 +800,7 @@ function renderMyFamilySection(){
           ${isMemberLord?'<span class="fam-lord-tag" style="background: #701515; color: white; border: none; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 2px; margin-left: 6px;">Lord</span>':''}
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="fam-member-pts" style="font-size: 14px; font-weight: bold; color: var(--navy); min-width: 80px; text-align: right;">${(m.points||0).toLocaleString()} pts</span>
+          <span class="fam-member-pts" style="font-size: 14px; font-weight: bold; color: var(--navy); min-width: 80px; text-align: right;">${(m.points||0).toLocaleString()} Laxi</span>
           ${showGive?`<button class="ghost-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleGiveRow('${m.id}')">Give ▾</button>`:''}
           ${showDischarge?`<button class="red-btn" style="font-size:11px; padding:4px 10px;" onclick="removeMemberFromFamily('${m.id}')">Discharge</button>`:''}
         </div>
@@ -856,7 +856,7 @@ function renderMyFamilySection(){
     const sendToFamilyHTML = `
       <div style="margin-top:14px;padding-top:12px;border-top:1px dashed rgba(120,90,50,0.2);">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;" onclick="toggleFamSendPanel()">
-          <label style="font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);cursor:pointer;">Send Pool Prestige to Another Family</label>
+          <label style="font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);cursor:pointer;">Send Pool Laxi to Another Family</label>
           <span id="famSendChevron" style="font-size:11px;color:var(--ink-soft);">▾</span>
         </div>
         <div id="famSendPanel" style="display:none;margin-top:10px;">
@@ -911,14 +911,14 @@ function renderMyFamilySection(){
           <div class="family-meta" style="font-size: 13px; font-style: italic; color: var(--ink-soft);">Ranked #${famRankIndex} &nbsp;·&nbsp; ${fams.length} member${fams.length!==1?'s':''}</div>
         </div>
         <div style="text-align: right;">
-          <div class="score-lbl" style="font-size: 10px; font-variant: small-caps; letter-spacing: 1.5px; color: var(--ink-soft); margin-bottom: 2px;">Total Prestige</div>
+          <div class="score-lbl" style="font-size: 10px; font-variant: small-caps; letter-spacing: 1.5px; color: var(--ink-soft); margin-bottom: 2px;">Total Laxi</div>
           <div class="score-val" style="font-size: 24px; font-weight: bold; color: var(--navy);">${totalPoints.toLocaleString()}</div>
         </div>
       </div>
       
       <div class="score-row" style="display: flex; gap: 14px; margin-bottom: 18px; background: rgba(255,255,255,0.4); padding: 8px 12px; border-radius: 2px; border: 1px solid rgba(120,90,50,0.15);">
         <div class="score-block"><div class="score-lbl" style="font-size: 9px; font-variant: small-caps; letter-spacing: 1px; color: var(--ink-soft);">Member Points</div><div class="score-val" style="font-size: 15px; color: var(--navy);">${mTotal.toLocaleString()}</div></div>
-        <div class="score-block"><div class="score-lbl" style="font-size: 9px; font-variant: small-caps; letter-spacing: 1px; color: var(--ink-soft);">Family Own Prestige</div><div class="score-val bonus" style="font-size: 15px; color: #4a7a90;">${bonus.toLocaleString()}</div></div>
+        <div class="score-block"><div class="score-lbl" style="font-size: 9px; font-variant: small-caps; letter-spacing: 1px; color: var(--ink-soft);">Family Own Laxi</div><div class="score-val bonus" style="font-size: 15px; color: #4a7a90;">${bonus.toLocaleString()}</div></div>
       </div>
       
       <div style="margin-top:10px;">
@@ -1012,7 +1012,7 @@ window.loadFamHistory = async function(page) {
     return`<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:7px 4px;border-bottom:1px solid rgba(120,90,50,0.1);font-size:12px;color:var(--ink);">
       <span style="flex:0 0 auto;font-size:13px;">${icon}</span>
       <span style="flex:1;min-width:0;"><strong>${l.fromName||'?'}</strong> → <strong>${l.toName||'?'}</strong>${l.note?` <span style="color:var(--ink-soft);font-style:italic;">— ${l.note}</span>`:''}</span>
-      <span style="flex:0 0 auto;font-weight:bold;color:var(--navy);">${l.amount} pts</span>
+      <span style="flex:0 0 auto;font-weight:bold;color:var(--navy);">${l.amount} laxi</span>
       <span style="flex:0 0 auto;color:var(--ink-soft);font-size:10px;white-space:nowrap;">${dateStr}</span>
     </div>`;
   }).join('');
@@ -1045,7 +1045,7 @@ window.submitFamilyGive = async function(toMid, toName) {
   const famBal = families[myFamId]?.bonusPoints||0;
   const famName = families[myFamId]?.name||'?';
   if(!amt||amt<=0){if(errEl){errEl.textContent='Enter a valid amount.';errEl.style.display='block';}return;}
-  if(amt>famBal){if(errEl){errEl.textContent=`Not enough pool prestige (${famBal} pts available).`;errEl.style.display='block';}return;}
+  if(amt>famBal){if(errEl){errEl.textContent=`Not enough Laxi pool (${famBal} laxi available).`;errEl.style.display='block';}return;}
   try{
     const upd={};
     upd['prestige/families/'+myFamId+'/bonusPoints']=famBal-amt;
@@ -1055,7 +1055,7 @@ window.submitFamilyGive = async function(toMid, toName) {
     document.getElementById('giveAmt-'+toMid).value='';
     document.getElementById('giveNote-'+toMid).value='';
     toggleGiveRow(toMid);
-    toast(`Sent ${amt} pts to ${toName}.`);
+    toast(`Sent ${amt} laxi to ${toName}.`);
   }catch(e){
     if(errEl){errEl.textContent='Transfer failed: '+e.message;errEl.style.display='block';}
   }
@@ -1082,8 +1082,8 @@ window.submitFamilySend = async function() {
   const famName = families[myFamId]?.name||'?';
   const toFamName = families[toFid]?.name||'?';
   if(!amt||amt<=0){if(errEl){errEl.textContent='Enter a valid amount.';errEl.style.display='block';}return;}
-  if(amt>famBal){if(errEl){errEl.textContent=`Not enough pool prestige (${famBal} pts available).`;errEl.style.display='block';}return;}
-  if(!confirm(`Send ${amt} pts from ${famName} pool to ${toFamName}?`)) return;
+  if(amt>famBal){if(errEl){errEl.textContent=`Not enough Laxi pool (${famBal} laxi available).`;errEl.style.display='block';}return;}
+  if(!confirm(`Send ${amt} laxi from ${famName} pool to ${toFamName}?`)) return;
   try{
     const upd={};
     upd['prestige/families/'+myFamId+'/bonusPoints']=famBal-amt;
@@ -1092,7 +1092,7 @@ window.submitFamilySend = async function() {
     await push(ref(db,'prestige/transfers'),{type:'family-family',fromName:famName+' (pool)',toName:toFamName+' (pool)',amount:amt,note,at:Date.now(),by:currentPM.name||'?'});
     document.getElementById('famSendAmt').value='';
     document.getElementById('famSendNote').value='';
-    toast(`Sent ${amt} pts to ${toFamName}.`);
+    toast(`Sent ${amt} laxi to ${toFamName}.`);
   }catch(e){
     if(errEl){errEl.textContent='Transfer failed: '+e.message;errEl.style.display='block';}
   }
@@ -1216,7 +1216,7 @@ window.showFamilyDetail=function(famId){
         <span style="font-size:14px;color:var(--ink);${isMe?'font-weight:bold':''}">${m.name||m.id}${isMe?' <span class="me-tag">You</span>':''}</span>
         <span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span>
       </div>
-      <span style="font-size:14px;font-weight:bold;color:var(--navy)">${(m.points||0).toLocaleString()} pts</span>
+      <span style="font-size:14px;font-weight:bold;color:var(--navy)">${(m.points||0).toLocaleString()} Laxi</span>
     </div>`;
   }).join('');
 
@@ -1229,7 +1229,7 @@ window.showFamilyDetail=function(famId){
         </div>
         <div style="display:flex;align-items:center;gap:14px;">
           <div style="text-align:right;">
-            <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);">Total Prestige</div>
+            <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);">Total Laxi</div>
             <div style="font-size:26px;font-weight:bold;color:var(--navy)">${total.toLocaleString()}</div>
           </div>
           <button class="ghost-btn" style="font-size:11px;padding:4px 10px;align-self:flex-start" onclick="document.getElementById('familyDetailContainer').style.display='none'">✕ Close</button>

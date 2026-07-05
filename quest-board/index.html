@@ -815,7 +815,7 @@
       <input type="text" id="req-guildgain" placeholder="e.g. 50 Healing Potions delivered to the Guild Island">
     </div>
     <div class="form-group">
-      <label>Prestige Reward (awarded to the claimant on completion)</label>
+      <label>Laxi Reward (awarded to the claimant on completion)</label>
       <input type="number" id="req-prestige" min="0" value="0" placeholder="0">
     </div>
 
@@ -960,7 +960,7 @@
           <div style="background:rgba(200,160,74,0.07);border:1px solid rgba(200,160,74,0.3);border-radius:4px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
             <div>
               <div style="font-family:Georgia,serif;font-weight:bold;font-size:14px;color:var(--ink)">${escapeHtml(t.questName||'Quest')}</div>
-              <div style="font-size:12px;color:var(--ink-soft);margin-top:2px">Completed by <strong>${escapeHtml(t.holder||'')}</strong> · ${t.prestigePoints||0} prestige pts</div>
+              <div style="font-size:12px;color:var(--ink-soft);margin-top:2px">Completed by <strong>${escapeHtml(t.holder||'')}</strong> · ${t.prestigePoints||0} laxi</div>
             </div>
             <div style="display:flex;gap:8px;flex-shrink:0">
               <button class="gold-btn" style="font-size:11px;padding:4px 14px" onclick="approveQuestCompletion('${tid}')">✓ Approve</button>
@@ -1004,6 +1004,15 @@
         await db.ref().update(questUpd);
         await db.ref('questParties/' + t.questId + '/' + partyKey(t.holder || '')).remove();
       }
+      const at = Date.now(); const by = currentUserData.name;
+      // Deduct from Quest Budget prestige + credit treasury
+      const totalPts = t.prestigePoints || 0;
+      if (totalPts > 0) {
+        const rateSnap = await db.ref('treasury/settings/silverPerLaxi').get();
+        const rate = rateSnap.exists() ? rateSnap.val() : 10000;
+        await db.ref('funds/quest/prestigeEntries').push({amount:-totalPts,reason:`Quest: ${t.questName||''}`,at,by,auto:true,taskId:tid});
+        await db.ref('treasury/entries').push({amount:totalPts*rate,reason:`Laxi award — ${t.questName||''} (${totalPts} pts × ${rate.toLocaleString()} S)`,by,at,auto:true,taskId:tid});
+      }
       await db.ref('tasks/' + tid).update({ status: 'completed', completedAt: Date.now(), completedBy: currentUserData.name });
     };
 
@@ -1046,7 +1055,7 @@
       document.getElementById('ptError').style.display = 'none';
       document.getElementById('ptAmount').value = '';
       document.getElementById('ptNote').value = '';
-      document.getElementById('ptMyBalance').textContent = `Your prestige: ${_qbNavMyPoints} pts`;
+      document.getElementById('ptMyBalance').textContent = `Your Laxi: ${_qbNavMyPoints}`;
       const sel = document.getElementById('ptRecipient');
       sel.innerHTML = '<option value="">— Select —</option>';
       if (_qbNavMyFid && _qbNavAllFamilies[_qbNavMyFid]) {
@@ -1081,7 +1090,7 @@
       const note = document.getElementById('ptNote').value.trim();
       if(!toVal){errEl.textContent='Please select a recipient.';errEl.style.display='block';return;}
       if(!amount||amount<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
-      if(amount>_qbNavMyPoints){errEl.textContent='Not enough personal prestige.';errEl.style.display='block';return;}
+      if(amount>_qbNavMyPoints){errEl.textContent='Not enough Laxi.';errEl.style.display='block';return;}
       if(!_qbNavMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
       const btn = document.getElementById('ptSendBtn'); btn.disabled=true; btn.textContent='Sending…';
       try {
@@ -1099,7 +1108,7 @@
         await db.ref().update(upd);
         await db.ref('prestige/transfers').push({type,fromName:myName,toName,amount,note,at:Date.now(),by:myName});
         document.getElementById('ptAmount').value=''; document.getElementById('ptNote').value='';
-        document.getElementById('ptMyBalance').textContent=`Your prestige: ${_qbNavMyPoints-amount} pts`;
+        document.getElementById('ptMyBalance').textContent=`Your Laxi: ${_qbNavMyPoints-amount}`;
         btn.textContent='Sent ✓'; setTimeout(()=>{btn.disabled=false;btn.textContent='Send';},2000);
       } catch(e) {
         errEl.textContent='Transfer failed: '+e.message; errEl.style.display='block';
@@ -1175,7 +1184,7 @@
       <p class="request-gain"><strong>Guild Gain:</strong> ${escapeHtml(req.guildGain)}</p>
       <div class="request-reward">
         <svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-prestige"/></svg>
-        ${Number(req.prestige||0)} Prestige
+        ${Number(req.prestige||0)} Laxi
       </div>
       <div class="request-submitted">Submitted: ${submitted}</div>
       <div class="request-actions">
@@ -1201,7 +1210,7 @@
       name: req.name, issuer: `Requested by ${req.issuer}`,
       description: escapeHtml(req.description), guildGain: req.guildGain,
       deadline: null,
-      rewards: [{ icon: '♦', text: `${Number(req.prestige||0)} Prestige` }]
+      rewards: [{ icon: '£', text: `${Number(req.prestige||0)} Laxi` }]
     };
     await db.ref('questDefs/' + uniqueId).set(def);
     await db.ref('questRequests/' + reqId + '/status').set('approved');
@@ -1289,7 +1298,7 @@
       level: data.level, slots: data.slots, name: data.name,
       issuer: data.issuer, description: data.description, guildGain: data.guildGain,
       deadline: data.deadline,
-      rewards: [{ icon: '♦', text: `${data.prestige} Prestige` }]
+      rewards: [{ icon: '£', text: `${data.prestige} Laxi` }]
     };
   }
 
@@ -1503,7 +1512,7 @@
       <div class="reward">
         <div class="reward-item">
           <svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-prestige"/></svg>
-          <input type="number" class="num-input reward-prestige-input" min="0" value="${prestige}"> Prestige
+          <input type="number" class="num-input reward-prestige-input" min="0" value="${prestige}"> Laxi
         </div>
       </div>
       <div class="claim-section">
@@ -1936,6 +1945,8 @@
         const textStr = String(r.text || '');
         const num = parseInt(textStr.replace(/[^\d]/g, ''), 10) || 0;
         text = `${formatSilverShort(num)} Silver`;
+      } else if (symbolId === 'icon-prestige') {
+        text = String(r.text || '').replace(/\bPrestige\b/gi, 'Laxi');
       }
       return `<div class="reward-item">${iconHtml} ${escapeHtml(text)}</div>`;
     }).join('');
@@ -2291,7 +2302,7 @@
       ownerUid: currentUserData?.uid || '',
       issuerMid,
       rewards: [
-        { icon: '♦', text: `${prestige} Prestige` }
+        { icon: '£', text: `${prestige} Laxi` }
       ]
     };
 

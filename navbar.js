@@ -170,7 +170,7 @@
         <div class="user-bar-roles" id="userBarRoles"></div>
       </div>
       <button id="prestigeTransferBtn" onclick="openPrestigeTransfer()" style="display:none;flex-direction:column;align-items:center;gap:1px;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:3px;transition:background 0.15s" title="Prestige & Transfer" onmouseover="this.style.background='rgba(200,160,74,0.1)'" onmouseout="this.style.background='none'">
-        <span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:rgba(230,200,120,0.6)">Prestige</span>
+        <span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:rgba(230,200,120,0.6)">Laxi</span>
         <span style="display:flex;align-items:baseline;gap:4px">
           <span id="myPrestigeCount" style="font-family:Georgia,serif;font-size:15px;color:var(--gold-bright);font-weight:bold;line-height:1">—</span>
           <span id="myPrestigePending" style="display:none;font-family:Georgia,serif;font-size:10px;font-weight:bold;line-height:1"></span>
@@ -196,7 +196,7 @@
 <div id="prestigeTransferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
   <div style="background:#f1e4c4;border-radius:6px;padding:24px;min-width:320px;max-width:440px;width:90%;font-family:Georgia,serif;box-shadow:0 8px 32px rgba(0,0,0,.4)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <h3 style="color:#2e2014;font-size:16px;margin:0">⇄ Prestige</h3>
+      <h3 style="color:#2e2014;font-size:16px;margin:0">⇄ Laxi</h3>
       <span id="ptMyBalance" style="font-size:12px;color:#5a4632"></span>
     </div>
     <!-- Tabs -->
@@ -232,9 +232,9 @@
     </div>
     <!-- Buy Panel -->
     <div id="ptPanel-buy" style="display:none">
-      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Buy prestige from the Guild Treasury at <strong>+10% margin</strong>.<br>Silver will be deducted from your in-game wallet.</p>
+      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Buy Laxi from the Guild Treasury at <strong>+10% margin</strong>.<br>Silver will be deducted from your in-game wallet.</p>
       <div style="margin-bottom:12px">
-        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Prestige Amount (pts)</label>
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Laxi Amount</label>
         <input id="ptBuyAmount" type="number" min="1" placeholder="0" oninput="updateBuyPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
       </div>
       <div id="ptBuyPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
@@ -248,9 +248,9 @@
     </div>
     <!-- Sell Panel -->
     <div id="ptPanel-sell" style="display:none">
-      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Sell prestige back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
+      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Sell Laxi back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
       <div style="margin-bottom:12px">
-        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Prestige Amount (pts)</label>
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Laxi Amount</label>
         <input id="ptSellAmount" type="number" min="1" placeholder="0" oninput="updateSellPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
       </div>
       <div id="ptSellPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
@@ -278,7 +278,7 @@
         const auth=getAuth(app);
         const db=getDatabase(app);
         let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
-        onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
+        onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
 
         onAuthStateChanged(auth,user=>{
           if(!user)return;
@@ -311,8 +311,7 @@
             }
             const pendingEl=document.getElementById('myPrestigePending');
             if(!pendingEl)return;
-            if(delta>0){pendingEl.textContent='+'+delta;pendingEl.style.color='#4a9a4a';pendingEl.style.display='inline';}
-            else if(delta<0){pendingEl.textContent=String(delta);pendingEl.style.color='#8c2424';pendingEl.style.display='inline';}
+            if(delta<0){pendingEl.textContent=String(delta);pendingEl.style.color='#8c2424';pendingEl.style.display='inline';pendingEl.title=delta+' Laxi pending';}
             else{pendingEl.style.display='none';}
           }
           onValue(ref(db,'tasks'),snap=>{
@@ -430,7 +429,7 @@
           btn.disabled=true;btn.textContent='Submitting…';
           try{
             await push(ref(db,'tasks'),{
-              title:`Prestige Purchase — ${myName} — ${pts} pts`,
+              title:`Laxi Purchase — ${myName} — ${pts} laxi`,
               type:'prestige_buy',amount:cost,prestigePoints:pts,
               holder:myName,memberMid:_navMyMid,status:'pending',
               createdAt:Date.now(),createdBy:myName,
@@ -456,7 +455,7 @@
           btn.disabled=true;btn.textContent='Submitting…';
           try{
             await push(ref(db,'tasks'),{
-              title:`Prestige Sale — ${myName} — ${pts} pts`,
+              title:`Laxi Sale — ${myName} — ${pts} laxi`,
               type:'prestige_sell',amount:payout,prestigePoints:pts,
               holder:myName,memberMid:_navMyMid,status:'pending',
               createdAt:Date.now(),createdBy:myName,

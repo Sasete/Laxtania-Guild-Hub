@@ -339,7 +339,7 @@
     <div class="auth-wrap">
       <!-- Google Login Form -->
       <div id="authEntry" style="text-align:center;">
-        <p class="auth-hint" style="margin-bottom:24px;">Sign in with your Google account to enter the Guild Hall, view active contracts, and check prestige registries.</p>
+        <p class="auth-hint" style="margin-bottom:24px;">Sign in with your Google account to enter the Guild Hall, view active contracts, and check laxi registries.</p>
         <div class="auth-error" id="loginError"></div>
         <button class="auth-btn google-btn" onclick="doGoogleLogin()">
           <svg class="google-icon" viewBox="0 0 24 24">
@@ -382,9 +382,9 @@
     <div class="live-strip">
       <div class="live-stat"><span class="live-num" id="statMembers">—</span><span class="live-lbl">Members</span></div>
       <div class="live-stat"><span class="live-num" id="statQuests">—</span><span class="live-lbl">Active Contracts</span></div>
-      <div class="live-stat"><span class="live-num" id="statPrestige">0</span><span class="live-lbl">Total Prestige</span></div>
+      <div class="live-stat"><span class="live-num" id="statPrestige">0</span><span class="live-lbl">Total Laxi</span></div>
       <div class="live-stat"><span class="live-num" id="statTreasury">—</span><span class="live-lbl">Treasury</span></div>
-      <div class="live-stat"><span class="live-num" id="statSilverRate">—</span><span class="live-lbl">Silver / Prestige</span></div>
+      <div class="live-stat"><span class="live-num" id="statSilverRate">—</span><span class="live-lbl">Silver / Laxi</span></div>
     </div>
 
     <div id="myClaimNotices" style="max-width:980px;margin:0 auto 0;display:flex;flex-direction:column;gap:8px"></div>
@@ -647,7 +647,7 @@ onAuthStateChanged(auth,async user=>{
       const isHolder=!!myClaimName;
       const partyTxt=partyCount>1?`<span style="font-size:11px;color:#1c3a6a;margin-left:8px">👥 ${partyCount} members</span>`:'';
       const rewards=Array.isArray(def.rewards)?def.rewards:Object.values(def.rewards||{});
-      const rewardTxt=rewards.map(r=>`<span style="margin-right:10px">${r.icon||''} ${r.text||''}</span>`).join('');
+      const rewardTxt=rewards.map(r=>{const icon=r.icon==='♦'?'£':(r.icon||'');const txt=(r.text||'').replace(/\bPrestige\b/gi,'Laxi').replace(/\bpts\b/gi,'');return`<span style="margin-right:10px">${icon} ${txt}</span>`;}).join('');
       cards.push(`<div style="background:rgba(30,60,100,.06);border:1px solid rgba(30,60,100,.35);border-radius:3px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-family:Georgia,serif">
         <button onclick="${isHolder?`openPartyModal('${id}','${holderName.replace(/'/g,"\\'")}')`:''}" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;${isHolder?'cursor:pointer':'cursor:default'};padding:4px 8px;border-radius:4px;min-width:44px" title="${isHolder?'Manage Party':'Party Member'}">
           <span style="font-size:20px">👥</span>
@@ -1049,7 +1049,7 @@ onAuthStateChanged(auth,async user=>{
         return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(120,90,50,.15)">
           <div>
             <div style="font-weight:bold;color:var(--navy);font-size:14px">${t.questName||'Quest'}</div>
-            <div style="font-size:12px;color:var(--ink-soft);margin-top:2px">Completed by: <strong>${party}</strong> · <strong>${t.prestigePoints} pts</strong> prestige reward</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:2px">Completed by: <strong>${party}</strong> · <strong>${t.prestigePoints} Laxi</strong> reward</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
             <button onclick="approveQuestCompletion('${tid}')" style="padding:6px 14px;background:#2a5a2a;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-variant:small-caps;letter-spacing:1px">✓ Approve</button>
@@ -1075,7 +1075,15 @@ onAuthStateChanged(auth,async user=>{
       }
       if(Object.keys(upd).length)await update(ref(db),upd);
     }
-    await update(ref(db,'tasks/'+tid),{status:'completed',completedAt:Date.now(),completedBy:currentUserData.name});
+    const at=Date.now();const by=currentUserData.name;
+    const totalPts=t.prestigePoints||0;
+    if(totalPts>0){
+      const rateSnap=await get(ref(db,'treasury/settings/silverPerLaxi'));
+      const rate=rateSnap.exists()?rateSnap.val():10000;
+      await push(ref(db,'funds/quest/prestigeEntries'),{amount:-totalPts,reason:`Quest: ${t.questName||''}`,at,by,auto:true,taskId:tid});
+      await push(ref(db,'treasury/entries'),{amount:totalPts*rate,reason:`Laxi award — ${t.questName||''} (${totalPts} pts × ${rate.toLocaleString()} S)`,by,at,auto:true,taskId:tid});
+    }
+    await update(ref(db,'tasks/'+tid),{status:'completed',completedAt:at,completedBy:by});
   };
 
   window.rejectQuestCompletion=async function(tid){
@@ -1178,7 +1186,7 @@ function loadLiveStats(){
   function _fmtNum(n){return n>=1000000?parseFloat((Math.round(n/10000)/100).toFixed(2))+'M':n>=1000?parseFloat((Math.round(n/100)/10).toFixed(1))+'K':n.toLocaleString();}
   function _updateStatPrestige(){
     const total=_statMemberPts+_statFamilyBonus;
-    document.getElementById('statPrestige').textContent=_fmtNum(total);
+    document.getElementById('statLaxi').textContent=_fmtNum(total);
   }
   onValue(ref(db,'prestige/snapshot/lastTotal'),snap=>{
     _statPrestigePrev=snap.exists()?snap.val():0;
@@ -1221,7 +1229,7 @@ function loadLiveStats(){
     }
     el.innerHTML=txt+arrow;
   }
-  onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{
+  onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
     _silverRate=snap.exists()?snap.val():10000;
     _updateSilverRate();
   });
@@ -1290,7 +1298,7 @@ onValue(ref(db, 'prestige/members'), snap => {
       <input id="partyAddInput" type="text" placeholder="Member name..." style="flex:1;padding:8px 10px;border:1px solid var(--parchment-shadow);border-radius:3px;font-family:Georgia,serif;font-size:13px;background:white">
       <button onclick="partyAddMember()" style="padding:8px 14px;background:var(--navy);color:var(--parchment);border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Add</button>
     </div>
-    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:14px;font-style:italic">Prestige will be split equally among all party members. Silver reward goes to the contract holder.</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:14px;font-style:italic">Laxi will be split equally among all party members. Silver reward goes to the contract holder.</div>
     <button onclick="closePartyModal()" style="padding:8px 20px;background:var(--ink-soft);color:var(--parchment);border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
   </div>
 </div>
