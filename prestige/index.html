@@ -512,7 +512,7 @@ function renderMembers(){
     
     return`<tr class="${isMe?'is-me':''}" style="cursor:pointer" onclick="toggleMemberDetail('${m.id}')">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
-      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">You</span>':''} ${hasCerts?'🎓':''}</span></td>
+      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">You</span>':''}</span></td>
       <td><span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span></td>
       <td><span class="family-tag">${fName}</span></td>
       <td class="pts-cell r">${(m.points||0).toLocaleString()}</td>

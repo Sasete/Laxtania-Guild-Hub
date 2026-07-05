@@ -211,7 +211,7 @@
 
 <div class="parchment-wrap">
   <div class="tabs tab-bar">
-    <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+    <button class="tab-btn active" onclick="switchTab('overview')">Overview <span id="overviewTabBadge" class="tab-badge" style="display:none;background:#2e7d32"></span></button>
     <div class="tab-dropdown" id="budgetDropdown">
       <button class="tab-dropdown-btn" id="budgetDropdownBtn">Budgets</button>
       <div class="tab-dropdown-menu">
@@ -380,6 +380,14 @@
       <svg id="treasuryLineChart" width="100%" style="display:block;overflow:visible" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
     </div>
 
+    <!-- Fund Requests Overview -->
+    <div id="fundRequestsOverview" style="display:none;margin-bottom:24px">
+      <div class="section-eyebrow" style="display:flex;align-items:center;gap:8px">
+        Pending Fund Requests <span id="fundRequestsBadge" style="background:#2e7d32;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;line-height:1">0</span>
+      </div>
+      <div id="fundRequestsList"><div class="empty">No pending requests.</div></div>
+    </div>
+
     <hr class="divider">
     <div class="section-eyebrow">Treasury Movement History</div>
     <div id="adjList"><div class="empty">No entries yet.</div></div>
@@ -404,6 +412,16 @@
         <button class="green-btn" onclick="openFundAction('quest',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('quest',-1)">− Expense</button>
         <button id="fundTransferOut-quest" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('quest',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button class="ghost-btn" onclick="openFundRequest('quest')">🙏 Request Fund</button>
+      </div>
+    </div>
+    <div id="fundRequestPanel-quest" class="add-form" style="display:none;margin-bottom:18px">
+      <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px">Request Funds from Treasury</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" class="silver-input" inputmode="numeric" id="reqAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" id="reqReason-quest" placeholder="Reason for request..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="submitFundRequest('quest')">Submit Request</button>
+        <button class="ghost-btn" onclick="closeFundRequest('quest')">Cancel</button>
       </div>
     </div>
     <div id="fundActionPanel-quest" class="add-form" style="display:none;margin-bottom:18px">
@@ -464,6 +482,16 @@
         <button class="green-btn" onclick="openFundAction('events',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('events',-1)">− Expense</button>
         <button id="fundTransferOut-events" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('events',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button class="ghost-btn" onclick="openFundRequest('events')">🙏 Request Fund</button>
+      </div>
+    </div>
+    <div id="fundRequestPanel-events" class="add-form" style="display:none;margin-bottom:18px">
+      <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px">Request Funds from Treasury</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" class="silver-input" inputmode="numeric" id="reqAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" id="reqReason-events" placeholder="Reason for request..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="submitFundRequest('events')">Submit Request</button>
+        <button class="ghost-btn" onclick="closeFundRequest('events')">Cancel</button>
       </div>
     </div>
     <div id="fundActionPanel-events" class="add-form" style="display:none;margin-bottom:18px">
@@ -564,6 +592,16 @@
         <button class="green-btn" onclick="openFundAction('island',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('island',-1)">− Expense</button>
         <button id="fundTransferOut-island" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('island',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button class="ghost-btn" onclick="openFundRequest('island')">🙏 Request Fund</button>
+      </div>
+    </div>
+    <div id="fundRequestPanel-island" class="add-form" style="display:none;margin-bottom:18px">
+      <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px">Request Funds from Treasury</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" class="silver-input" inputmode="numeric" id="reqAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" id="reqReason-island" placeholder="Reason for request..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="submitFundRequest('island')">Submit Request</button>
+        <button class="ghost-btn" onclick="closeFundRequest('island')">Cancel</button>
       </div>
     </div>
     <div id="fundActionPanel-island" class="add-form" style="display:none;margin-bottom:18px">
@@ -602,6 +640,16 @@
         <button class="green-btn" onclick="openFundAction('recruitment',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('recruitment',-1)">− Expense</button>
         <button id="fundTransferOut-recruitment" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('recruitment',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button class="ghost-btn" onclick="openFundRequest('recruitment')">🙏 Request Fund</button>
+      </div>
+    </div>
+    <div id="fundRequestPanel-recruitment" class="add-form" style="display:none;margin-bottom:18px">
+      <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px">Request Funds from Treasury</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" class="silver-input" inputmode="numeric" id="reqAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" id="reqReason-recruitment" placeholder="Reason for request..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="submitFundRequest('recruitment')">Submit Request</button>
+        <button class="ghost-btn" onclick="closeFundRequest('recruitment')">Cancel</button>
       </div>
     </div>
     <div id="fundActionPanel-recruitment" class="add-form" style="display:none;margin-bottom:18px">
@@ -864,6 +912,7 @@ const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
+let _fundRequests={};
 let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={};
 let _fundDeficits={quest:0,events:0,island:0,recruitment:0};
 function fmtLaxi(n){const a=Math.abs(n);const s=a>=1000000?(a/1000000).toFixed(2).replace(/\.?0+$/,'')+'M':a>=1000?(a/1000).toFixed(1).replace(/\.0$/,'')+'K':String(a);return(n<0?'−':'')+s;}
@@ -1959,25 +2008,24 @@ window.submitFundAction=async function(fund,forceMode){
     }
   }
   if(amount>0&&deficit<0&&forceMode==='income'){
-    const defAbs=Math.abs(deficit);
-    const toTreasury=Math.min(rawAmt,defAbs);
-    const toFund=rawAmt-toTreasury;
-    if(toFund>0) await push(ref(db,`funds/${fund}/entries`),{amount:toFund,reason,by,at});
-    await push(ref(db,'treasury/entries'),{amount:toTreasury,reason:`Deficit repayment — ${fund} (${reason})`,by,at,auto:true,fund});
-    const newDeficit=deficit+toTreasury;
+    // Full amount goes directly to Free Treasury — budget gets nothing
+    await push(ref(db,'treasury/entries'),{amount:rawAmt,reason:`[${fund}] ${reason} (deficit repayment)`,by,at,fund});
+    const newDeficit=Math.min(0,deficit+rawAmt);
     await set(ref(db,`funds/${fund}/deficit`),newDeficit>=0?null:newDeficit);
     closeFundAction(fund);
-    toast(`Recorded: ${fmtS(toTreasury)} → Treasury (deficit repaid)${toFund>0?`, ${fmtS(toFund)} to fund`:''}.`);
+    toast(`${fmtS(rawAmt)} → Free Treasury (deficit ${newDeficit<0?'partially ':''}repaid).`);
     return;
   }
   if(amount>0&&deficit<0&&forceMode==='injection'){
     await push(ref(db,`funds/${fund}/entries`),{amount,reason,by,at,injection:true});
+    await push(ref(db,'treasury/entries'),{amount,reason:`[${fund}] ${reason}`,by,at,fund});
     await set(ref(db,`funds/${fund}/deficit`),null);
     closeFundAction(fund);
     toast(`Manual injection recorded — deficit cleared.`);
     return;
   }
   await push(ref(db,`funds/${fund}/entries`),{amount,reason,by,at});
+  await push(ref(db,'treasury/entries'),{amount,reason:`[${fund}] ${reason}`,by,at,fund});
   closeFundAction(fund);
   toast(`Recorded: ${amount>0?'+':''}${fmtS(amount)}`);
 };
@@ -2717,12 +2765,11 @@ window.completeTask=async function(id){
     toast(`Approved — ${t.prestigePoints} pts added to ${t.holder||'member'}. Treasury +${fmtS(t.amount||0)}.`);
     return;
   } else if(t.type==='prestige_sell'&&t.prestigePoints&&t.memberMid){
-    // Member sells prestige → deduct prestige + debit treasury
     const memberSnap=await get(ref(db,'prestige/members/'+t.memberMid));
     const curPts=memberSnap.exists()?(memberSnap.val().points||0):0;
     await update(ref(db,'prestige/members/'+t.memberMid),{points:Math.max(0,curPts-t.prestigePoints)});
     await push(ref(db,'treasury/entries'),{amount:-(t.amount||0),reason:`Laxi sale — ${t.holder||''} — ${t.prestigePoints} pts`,by,at,auto:true,taskId:id});
-    toast(`Approved — ${t.prestigePoints} pts deducted from ${t.holder||'member'}. Treasury -${fmtS(t.amount||0)}.`);
+    toast(`Approved — ${t.prestigePoints} pts deducted. Treasury -${fmtS(t.amount||0)} paid to ${t.holder||'member'}.`);
     return;
   }
   // Auto-redeem bond if this task is a bond repayment (payment_out only — NOT payment_in)
@@ -2809,6 +2856,7 @@ window.submitPrestigeAlloc=async function(){
 };
 
 // ── SETTINGS ──
+
 window.saveRate=async function(){
   const v=parseAmt(document.getElementById('silverRateInput').value)||10000;
   await set(ref(db,'treasury/settings/silverPerLaxi'),v);
@@ -2874,6 +2922,13 @@ onAuthStateChanged(auth,async user=>{
     _dropUpdateUI();
     renderDropCurveChart();
   });
+
+  // ── Fund Requests listener ──
+  onValue(ref(db, 'treasury/fundRequests'), snap => {
+    _fundRequests = snap.val() || {};
+    renderFundRequests();
+  });
+
   // ── Crisis breaker listeners ──
   function _fmtSC(v){if(!v)return'0 S';const a=Math.abs(v);const s=a>=1000000?(a/1000000).toFixed(2)+'M':a>=1000?(a/1000).toFixed(0)+'K':a.toLocaleString();return(v<0?'-':'')+s+' S';}
   onValue(ref(db,'treasury/settings/crisis_pending'),snap=>{
@@ -3093,6 +3148,124 @@ window.postOfficialEvent = async function() {
     toast('Error: ' + e.message);
   }
 };
+
+// -- FUND REQUESTS INJECTED --
+window.openFundRequest = function(key) {
+  document.getElementById('reqAmt-' + key).value = '';
+  document.getElementById('reqReason-' + key).value = '';
+  document.getElementById('fundRequestPanel-' + key).style.display = 'block';
+};
+window.closeFundRequest = function(key) {
+  document.getElementById('fundRequestPanel-' + key).style.display = 'none';
+};
+window.submitFundRequest = async function(key) {
+  const amtInput = document.getElementById('reqAmt-' + key);
+  const reasonInput = document.getElementById('reqReason-' + key);
+  const amt = parseAmt(amtInput.value);
+  const reason = reasonInput.value.trim();
+  if (!amt || amt <= 0) { toast('Please enter a valid amount.'); return; }
+  if (!reason) { toast('Please enter a reason for the request.'); return; }
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  try {
+    const reqRef = push(ref(db, 'treasury/fundRequests'));
+    const reqId = reqRef.key;
+    const reqData = {
+      id: reqId, fundKey: key, amount: amt, reason: reason,
+      requestedBy: currentUserData?.name || currentUserId,
+      timestamp: Date.now(), status: 'pending'
+    };
+    await set(reqRef, reqData);
+    toast('Fund request submitted.');
+    closeFundRequest(key);
+  } catch (e) {
+    toast('Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Request';
+  }
+};
+window.approveFundRequest = async function(id) {
+  const req = _fundRequests[id];
+  if (!req || req.status !== 'pending') return;
+  if (!confirm(`Approve request for ${fmtS(req.amount)} to ${req.fundKey.toUpperCase()}?`)) return;
+  try {
+    const fundName = req.fundKey.toUpperCase();
+    const ts = Date.now();
+    const by = currentUserData?.name || currentUserId;
+    const tRef = push(ref(db, 'treasury/entries'));
+    const tEntry = { amount: -req.amount, note: `Fund Request Approved: To ${fundName} - ${req.reason}`, timestamp: ts, by: by };
+    const fRef = push(ref(db, `funds/${req.fundKey}/entries`));
+    const fEntry = { amount: req.amount, note: `Fund Request Approved: ${req.reason} (by ${by})`, timestamp: ts, by: by };
+    const updates = {};
+    updates[`treasury/entries/${tRef.key}`] = tEntry;
+    updates[`funds/${req.fundKey}/entries/${fRef.key}`] = fEntry;
+    updates[`treasury/fundRequests/${id}/status`] = 'approved';
+    updates[`treasury/fundRequests/${id}/resolvedAt`] = ts;
+    updates[`treasury/fundRequests/${id}/resolvedBy`] = by;
+    await update(ref(db), updates);
+    toast('Fund request approved.');
+  } catch (e) { toast('Error: ' + e.message); }
+};
+window.rejectFundRequest = async function(id) {
+  const req = _fundRequests[id];
+  if (!req || req.status !== 'pending') return;
+  if (!confirm(`Reject request for ${fmtS(req.amount)} to ${req.fundKey.toUpperCase()}?`)) return;
+  try {
+    const ts = Date.now();
+    const by = currentUserData?.name || currentUserId;
+    const updates = {};
+    updates[`treasury/fundRequests/${id}/status`] = 'rejected';
+    updates[`treasury/fundRequests/${id}/resolvedAt`] = ts;
+    updates[`treasury/fundRequests/${id}/resolvedBy`] = by;
+    await update(ref(db), updates);
+    toast('Fund request rejected.');
+  } catch (e) { toast('Error: ' + e.message); }
+};
+window.renderFundRequests = function() {
+  const container = document.getElementById('fundRequestsOverview');
+  const listEl = document.getElementById('fundRequestsList');
+  const badge = document.getElementById('fundRequestsBadge');
+  const navBadge = document.getElementById('overviewTabBadge');
+  if (!container || !listEl) return;
+  const admin = isAdmin(currentUserData);
+  if (!admin) {
+    container.style.display = 'none';
+    if(navBadge) navBadge.style.display = 'none';
+    return;
+  }
+  const pending = Object.values(_fundRequests||{}).filter(r => r.status === 'pending').sort((a,b) => b.timestamp - a.timestamp);
+  if (pending.length > 0) {
+    container.style.display = 'block';
+    if(badge) badge.textContent = pending.length;
+    if(navBadge) { navBadge.textContent = pending.length; navBadge.style.display = 'inline-block'; }
+    listEl.innerHTML = pending.map(req => {
+      const dateStr = new Date(req.timestamp).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      return `
+        <div style="background:rgba(28,42,64,.04);border:1px solid rgba(46,32,20,.15);border-radius:4px;padding:12px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">${dateStr} &nbsp;·&nbsp; from <strong>${req.requestedBy}</strong></div>
+              <div style="margin-top:4px;font-family:Georgia,serif;font-size:14px;color:var(--ink)">
+                Requested <strong style="color:var(--navy)">${fmtS(req.amount)}</strong> for <strong style="text-transform:uppercase">${req.fundKey}</strong>
+              </div>
+              <div style="margin-top:4px;font-size:12px;color:var(--ink-soft);font-style:italic">"${req.reason}"</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="green-btn" style="padding:4px 10px;font-size:11px" onclick="approveFundRequest('${req.id}')">✓ Approve</button>
+              <button class="red-btn" style="padding:4px 10px;font-size:11px" onclick="rejectFundRequest('${req.id}')">✕ Reject</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    container.style.display = 'none';
+    if(navBadge) navBadge.style.display = 'none';
+  }
+};
+// -- FUND REQUESTS INJECTED END --
 
 </script>
 </body>

@@ -159,7 +159,7 @@
       <span class="nav-icon">🗡️</span><span class="nav-text">Events</span>
     </a>
     <a href="${prefix}council/" id="councilNavLink" class="nav-item ${page === 'council' ? 'active' : ''}">
-      <span class="nav-icon">⚜</span><span class="nav-text">Council <span id="councilTaskBadge" style="display:none;background:#8c2424;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span></span>
+      <span class="nav-icon">⚜</span><span class="nav-text">Council <span id="councilTaskBadge" style="display:none;background:#8c2424;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span><span id="councilFundBadge" style="display:none;background:#2e7d32;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span></span>
     </a>
   </div>
   <div class="nav-user-container">
@@ -214,8 +214,11 @@
         </select>
       </div>
       <div style="margin-bottom:12px">
-        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Amount (pts)</label>
-        <input id="ptAmount" type="number" min="1" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632">Amount (pts)</label>
+          <span id="ptTransferAvailable" style="font-size:11px;color:#5a4632"></span>
+        </div>
+        <input id="ptAmount" type="number" min="1" placeholder="0" oninput="updateTransferAvailable()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
       </div>
       <div style="margin-bottom:16px">
         <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Note (optional)</label>
@@ -262,7 +265,10 @@
         ⚠ After the request is approved, a councillor will pay out the silver to you in-game.
       </div>
       <div style="margin-bottom:12px">
-        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Laxi Amount</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632">Laxi Amount</label>
+          <button onclick="document.getElementById('ptSellAmount').value=Math.max(0,_navMyPoints-_navPendingSellPts);updateSellPreview();" style="font-size:10px;font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;background:rgba(140,36,36,.1);color:#8c2424;border:1px solid rgba(140,36,36,.3);padding:2px 8px;cursor:pointer;border-radius:2px">Max</button>
+        </div>
         <input id="ptSellAmount" type="number" min="1" placeholder="0" oninput="updateSellPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
       </div>
       <div id="ptSellPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
@@ -306,10 +312,11 @@
           let _navPendingTasks=0,_navPendingBondReqs=0;
           function _navUpdateBadge(){
             const total=_navPendingTasks+_navPendingBondReqs;
-            const badge=document.getElementById('councilTaskBadge');
-            if(!badge)return;
-            if(total>0){badge.textContent=total;badge.style.display='inline';}
-            else{badge.style.display='none';}
+            const b=document.getElementById('councilTaskBadge');
+            if(b){
+              if(total>0){b.textContent=total;b.style.display='inline-block';}
+              else{b.style.display='none';}
+            }
           }
           let _navAllTasks={};
           function _navUpdatePrestigePending(){
@@ -371,6 +378,23 @@
             _navIsAdmin=(ud?.ranks||[]).some(r=>ADMIN_RANKS_PT.includes(r)) || (ud?.roles && Object.keys(ud.roles).some(k=>k.startsWith('admin_')&&ud.roles[k]===true));
             _navUpdatePrestigePending();
 
+            // Listen to fund requests to update global badge for Hand/Sovereign
+            if (_navIsAdmin) {
+              onValue(ref(db, 'treasury/fundRequests'), snap => {
+                let reqCount = 0;
+                if (snap.exists()) {
+                  Object.values(snap.val()).forEach(req => {
+                    if (req.status === 'pending') reqCount++;
+                  });
+                }
+                const fb = document.getElementById('councilFundBadge');
+                if (fb) {
+                  if (reqCount > 0) { fb.textContent = reqCount; fb.style.display = 'inline-block'; }
+                  else { fb.style.display = 'none'; }
+                }
+              });
+            }
+
             // Show user bar (for pages whose own auth callback hasn't done it yet)
             const userBarEl=document.getElementById('userBar');
             if(userBarEl&&userBarEl.style.display==='none') userBarEl.style.display='flex';
@@ -423,6 +447,14 @@
 
         function _navFmtS(v){if(!v)return'0 S';const a=Math.abs(v);let s=a>=1000000?(a/1000000).toFixed(1)+'M':a>=1000?(a/1000).toFixed(0)+'K':a.toString();return(v<0?'-':'')+s+' S';}
 
+        window.updateTransferAvailable=function(){
+          const avail=_navMyPoints-_navPendingSellPts;
+          const el=document.getElementById('ptTransferAvailable');
+          if(el)el.textContent=`Available: ${avail}`;
+          const inp=document.getElementById('ptAmount');
+          if(inp){inp.max=avail;if((parseInt(inp.value)||0)>avail)inp.value=avail;}
+        };
+
         window.switchPrestigeTab=function(tab){
           ['transfer','buy','sell'].forEach(t=>{
             const panel=document.getElementById('ptPanel-'+t);
@@ -432,6 +464,16 @@
           });
           document.getElementById('ptError').style.display='none';
           document.getElementById('ptSuccess').style.display='none';
+          if(tab==='sell'){
+            const available=_navMyPoints-_navPendingSellPts;
+            const inp=document.getElementById('ptSellAmount');
+            if(inp)inp.max=available;
+            const btn=document.getElementById('ptSellBtn');
+            if(btn){btn.disabled=true;btn.style.opacity='0.45';}
+            const avEl=document.getElementById('ptSellAvailable');
+            if(avEl)avEl.textContent=`Available: ${available}`;
+          }
+          if(tab==='transfer') updateTransferAvailable();
         };
 
         window.updateBuyPreview=function(){
@@ -445,9 +487,15 @@
         };
 
         window.updateSellPreview=function(){
-          const pts=parseInt(document.getElementById('ptSellAmount').value)||0;
+          const input=document.getElementById('ptSellAmount');
+          const btn=document.getElementById('ptSellBtn');
           const prev=document.getElementById('ptSellPreview');
-          if(!pts){prev.style.display='none';return;}
+          const available=_navMyPoints-_navPendingSellPts;
+          let pts=parseInt(input.value)||0;
+          // Clamp to available
+          if(pts>available){pts=available;input.value=available;}
+          if(!pts||pts<=0){prev.style.display='none';btn.disabled=true;btn.style.opacity='0.45';return;}
+          btn.disabled=false;btn.style.opacity='1';
           const payout=Math.round(pts*_navSilverRate*0.9);
           document.getElementById('ptSellRate').textContent=Math.round(_navSilverRate*0.9).toLocaleString()+' S/pt';
           document.getElementById('ptSellPayout').textContent=_navFmtS(payout);
@@ -485,7 +533,8 @@
           errEl.style.display='none';okEl.style.display='none';
           const pts=parseInt(document.getElementById('ptSellAmount').value,10);
           if(!pts||pts<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
-          if(pts>_navMyPoints){errEl.textContent=`Not enough prestige (you have ${_navMyPoints} pts).`;errEl.style.display='block';return;}
+          const availablePts=_navMyPoints-_navPendingSellPts;
+          if(pts>availablePts){errEl.textContent=`Not enough Laxi (available: ${availablePts} pts).`;errEl.style.display='block';return;}
           if(!_navMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
           const myName=_navAllMembers[_navMyMid]?.name||'?';
           const payout=Math.round(pts*_navSilverRate*0.9);
@@ -515,7 +564,7 @@
           _navRefreshPendingBanners();
           document.getElementById('ptAmount').value='';
           document.getElementById('ptNote').value='';
-          document.getElementById('ptMyBalance').textContent=`Your Laxi: ${_navMyPoints}`;
+          document.getElementById('ptMyBalance').textContent=`Available: ${_navMyPoints-_navPendingSellPts}`;
           const sel=document.getElementById('ptRecipient');
           sel.innerHTML='<option value="">— Select —</option>';
           if(_navMyFid&&_navAllFamilies[_navMyFid]){
@@ -590,8 +639,9 @@
           const amount=parseInt(document.getElementById('ptAmount').value,10);
           const note=document.getElementById('ptNote').value.trim();
           if(!toVal){errEl.textContent='Please select a recipient.';errEl.style.display='block';return;}
+          const transferAvail=_navMyPoints-_navPendingSellPts;
           if(!amount||amount<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
-          if(amount>_navMyPoints){errEl.textContent='Not enough personal prestige.';errEl.style.display='block';return;}
+          if(amount>transferAvail){errEl.textContent=`Not enough available Laxi (${transferAvail} pts).`;errEl.style.display='block';return;}
           if(!_navMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
           const btn=document.getElementById('ptSendBtn');
           btn.disabled=true;btn.textContent='Sending…';
@@ -617,7 +667,7 @@
             await push(ref(db,'prestige/transfers'),{type,fromName:myName,toName,amount,note,at:Date.now(),by:myName});
             document.getElementById('ptAmount').value='';
             document.getElementById('ptNote').value='';
-            document.getElementById('ptMyBalance').textContent=`Your Laxi: ${_navMyPoints-amount}`;
+            document.getElementById('ptMyBalance').textContent=`Available: ${_navMyPoints-amount-_navPendingSellPts}`;
             btn.textContent='Sent ✓';
             setTimeout(()=>{btn.disabled=false;btn.textContent='Send';},2000);
           }catch(e){

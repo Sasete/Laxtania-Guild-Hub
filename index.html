@@ -1201,7 +1201,9 @@ function loadLiveStats(){
   function _fmtNum(n){return n>=1000000?parseFloat((Math.round(n/10000)/100).toFixed(2))+'M':n>=1000?parseFloat((Math.round(n/100)/10).toFixed(1))+'K':n.toLocaleString();}
   function _updateStatPrestige(){
     const total=_statMemberPts+_statFamilyBonus;
-    document.getElementById('statPrestige').textContent=_fmtNum(total);
+    const el = document.getElementById('statPrestige');
+    el.textContent=_fmtNum(total);
+    el.title = total.toLocaleString() + ' Laxi';
   }
   onValue(ref(db,'prestige/snapshot/lastTotal'),snap=>{
     _statPrestigePrev=snap.exists()?snap.val():0;
@@ -1229,6 +1231,7 @@ function loadLiveStats(){
     const el=document.getElementById('statTreasury');
     const v=Math.abs(bal);
     el.textContent=(bal<0?'-':'')+(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
+    el.title = bal.toLocaleString() + ' Silver';
     el.style.color=bal<0?'#c05050':'';
   });
   let _silverRate=0,_silverRatePrev=0;
@@ -1243,6 +1246,7 @@ function loadLiveStats(){
         :'<span style="font-size:18px;color:#8c2424;margin-left:4px">▼</span>';
     }
     el.innerHTML=txt+arrow;
+    el.title = v.toLocaleString() + ' Silver';
   }
   onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
     _silverRate=snap.exists()?snap.val():10000;
