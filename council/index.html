@@ -277,7 +277,7 @@
         <div class="fs-label">Quest Budget</div>
         <div class="fs-value" id="ovQuestBal">—</div>
         <div id="ovPending-quest" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
-        <div id="ovPrestige-quest" style="font-size:11px;color:var(--ink-soft);min-height:14px;margin-top:2px"></div>
+
         <div id="ovButtons-quest" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('quest',1,'income')">+ Income</button>
@@ -301,7 +301,7 @@
         <div class="fs-label">Events Budget</div>
         <div class="fs-value" id="ovEventsBal">—</div>
         <div id="ovPending-events" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
-        <div id="ovPrestige-events" style="font-size:11px;color:var(--ink-soft);min-height:14px;margin-top:2px"></div>
+
         <div id="ovButtons-events" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('events',1,'income')">+ Income</button>
@@ -325,7 +325,7 @@
         <div class="fs-label">Island Budget</div>
         <div class="fs-value" id="ovIslandBal">—</div>
         <div id="ovPending-island" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
-        <div id="ovPrestige-island" style="font-size:11px;color:var(--ink-soft);min-height:14px;margin-top:2px"></div>
+
         <div id="ovButtons-island" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('island',1,'income')">+ Income</button>
@@ -349,7 +349,7 @@
         <div class="fs-label">Recruitment Budget</div>
         <div class="fs-value" id="ovRecruitmentBal">—</div>
         <div id="ovPending-recruitment" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
-        <div id="ovPrestige-recruitment" style="font-size:11px;color:var(--ink-soft);min-height:14px;margin-top:2px"></div>
+
         <div id="ovButtons-recruitment" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('recruitment',1,'income')">+ Income</button>
@@ -396,15 +396,12 @@
           <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Available</span>
           <span id="questAvailable" style="font-size:14px;font-family:Georgia,serif;font-weight:bold">—</span>
         </div>
-        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;margin-left:8px;padding:4px 12px;background:rgba(74,122,89,.08);border:1px solid rgba(74,122,89,.2);border-radius:20px">
-          <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">£ Laxi</span>
-          <span id="questPrestigeBal" style="font-size:14px;font-family:Georgia,serif;font-weight:bold">—</span>
-        </div>
+        <span id="questDeficitBadge" style="display:none;margin-left:8px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px"></span>
+        <div id="questEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
       <div id="fundTabActions-quest" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('quest',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('quest',-1)">− Expense</button>
-        <button class="ghost-btn" onclick="openPrestigeAlloc('quest')">£ Laxi</button>
         <button id="fundTransferOut-quest" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('quest',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
@@ -458,15 +455,12 @@
         <div class="fund-bal-label">Events Budget Balance</div>
         <div class="fund-bal-value" id="eventsBal">—</div>
         <div id="eventsPending" style="margin-top:2px;min-height:16px"></div>
-        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(74,122,89,.08);border:1px solid rgba(74,122,89,.2);border-radius:20px">
-          <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">£ Laxi</span>
-          <span id="eventsPrestigeBal" style="font-size:14px;font-family:Georgia,serif;font-weight:bold">—</span>
-        </div>
+        <span id="eventsDeficitBadge" style="display:none;margin-left:0;margin-top:6px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block"></span>
+        <div id="eventsEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
       <div id="fundTabActions-events" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('events',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('events',-1)">− Expense</button>
-        <button class="ghost-btn" onclick="openPrestigeAlloc('events')">£ Laxi</button>
         <button id="fundTransferOut-events" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('events',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
@@ -588,15 +582,12 @@
         <div class="fund-bal-label">Island Budget Balance</div>
         <div class="fund-bal-value" id="islandBal">—</div>
         <div id="islandPending" style="margin-top:2px;min-height:16px"></div>
-        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(74,122,89,.08);border:1px solid rgba(74,122,89,.2);border-radius:20px">
-          <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">£ Laxi</span>
-          <span id="islandPrestigeBal" style="font-size:14px;font-family:Georgia,serif;font-weight:bold">—</span>
-        </div>
+        <span id="islandDeficitBadge" style="display:none;margin-top:6px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px"></span>
+        <div id="islandEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
       <div id="fundTabActions-island" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('island',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('island',-1)">− Expense</button>
-        <button class="ghost-btn" onclick="openPrestigeAlloc('island')">£ Laxi</button>
         <button id="fundTransferOut-island" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('island',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
@@ -621,15 +612,12 @@
         <div class="fund-bal-label">Recruitment Budget Balance</div>
         <div class="fund-bal-value" id="recruitmentBal">—</div>
         <div id="recruitmentPending" style="margin-top:2px;min-height:16px"></div>
-        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(74,122,89,.08);border:1px solid rgba(74,122,89,.2);border-radius:20px">
-          <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">£ Laxi</span>
-          <span id="recruitmentPrestigeBal" style="font-size:14px;font-family:Georgia,serif;font-weight:bold">—</span>
-        </div>
+        <span id="recruitmentDeficitBadge" style="display:none;margin-top:6px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px"></span>
+        <div id="recruitmentEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
       <div id="fundTabActions-recruitment" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('recruitment',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('recruitment',-1)">− Expense</button>
-        <button class="ghost-btn" onclick="openPrestigeAlloc('recruitment')">£ Laxi</button>
         <button id="fundTransferOut-recruitment" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('recruitment',-1,'transfer-out')">→ Transfer to Treasury</button>
       </div>
     </div>
@@ -862,8 +850,87 @@ const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
 let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={};
-let _prestigeEntries={quest:{},events:{},island:{},recruitment:{}};
-function getFundPrestigeBal(key){return Object.values(_prestigeEntries[key]||{}).reduce((s,e)=>s+(e.amount||0),0);}
+let _fundDeficits={quest:0,events:0,island:0,recruitment:0};
+function fmtLaxi(n){const a=Math.abs(n);const s=a>=1000000?(a/1000000).toFixed(2).replace(/\.?0+$/,'')+'M':a>=1000?(a/1000).toFixed(1).replace(/\.0$/,'')+'K':String(a);return(n<0?'−':'')+s;}
+
+// Deduct silver from a fund for a Laxi award; writes deficit if insufficient
+async function _fundDeductSilver(fundKey,needed,reason,by,at,taskId){
+  const bal=getFundBal(fundKey);
+  const canPay=Math.max(0,Math.min(bal,needed));
+  const shortfall=needed-canPay;
+  if(canPay>0){
+    await push(ref(db,`funds/${fundKey}/entries`),{amount:-canPay,reason,by,at,auto:true,taskId});
+    await push(ref(db,'treasury/entries'),{amount:canPay,reason,by,at,auto:true,taskId,fund:fundKey});
+  }
+  if(shortfall>0){
+    const prevDeficit=_fundDeficits[fundKey]||0;
+    await set(ref(db,`funds/${fundKey}/deficit`),prevDeficit-shortfall);
+  }
+}
+
+// Efficiency: total Laxi awarded by this fund, silver paid to treasury, income received
+function renderFundEfficiency(key){
+  const defEl=document.getElementById(key+'DeficitBadge');
+  const effEl=document.getElementById(key+'Efficiency');
+  const deficit=_fundDeficits[key]||0;
+  if(defEl){
+    if(deficit<0){defEl.textContent='Unpaid '+fmtS(Math.abs(deficit));defEl.style.display='inline';}
+    else defEl.style.display='none';
+  }
+  if(!effEl)return;
+  const taskEntries=Object.entries(tasks);
+  const laxiTasks=taskEntries.filter(([,t])=>
+    t.status==='completed'&&t.fundType===key&&(t.type==='prestige_quest'||t.type==='prestige_event')
+  );
+  if(!laxiTasks.length){effEl.innerHTML='<span style="font-style:italic">No Laxi distributed yet.</span>';return;}
+
+  const fundEntryByTaskId=Object.fromEntries(
+    Object.values(getFundEntries(key)).filter(e=>e.auto&&e.amount<0&&e.taskId).map(e=>[e.taskId,Math.abs(e.amount)])
+  );
+  // Group tasks by YYYY-MM
+  const byMonth={};
+  laxiTasks.forEach(([tid,t])=>{
+    const d=new Date(t.completedAt||t.createdAt||0);
+    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!byMonth[mk])byMonth[mk]={pts:0,silverPaid:0};
+    byMonth[mk].pts+=(t.prestigePoints||t.prestigeTotal||0);
+    byMonth[mk].silverPaid+=(fundEntryByTaskId[tid]??((t.prestigePoints||t.prestigeTotal||0)*silverRate));
+  });
+  // Income entries grouped by month
+  const incomeByMonth={};
+  Object.values(getFundEntries(key)).filter(e=>e.amount>0).forEach(e=>{
+    const d=new Date(e.at||0);
+    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    incomeByMonth[mk]=(incomeByMonth[mk]||0)+e.amount;
+  });
+
+  const months=Object.keys(byMonth).sort().reverse().slice(0,6);
+  const monthLabel=mk=>{const[y,m]=mk.split('-');return new Date(+y,+m-1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});};
+  const rows=months.map(mk=>{
+    const{pts,silverPaid}=byMonth[mk];
+    const income=incomeByMonth[mk]||0;
+    const eff=silverPaid>0?Math.round(income/silverPaid*100):null;
+    const col=eff==null?'var(--ink-soft)':eff>=100?'#2a5a2a':eff>=70?'#7a5a10':'#8c2424';
+    return`<tr style="border-bottom:1px solid rgba(120,90,50,0.1)">
+      <td style="padding:3px 10px 3px 0;color:var(--ink-soft);white-space:nowrap">${monthLabel(mk)}</td>
+      <td style="padding:3px 10px;text-align:right;font-family:Georgia,serif">£ ${fmtLaxi(pts)}</td>
+      <td style="padding:3px 10px;text-align:right;font-family:Georgia,serif">${fmtS(silverPaid)}</td>
+      <td style="padding:3px 6px;text-align:right;font-family:Georgia,serif">${fmtS(income)}</td>
+      <td style="padding:3px 0 3px 10px;text-align:right;font-weight:bold;color:${col}">${eff!=null?eff+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+  effEl.innerHTML=`<details style="margin-top:4px"><summary style="cursor:pointer;font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Laxi Distribution History</summary>
+  <table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11px">
+    <thead><tr style="border-bottom:1px solid rgba(120,90,50,0.2)">
+      <th style="text-align:left;padding:2px 10px 4px 0;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Month</th>
+      <th style="text-align:right;padding:2px 10px;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Laxi</th>
+      <th style="text-align:right;padding:2px 10px;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Paid</th>
+      <th style="text-align:right;padding:2px 6px;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Income</th>
+      <th style="text-align:right;padding:2px 0;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Eff.</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></details>`;
+}
 
 
 // ── HELPERS ──
@@ -1226,9 +1293,12 @@ function renderOverview(){
   ['quest','events','island','recruitment'].forEach(k=>{
     const el=document.getElementById('ovPrestige-'+k);
     if(!el)return;
-    const bal=getFundPrestigeBal(k);
-    const col=bal<0?'color:var(--seal-red)':bal>0?'color:#2a5a2a':'color:var(--ink-soft)';
-    el.innerHTML=`<span style="${col};font-family:Georgia,serif;font-weight:bold" title="${bal.toLocaleString()} Laxi">£ ${bal>0?'+':''}${bal} Laxi</span>`;
+    const deficit=_fundDeficits[k]||0;
+    if(deficit<0){
+      el.innerHTML=`<span style="color:var(--seal-red);font-family:Georgia,serif;font-size:11px" title="Unpaid silver owed to Free Treasury">Unpaid ${fmtS(Math.abs(deficit))}</span>`;
+    } else {
+      el.innerHTML='';
+    }
   });
 
   // Treasury entry log
@@ -1297,16 +1367,9 @@ const FUND_LIST_ELS={quest:'questEntryList',events:'eventsEntryList',island:'isl
 function getFundEntries(k){return k==='quest'?questEntries:k==='events'?eventsEntries:k==='island'?islandEntries:recruitmentEntries;}
 function getFundBal(k){return k==='quest'?calcQuestBal():k==='events'?calcEventsBal():k==='island'?calcIslandBal():calcRecruitmentBal();}
 
-function renderFundPrestige(key){
-  const el=document.getElementById(key+'PrestigeBal');
-  if(!el)return;
-  const bal=getFundPrestigeBal(key);
-  el.textContent=(bal>=0?'+':'')+bal+' pts';
-  el.style.color=bal<0?'var(--seal-red)':'var(--navy)';
-}
 
 function renderFundEntries(fundKey){
-  renderFundPrestige(fundKey);
+  renderFundEfficiency(fundKey);
   const bal=getFundBal(fundKey);
   setMoney(FUND_BAL_ELS[fundKey],bal,'fund-bal-value'+(bal<0?' neg':''));
   // Pending tasks indicator
@@ -1723,7 +1786,7 @@ window.closeFundAction=function(fund){
   const panel=document.getElementById('fundActionPanel-'+fund);
   if(panel)panel.style.display='none';
 };
-window.submitFundAction=async function(fund){
+window.submitFundAction=async function(fund,forceMode){
   const panel=document.getElementById('fundActionPanel-'+fund);
   const sign=panel?panel._sign:1;
   const rawAmt=parseInt(document.getElementById('fAmt-'+fund).value)||0;
@@ -1731,7 +1794,44 @@ window.submitFundAction=async function(fund){
   if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
   if(!reason){toast('Enter a description.');return;}
   const amount=sign*rawAmt;
-  await push(ref(db,`funds/${fund}/entries`),{amount,reason,by:currentUserData.name,at:Date.now()});
+  const by=currentUserData.name;
+  const at=Date.now();
+  const deficit=_fundDeficits[fund]||0;
+  // Income entry with active deficit → ask how to handle
+  if(amount>0&&deficit<0&&!forceMode){
+    const defAbs=Math.abs(deficit);
+    const repay=Math.min(rawAmt,defAbs);
+    const keep=rawAmt-repay;
+    const msg=`This fund has a deficit of ${fmtS(defAbs)}.\n\n`+
+      `• Income: ${fmtS(repay)} → Free Treasury (repays deficit)${keep>0?`, ${fmtS(keep)} stays in fund`:''}.\n`+
+      `• Manual Injection: full ${fmtS(rawAmt)} stays in fund, deficit cleared.\n\n`+
+      `Choose OK for Income, Cancel to record as Manual Injection.`;
+    if(confirm(msg)){
+      forceMode='income';
+    } else {
+      forceMode='injection';
+    }
+  }
+  if(amount>0&&deficit<0&&forceMode==='income'){
+    const defAbs=Math.abs(deficit);
+    const toTreasury=Math.min(rawAmt,defAbs);
+    const toFund=rawAmt-toTreasury;
+    if(toFund>0) await push(ref(db,`funds/${fund}/entries`),{amount:toFund,reason,by,at});
+    await push(ref(db,'treasury/entries'),{amount:toTreasury,reason:`Deficit repayment — ${fund} (${reason})`,by,at,auto:true,fund});
+    const newDeficit=deficit+toTreasury;
+    await set(ref(db,`funds/${fund}/deficit`),newDeficit>=0?null:newDeficit);
+    closeFundAction(fund);
+    toast(`Recorded: ${fmtS(toTreasury)} → Treasury (deficit repaid)${toFund>0?`, ${fmtS(toFund)} to fund`:''}.`);
+    return;
+  }
+  if(amount>0&&deficit<0&&forceMode==='injection'){
+    await push(ref(db,`funds/${fund}/entries`),{amount,reason,by,at,injection:true});
+    await set(ref(db,`funds/${fund}/deficit`),null);
+    closeFundAction(fund);
+    toast(`Manual injection recorded — deficit cleared.`);
+    return;
+  }
+  await push(ref(db,`funds/${fund}/entries`),{amount,reason,by,at});
   closeFundAction(fund);
   toast(`Recorded: ${amount>0?'+':''}${fmtS(amount)}`);
 };
@@ -2400,11 +2500,13 @@ window.completeTask=async function(id){
     }
     if(Object.keys(upd).length)await update(ref(db),upd);
     if(t.eventId)await update(ref(db,'events/'+t.eventId),{status:'completed'});
-    // Deduct from Events Budget prestige + credit treasury
+    // Deduct from Events Budget prestige + deduct silver from budget (or record deficit)
     const evTotalPts=t.prestigeTotal||0;
     if(evTotalPts>0){
+      const evSilver=evTotalPts*silverRate;
+      const evReason=`Laxi award — ${t.eventTitle||t.title} (${evTotalPts} pts × ${silverRate.toLocaleString()} S)`;
       await push(ref(db,'funds/events/prestigeEntries'),{amount:-evTotalPts,reason:`Event: ${t.eventTitle||t.title}`,at,by,auto:true,taskId:id});
-      await push(ref(db,'treasury/entries'),{amount:evTotalPts*silverRate,reason:`Event prestige — ${t.eventTitle||t.title} (${evTotalPts} pts × ${silverRate.toLocaleString()} S)`,by,at,auto:true,taskId:id});
+      await _fundDeductSilver('events',evSilver,evReason,by,at,id);
     }
     toast(`Event prestige approved — ${t.prestigeTotal||0} pts distributed.`);
     return;
@@ -2445,11 +2547,13 @@ window.completeTask=async function(id){
         await remove(ref(db,'questParties/'+t.questId+'/'+partyKey(t.holder||'')));
       }
     }
-    // Deduct from Quest Budget prestige + credit treasury with silver equivalent
+    // Deduct from Quest Budget prestige + deduct silver from budget (or record deficit)
     const totalPts=t.prestigePoints||0;
     if(totalPts>0){
+      const qSilver=totalPts*silverRate;
+      const qReason=`Laxi award — ${t.questName||t.title} (${totalPts} pts × ${silverRate.toLocaleString()} S)`;
       await push(ref(db,'funds/quest/prestigeEntries'),{amount:-totalPts,reason:`Quest: ${t.questName||t.title}`,at,by,auto:true,taskId:id});
-      await push(ref(db,'treasury/entries'),{amount:totalPts*silverRate,reason:`Laxi award — ${t.questName||t.title} (${totalPts} pts × ${silverRate.toLocaleString()} S)`,by,at,auto:true,taskId:id});
+      await _fundDeductSilver('quest',qSilver,qReason,by,at,id);
     }
     toast(`Approved — ${t.prestigePoints} laxi awarded to ${party.join(', ')}.`);
     return;
@@ -2662,6 +2766,15 @@ onAuthStateChanged(auth,async user=>{
     el.innerHTML=rows||'<span style="font-style:italic;color:var(--ink-soft)">No circuit breaker events on record.</span>';
   });
 
+  // ── Fund deficit listeners ──
+  ['quest','events','island','recruitment'].forEach(key=>{
+    onValue(ref(db,'funds/'+key+'/deficit'),snap=>{
+      _fundDeficits[key]=snap.exists()?snap.val():0;
+      renderFundEfficiency(key);
+      renderOverview();
+    });
+  });
+
   safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
   safeOnValue('certificates',snap=>{_certificates=snap.val()||{};renderCertificates();});
   safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});
@@ -2671,13 +2784,6 @@ onAuthStateChanged(auth,async user=>{
     renderBudgetPermissions();
   });
   safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();});
-  ['quest','events','island','recruitment'].forEach(key=>{
-    safeOnValue('funds/'+key+'/prestigeEntries',snap=>{
-      _prestigeEntries[key]=snap.val()||{};
-      renderFundPrestige(key);
-      renderOverview();
-    });
-  });
   safeOnValue('users',snap=>{_allUsers=snap.val()||{};if(isAdmin(currentUserData)){renderBudgetManagerPanels();populateCertificateUsers();}});
   safeOnValue('bondRequests',snap=>{_bondRequests=snap.val()||{};renderBonds();});
   renderBudgetPermissions();

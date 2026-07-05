@@ -1080,8 +1080,23 @@ onAuthStateChanged(auth,async user=>{
     if(totalPts>0){
       const rateSnap=await get(ref(db,'treasury/settings/silverPerLaxi'));
       const rate=rateSnap.exists()?rateSnap.val():10000;
+      const needed=totalPts*rate;
+      const reason=`Laxi award — ${t.questName||''} (${totalPts} pts × ${rate.toLocaleString()} S)`;
+      // Get current quest fund silver balance
+      const fundSnap=await get(ref(db,'funds/quest/entries'));
+      const fundBal=Object.values(fundSnap.val()||{}).reduce((s,e)=>s+(e.amount||0),0);
+      const canPay=Math.max(0,Math.min(fundBal,needed));
+      const shortfall=needed-canPay;
       await push(ref(db,'funds/quest/prestigeEntries'),{amount:-totalPts,reason:`Quest: ${t.questName||''}`,at,by,auto:true,taskId:tid});
-      await push(ref(db,'treasury/entries'),{amount:totalPts*rate,reason:`Laxi award — ${t.questName||''} (${totalPts} pts × ${rate.toLocaleString()} S)`,by,at,auto:true,taskId:tid});
+      if(canPay>0){
+        await push(ref(db,'funds/quest/entries'),{amount:-canPay,reason,by,at,auto:true,taskId:tid});
+        await push(ref(db,'treasury/entries'),{amount:canPay,reason,by,at,auto:true,taskId:tid,fund:'quest'});
+      }
+      if(shortfall>0){
+        const defSnap=await get(ref(db,'funds/quest/deficit'));
+        const prevDef=defSnap.exists()?defSnap.val():0;
+        await set(ref(db,'funds/quest/deficit'),prevDef-shortfall);
+      }
     }
     await update(ref(db,'tasks/'+tid),{status:'completed',completedAt:at,completedBy:by});
   };
