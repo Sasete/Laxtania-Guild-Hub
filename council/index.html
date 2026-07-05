@@ -771,6 +771,18 @@
       </div>
     </div>
 
+    <!-- Crisis History -->
+    <div class="add-form" style="margin-bottom:28px" id="crisisHistorySection">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="section-eyebrow" style="margin:0">⚡ Circuit Breaker History</div>
+        <span id="crisisPendingBadge" style="display:none;background:rgba(140,36,36,0.12);border:1px solid rgba(140,36,36,0.4);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:3px">⚠ Crisis Active</span>
+      </div>
+      <div id="crisisPendingInfo" style="display:none;background:rgba(140,36,36,0.06);border:1px solid rgba(140,36,36,0.25);border-radius:3px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#5a1a1a;line-height:1.7">
+        Loading crisis info…
+      </div>
+      <div id="crisisLogList" style="font-size:12px;color:var(--ink-soft);font-style:italic">No circuit breaker events on record.</div>
+    </div>
+
     <div id="budgetManagerSection" style="display:none">
       <div class="section-eyebrow" style="margin-top:28px">Budget Managers</div>
       <div class="budget-manager-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:960px">
@@ -839,7 +851,7 @@
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getDatabase,ref,set,get,update,remove,onValue,push,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,set,get,update,remove,onValue,push,serverTimestamp,query,orderByChild,limitToLast}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
 const RANKS={serf:{w:1},commoner:{w:2},knight:{w:3},lord:{w:4},councillor:{w:5},hand:{w:6,admin:true},sovereign:{w:7,admin:true}};
@@ -2607,6 +2619,49 @@ onAuthStateChanged(auth,async user=>{
     _dropUpdateUI();
     renderDropCurveChart();
   });
+  // ── Crisis breaker listeners ──
+  function _fmtSC(v){if(!v)return'0 S';const a=Math.abs(v);const s=a>=1000000?(a/1000000).toFixed(2)+'M':a>=1000?(a/1000).toFixed(0)+'K':a.toLocaleString();return(v<0?'-':'')+s+' S';}
+  onValue(ref(db,'treasury/settings/crisis_pending'),snap=>{
+    const badge=document.getElementById('crisisPendingBadge');
+    const info=document.getElementById('crisisPendingInfo');
+    if(!badge||!info)return;
+    if(!snap.exists()){badge.style.display='none';info.style.display='none';return;}
+    const c=snap.val();
+    badge.style.display='inline';
+    info.style.display='block';
+    const detectedAgo=Math.round((Date.now()-(c.detectedAt||0))/60000);
+    const hoursLeft=Math.max(0,(120-detectedAgo));
+    info.innerHTML=`
+      <strong>Circuit breaker armed</strong> — detected ${detectedAgo} min ago.<br>
+      Nominal at detection: <strong>${(c.nominalAtDetection||0).toLocaleString()} S</strong> &nbsp;·&nbsp;
+      Real at detection: <strong>${(c.realAtDetection||0).toLocaleString()} S</strong> &nbsp;·&nbsp;
+      Drop: <strong>${c.dropPct||0}%</strong><br>
+      <span style="color:#8c2424">Will snap nominal to real in ~${hoursLeft} min if crisis persists.</span>`;
+  });
+  onValue(query(ref(db,'treasury/settings/crisis_log'),orderByChild('triggeredAt'),limitToLast(20)),snap=>{
+    const el=document.getElementById('crisisLogList');
+    if(!el)return;
+    if(!snap.exists()){el.innerHTML='<span style="font-style:italic;color:var(--ink-soft)">No circuit breaker events on record.</span>';return;}
+    const rows=Object.values(snap.val()).reverse().map(c=>{
+      const d=new Date(c.triggeredAt||0);
+      const dateStr=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+      const timeStr=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(120,90,50,0.12)">
+        <div>
+          <span style="color:#8c2424;font-weight:bold">⚡ Circuit Break</span>
+          <span style="color:var(--ink-soft);margin-left:10px">${dateStr} ${timeStr}</span>
+        </div>
+        <div style="text-align:right;font-size:11px;color:var(--ink-soft)">
+          <span title="Nominal before snap">${(c.nominalBefore||0).toLocaleString()} S</span>
+          <span style="margin:0 6px">→</span>
+          <span title="Real value at snap" style="color:var(--navy);font-weight:bold">${(c.realValue||0).toLocaleString()} S</span>
+          <span style="margin-left:8px;color:#8c2424">−${c.dropPct||0}%</span>
+        </div>
+      </div>`;
+    }).join('');
+    el.innerHTML=rows||'<span style="font-style:italic;color:var(--ink-soft)">No circuit breaker events on record.</span>';
+  });
+
   safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
   safeOnValue('certificates',snap=>{_certificates=snap.val()||{};renderCertificates();});
   safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});

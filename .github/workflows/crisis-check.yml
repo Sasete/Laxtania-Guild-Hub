@@ -1,12 +1,12 @@
-name: Daily Laxi Rate Adjustment
+name: Laxi Rate Crisis Check
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # Her gün 00:00 Turkey time (UTC+3)
-  workflow_dispatch:       # Manuel tetiklemek için
+    - cron: '0 */3 * * *'  # Every 3 hours
+  workflow_dispatch:
 
 jobs:
-  adjust-rate:
+  crisis-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
         run: npm install firebase-admin
         working-directory: scripts
 
-      - name: Run adjustment
+      - name: Check crisis status
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node adjust-prestige-rate.js
