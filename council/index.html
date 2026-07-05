@@ -223,6 +223,7 @@
     </div>
     <button class="tab-btn" onclick="switchTab('bonds')" id="bondsTabBtn">Bonds <span id="bondTabBadge" class="tab-badge" style="display:none"></span></button>
     <button class="tab-btn" onclick="switchTab('tasks')" id="tasksTabBtn">Tasks <span id="taskTabBadge" class="tab-badge" style="display:none"></span></button>
+    <button class="tab-btn" onclick="switchTab('circle')" id="circleTabBtn">Circle Table</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </div>
 
@@ -446,6 +447,35 @@
     <div class="section-eyebrow">Transaction History</div>
     <div id="questEntryList"><div class="empty">No entries yet.</div></div>
     <div id="questEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
+
+    <!-- Certificates Management -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:28px">
+      <span>Certificates Management</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleCertificateForm()">+ Create Certificate</button>
+    </div>
+    <div id="certificateForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="certTitle" placeholder="Title (e.g. ZvZ Basics)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
+        <input type="text" id="certIcon" placeholder="Icon (e.g. 🎓)" value="🎓" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100px">
+        <input type="text" id="certColor" placeholder="Color hex (e.g. #c8a04a)" value="#c8a04a" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:120px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="certDesc" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="addCertificate()">Save</button>
+        <button class="ghost-btn" onclick="toggleCertificateForm()">Cancel</button>
+      </div>
+    </div>
+    <div id="certificatesList" style="margin-bottom:20px"></div>
+    
+    <!-- Manual Certificate Granting -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span>Grant Certificate Manually</span>
+    </div>
+    <div style="margin-bottom:20px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select id="grantCertUser" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Member —</option></select>
+      <select id="grantCertId" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Certificate —</option></select>
+      <button class="gold-btn" onclick="manualGrantCertificate()">Grant</button>
+    </div>
   </div>
 
   <!-- ══ EVENTS FUND ══ -->
@@ -510,34 +540,7 @@
       </div>
     </div>
 
-    <!-- Certificates Management -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-      <span>Certificates Management</span>
-      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleCertificateForm()">+ Create Certificate</button>
-    </div>
-    <div id="certificateForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-        <input type="text" id="certTitle" placeholder="Title (e.g. ZvZ Basics)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
-        <input type="text" id="certIcon" placeholder="Icon (e.g. 🎓)" value="🎓" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100px">
-        <input type="text" id="certColor" placeholder="Color hex (e.g. #c8a04a)" value="#c8a04a" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:120px">
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="certDesc" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
-        <button class="gold-btn" onclick="addCertificate()">Save</button>
-        <button class="ghost-btn" onclick="toggleCertificateForm()">Cancel</button>
-      </div>
-    </div>
-    <div id="certificatesList" style="margin-bottom:20px"></div>
-    
-    <!-- Manual Certificate Granting -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-      <span>Grant Certificate Manually</span>
-    </div>
-    <div style="margin-bottom:20px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <select id="grantCertUser" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Member —</option></select>
-      <select id="grantCertId" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Certificate —</option></select>
-      <button class="gold-btn" onclick="manualGrantCertificate()">Grant</button>
-    </div>
+
 
     <!-- ══ Laxi Drop Curve ══ -->
     <div class="section-eyebrow" style="margin-top:24px">Laxi Drop Curve</div>
@@ -649,7 +652,7 @@
         <div class="metric-sub" id="bondLiabilitySub"></div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Net Position</div>
+        <div class="metric-label">Free Treasury</div>
         <div class="metric-value" id="bondNetVal">—</div>
         <div class="metric-sub">Treasury − Bond liability</div>
       </div>
@@ -771,45 +774,18 @@
       <div id="crisisLogList" style="font-size:12px;color:var(--ink-soft);font-style:italic">No circuit breaker events on record.</div>
     </div>
 
-    <div id="budgetManagerSection" style="display:none">
-      <div class="section-eyebrow" style="margin-top:28px">Budget Managers</div>
-      <div class="budget-manager-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:960px">
-        <div class="add-form" id="bmPanel-quest">
-          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Quest Budget</div>
-          <div id="bmList-quest" style="margin-bottom:10px"></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="bmSelect-quest" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
-            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('quest')">Assign</button>
-          </div>
-        </div>
-        <div class="add-form" id="bmPanel-events">
-          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Events Budget</div>
-          <div id="bmList-events" style="margin-bottom:10px"></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="bmSelect-events" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
-            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('events')">Assign</button>
-          </div>
-        </div>
-        <div class="add-form" id="bmPanel-island">
-          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Island Budget</div>
-          <div id="bmList-island" style="margin-bottom:10px"></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="bmSelect-island" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
-            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('island')">Assign</button>
-          </div>
-        </div>
-        <div class="add-form" id="bmPanel-recruitment">
-          <div style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(28,42,64,.12)">Recruitment Budget</div>
-          <div id="bmList-recruitment" style="margin-bottom:10px"></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="bmSelect-recruitment" style="font-family:Georgia,serif;font-size:13px;padding:5px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"></select>
-            <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="addBudgetManager('recruitment')">Assign</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
+
+  <!-- ══ CIRCLE TABLE ══ -->
+  <div id="tab-circle" class="tab-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:16px;font-variant:small-caps;letter-spacing:1px;color:var(--navy);font-weight:bold">Inner Circle Roles & Authorities</div>
+      <div style="font-size:11px;font-style:italic;color:var(--ink-soft)">Only Councillors and above are listed here.</div>
+    </div>
+    <div id="circleTableGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+  </div>
+
+</div>
 </div>
 
 <div id="toast"></div>
@@ -844,12 +820,24 @@ import{getDatabase,ref,set,get,update,remove,onValue,push,serverTimestamp,query,
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
 const RANKS={serf:{w:1},commoner:{w:2},knight:{w:3},lord:{w:4},councillor:{w:5},hand:{w:6,admin:true},sovereign:{w:7,admin:true}};
 
+const GUILD_ROLES = {
+  'manage_quest_budget': {label: 'Quest Budget Manager', color: '#7a5a10'},
+  'manage_events_budget': {label: 'Events Budget Manager', color: '#7a5a10'},
+  'manage_island_budget': {label: 'Island Budget Manager', color: '#7a5a10'},
+  'manage_recruitment_budget': {label: 'Recruitment Manager', color: '#7a5a10'},
+  'admin_members': {label: 'Members & Profiles Admin', color: '#8c2424'},
+  'admin_quests': {label: 'Quests Admin', color: '#8c2424'},
+  'admin_events': {label: 'Events Admin', color: '#8c2424'},
+  'admin_prestige': {label: 'Prestige Admin', color: '#8c2424'},
+  'admin_council': {label: 'Council Dashboard Access', color: '#8c2424'}
+};
+
 const app=initializeApp(FC);
 const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
-let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={};
+let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={};
 let _fundDeficits={quest:0,events:0,island:0,recruitment:0};
 function fmtLaxi(n){const a=Math.abs(n);const s=a>=1000000?(a/1000000).toFixed(2).replace(/\.?0+$/,'')+'M':a>=1000?(a/1000).toFixed(1).replace(/\.0$/,'')+'K':String(a);return(n<0?'−':'')+s;}
 
@@ -956,15 +944,18 @@ function setMoney(elId,n,extraClass){
 window.toggleEl=function(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';};
 function isEligible(d){return(d.ranks||[]).some(r=>RANKS[r]?.w>=5);}
 function isAdmin(d){return(d?.ranks||[]).some(r=>RANKS[r]?.admin);}
+function hasRole(d, role) {
+  if(!d) return false;
+  if(isAdmin(d)) return true;
+  if(!isEligible(d)) return false; // Must be Councillor or above
+  return d.roles && d.roles[role] === true;
+}
 function canManageBudget(key){
-  if(!currentUserData)return false;
-  if(isAdmin(currentUserData))return true;
-  const uid=currentUser?.uid;
-  return uid&&_budgetManagers[key]&&_budgetManagers[key][uid]===true;
+  return hasRole(currentUserData, 'manage_'+key+'_budget');
 }
 
 function renderBudgetPermissions(){
-  const admin=isAdmin(currentUserData);
+  const admin=isAdmin(currentUserData) || hasRole(currentUserData, 'admin_council');
   // Treasury overview buttons
   const tb=document.getElementById('ovButtons-treasury');
   if(tb)tb.style.display=admin?'block':'none';
@@ -980,53 +971,118 @@ function renderBudgetPermissions(){
     const to=document.getElementById('fundTransferOut-'+key);
     if(to)to.style.display=can?'inline-flex':'none';
   });
-  // Budget Manager section in Settings — admin only
-  const bms=document.getElementById('budgetManagerSection');
-  if(bms)bms.style.display=admin?'block':'none';
-  if(admin)renderBudgetManagerPanels();
+  
+  // Show Circle Table tab for admins only
+  const cTabBtn = document.getElementById('circleTabBtn');
+  if(cTabBtn) cTabBtn.style.display = admin ? 'inline-block' : 'none';
+  
+  if(admin) renderCircleTable();
 }
 
-function renderBudgetManagerPanels(){
-  ['quest','events','island','recruitment'].forEach(key=>{
-    const listEl=document.getElementById('bmList-'+key);
-    const selectEl=document.getElementById('bmSelect-'+key);
-    if(!listEl||!selectEl)return;
-    const managers=_budgetManagers[key]||{};
-    const managerUids=Object.keys(managers).filter(uid=>managers[uid]===true);
-    if(!managerUids.length){
-      listEl.innerHTML='<div style="font-size:12px;font-style:italic;color:var(--ink-soft);margin-bottom:6px">No managers assigned.</div>';
-    }else{
-      listEl.innerHTML=managerUids.map(uid=>{
-        const name=_allUsers[uid]?.name||uid;
-        return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(120,90,50,.12)">
-          <span style="flex:1;font-size:13px">${name}</span>
-          <button onclick="removeBudgetManager('${key}','${uid}')" style="font-size:11px;background:none;border:none;color:var(--seal-red);cursor:pointer">✕ Remove</button>
-        </div>`;
-      }).join('');
+function renderCircleTable(){
+  const grid = document.getElementById('circleTableGrid');
+  if(!grid) return;
+  
+  // Get all eligible members (Councillor and above)
+  const circleMembers = Object.entries(_allUsers)
+    .filter(([uid, u]) => u.status === 'approved' && isEligible(u))
+    .sort((a, b) => {
+      // Sort by rank weight descending, then by name
+      const wa = Math.max(...(a[1].ranks||[]).map(r=>RANKS[r]?.w||0));
+      const wb = Math.max(...(b[1].ranks||[]).map(r=>RANKS[r]?.w||0));
+      if(wa !== wb) return wb - wa;
+      return (a[1].name||'').localeCompare(b[1].name||'');
+    });
+
+  if(!circleMembers.length) {
+    grid.innerHTML = '<div style="font-size:12px;font-style:italic;color:var(--ink-soft)">No Inner Circle members found.</div>';
+    return;
+  }
+
+  const isGuildLeader = (currentUserData?.ranks||[]).some(r=>['hand','sovereign'].includes((r||'').toLowerCase()));
+
+  grid.innerHTML = circleMembers.map(([uid, u]) => {
+    const name = u.name || uid;
+    const title = u.title ? `<div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px">${u.title}</div>` : '';
+    
+    // Determine highest rank name
+    const highestRank = (u.ranks||[]).reduce((best, r) => (RANKS[r]?.w||0) > (RANKS[best]?.w||0) ? r : best, (u.ranks||['serf'])[0]);
+    const rankLabel = highestRank ? highestRank.charAt(0).toUpperCase() + highestRank.slice(1) : 'Serf';
+    const isAutoAdmin = isAdmin(u);
+
+    // Build roles tags
+    let tagsHtml = '';
+    if (isAutoAdmin) {
+      tagsHtml = `<div style="display:inline-block;padding:3px 8px;border-radius:12px;background:rgba(28,42,64,.1);color:var(--navy);font-size:10px;font-variant:small-caps;letter-spacing:1px;margin:2px">Sovereign / Hand (All Access)</div>`;
+    } else {
+      const uRoles = u.roles || {};
+      const activeRoles = Object.keys(uRoles).filter(k => uRoles[k] === true && GUILD_ROLES[k]);
+      if (activeRoles.length) {
+        tagsHtml = activeRoles.map(rk => {
+          const rData = GUILD_ROLES[rk];
+          const removeBtn = isGuildLeader ? `<button onclick="removeRole('${uid}','${rk}')" style="background:none;border:none;color:${rData.color};cursor:pointer;font-size:10px;margin-left:4px;padding:0;line-height:1">✕</button>` : '';
+          return `<div style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:12px;background:${rData.color}15;color:${rData.color};font-size:10px;font-variant:small-caps;letter-spacing:1px;margin:2px;border:1px solid ${rData.color}30">
+            ${rData.label}${removeBtn}
+          </div>`;
+        }).join('');
+      } else {
+        tagsHtml = `<div style="font-size:11px;color:var(--ink-soft);font-style:italic">No explicit roles assigned.</div>`;
+      }
     }
-    // populate select with non-manager approved users
-    const assigned=new Set(managerUids);
-    const COUNCIL_RANKS=new Set(['councillor','hand','sovereign']);
-    const options=Object.entries(_allUsers)
-      .filter(([uid,u])=>u.status==='approved'&&!assigned.has(uid)&&COUNCIL_RANKS.has(u.rank))
-      .sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
-    selectEl.innerHTML='<option value="">— Select member —</option>'+options.map(([uid,u])=>`<option value="${uid}">${u.name||uid}</option>`).join('');
-  });
+
+    // Role assignment dropdown (only if not auto-admin)
+    let assignHtml = '';
+    if (!isAutoAdmin && isGuildLeader) {
+      const options = Object.entries(GUILD_ROLES)
+        .filter(([rk]) => !(u.roles && u.roles[rk]))
+        .map(([rk, rData]) => `<option value="${rk}" style="background:#f1e4c4;color:#2e2014">${rData.label}</option>`)
+        .join('');
+      if (options) {
+        assignHtml = `
+        <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+          <select id="addRoleSel-${uid}" style="flex:1;font-family:Georgia,serif;font-size:11px;padding:4px 6px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:#2e2014">
+            <option value="" style="background:#f1e4c4;color:#2e2014">— Assign Role —</option>
+            ${options}
+          </select>
+          <button class="gold-btn" style="font-size:10px;padding:4px 10px" onclick="addRole('${uid}')">Add</button>
+        </div>`;
+      }
+    }
+
+    return `
+    <div style="background:var(--parchment);border:1px solid rgba(46,32,20,.25);border-radius:4px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(28,42,64,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">
+          ${name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:bold;color:var(--navy)">${name}</div>
+          <div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">${rankLabel}</div>
+        </div>
+      </div>
+      ${title}
+      <div style="margin-top:8px;min-height:24px">${tagsHtml}</div>
+      ${assignHtml}
+    </div>`;
+  }).join('');
 }
 
-window.addBudgetManager=async function(key){
-  const sel=document.getElementById('bmSelect-'+key);
-  const uid=sel?.value;
-  if(!uid)return;
-  await set(ref(db,`budgetManagers/${key}/${uid}`),true);
+window.addRole = async function(uid) {
+  const sel = document.getElementById(`addRoleSel-${uid}`);
+  const roleKey = sel?.value;
+  if(!roleKey) return;
+  await set(ref(db, `users/${uid}/roles/${roleKey}`), true);
+  toast('Role assigned.');
 };
 
-window.removeBudgetManager=async function(key,uid){
-  await remove(ref(db,`budgetManagers/${key}/${uid}`));
+window.removeRole = async function(uid, roleKey) {
+  if(!confirm('Remove this role?')) return;
+  await remove(ref(db, `users/${uid}/roles/${roleKey}`));
+  toast('Role removed.');
 };
 
 // ── TABS ──
-const VALID_TABS=new Set(['overview','quest','events','island','recruitment','bonds','tasks','settings']);
+const VALID_TABS=new Set(['overview','quest','events','island','recruitment','bonds','tasks','circle','settings']);
 const BUDGET_TABS=new Set(['quest','events','island','recruitment']);
 window.switchTab=function(tab){
   if(!VALID_TABS.has(tab))tab='overview';
@@ -2436,7 +2492,7 @@ function renderPrestigeValue(){
   card.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
       <div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-variant:small-caps;letter-spacing:1px">Net Position</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-variant:small-caps;letter-spacing:1px">Free Treasury</div>
         <div style="font-size:16px;font-weight:bold;color:var(--navy)">${fmtS(netPos)}</div>
       </div>
       <div>
@@ -2778,13 +2834,15 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
   safeOnValue('certificates',snap=>{_certificates=snap.val()||{};renderCertificates();});
   safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});
-  safeOnValue('budgetManagers',snap=>{
-    const v=snap.val()||{};
-    _budgetManagers={quest:v.quest||{},events:v.events||{},island:v.island||{},recruitment:v.recruitment||{}};
-    renderBudgetPermissions();
+  safeOnValue('users',snap=>{
+    _allUsers=snap.val()||{};
+    const admin = isAdmin(currentUserData) || hasRole(currentUserData, 'admin_council');
+    if(admin){
+      renderCircleTable();
+    }
+    populateCertificateUsers();
   });
   safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();});
-  safeOnValue('users',snap=>{_allUsers=snap.val()||{};if(isAdmin(currentUserData)){renderBudgetManagerPanels();populateCertificateUsers();}});
   safeOnValue('bondRequests',snap=>{_bondRequests=snap.val()||{};renderBonds();});
   renderBudgetPermissions();
 });

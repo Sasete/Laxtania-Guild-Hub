@@ -343,7 +343,7 @@ let currentUserData=null,currentPM=null,isAdmin=false,adminMode=false;
 function getTier(pts){let t=tiers[0];for(const x of tiers){if(pts>=x.minPts)t=x;}return t;}
 function isSov(d){return(d.ranks||[]).includes('sovereign');}
 function isHand(d){return(d.ranks||[]).includes('hand');}
-function resolveIsAdmin(d){const ranks=d.ranks||['serf'];const h=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);let a=RANKS[h]?.admin===true;if(h==='councillor'&&d.adminAccess===true)a=true;return a;}
+function resolveIsAdmin(d){const ranks=d.ranks||['serf'];const h=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);let a=RANKS[h]?.admin===true;if((RANKS[h]?.w||0)>=5&&d.roles?.admin_prestige===true)a=true;return a;}
 function assignableRanks(){if(!currentUserData)return[];if(isSov(currentUserData))return['serf','commoner','knight','lord','councillor','hand','sovereign'];if(isHand(currentUserData))return['serf','commoner','knight','lord','councillor'];return[];}
 function canEdit(targetRanks){if(!currentUserData)return false;if(isSov(currentUserData))return true;if(isHand(currentUserData))return!(targetRanks||[]).includes('sovereign')&&!(targetRanks||[]).includes('hand');return false;}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
@@ -484,6 +484,7 @@ function renderMembers(){
       if(uEntry) { matchedUid = uEntry[0]; userCerts = uEntry[1].certificates||{}; }
     }
     const hasCerts = Object.keys(userCerts).length > 0;
+    const canGrantCerts = isAdmin || currentUserData?.roles?.manage_quest_budget === true || currentUserData?.roles?.admin_events === true || currentUserData?.roles?.admin_members === true;
     
     return`<tr class="${isMe?'is-me':''}" style="cursor:pointer" onclick="toggleMemberDetail('${m.id}')">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
@@ -503,9 +504,18 @@ function renderMembers(){
           ${hasCerts ? Object.keys(userCerts).map(cid=>{
             const c=window._certificates?.[cid];
             if(!c) return '';
-            return `<span style="font-size:11px;color:${c.color||'var(--ink)'};border:1px solid ${c.color||'#8a6a28'}44;background:rgba(255,255,255,0.4);padding:3px 8px;border-radius:2px;font-variant:small-caps" title="${c.description||''}">${c.icon||'🎓'} ${c.title}</span>`;
+            const revokeBtn = canGrantCerts && matchedUid ? `<span style="cursor:pointer;margin-left:4px;color:#8c2424" onclick="event.stopPropagation(); manualRevokeCert('${matchedUid}', '${cid}')">✕</span>` : '';
+            return `<span style="font-size:11px;color:${c.color||'var(--ink)'};border:1px solid ${c.color||'#8a6a28'}44;background:rgba(255,255,255,0.4);padding:3px 8px;border-radius:2px;font-variant:small-caps" title="${c.description||''}">${c.icon||'🎓'} ${c.title}${revokeBtn}</span>`;
           }).join('') : '<span style="font-size:11px;color:var(--ink-soft);font-style:italic">No certificates earned yet.</span>'}
         </div>
+        ${(canGrantCerts && matchedUid) ? `
+        <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+          <select id="gc-${matchedUid}" style="font-family:Georgia,serif;font-size:11px;padding:3px 6px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+            <option value="">— Grant Cert —</option>
+            ${Object.entries(window._certificates||{}).map(([cid,c])=>`<option value="${cid}">${c.icon||'🎓'} ${c.title}</option>`).join('')}
+          </select>
+          <button class="gold-btn" style="font-size:10px;padding:3px 8px" onclick="event.stopPropagation(); manualGrantCert('${matchedUid}')">Grant</button>
+        </div>` : ''}
       </div>
     </td></tr>
     ${ce?`<tr id="edit-${m.id}" style="display:none"><td colspan="6" style="padding:0">
@@ -608,6 +618,29 @@ window.adjustPrestige=async function(id,name,sign){
   await push(ref(db,'prestige/members/'+id+'/log'),entry);
   toast(`${name}: ${delta>0?'+':''}${delta} laxi`);
   loadMemberLog(id);
+};
+
+window.manualGrantCert = async function(uid) {
+  const sel = document.getElementById('gc-' + uid);
+  const certId = sel ? sel.value : null;
+  if(!certId) return;
+  try {
+    await update(ref(db, `users/${uid}/certificates/${certId}`), { acquiredAt: Date.now(), fromEvent: 'manual', eventTitle: 'Manual Grant' });
+    toast('Certificate granted.');
+    sel.value = '';
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+};
+
+window.manualRevokeCert = async function(uid, certId) {
+  if(!confirm("Revoke this certificate from member?")) return;
+  try {
+    await remove(ref(db, `users/${uid}/certificates/${certId}`));
+    toast('Certificate revoked.');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
 };
 
 window.adjustFamilyBonus=async function(id,name,sign){

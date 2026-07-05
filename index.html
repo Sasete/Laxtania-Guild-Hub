@@ -482,7 +482,7 @@ function resolveIsAdmin(d){
   const ranks=d.ranks||['serf'];
   const highest=ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0]);
   let a=RANKS[highest]?.admin===true;
-  if(highest==='councillor'&&d.adminAccess===true)a=true;
+  if(RANKS[highest]?.w >= 5 && d.roles?.admin_members===true) a=true;
   return a;
 }
 function assignableRanks(){

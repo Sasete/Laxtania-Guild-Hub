@@ -368,7 +368,7 @@
             if(!usnap.exists())return;
             const ud=usnap.val();
             _navUserName=(ud?.name||'').toLowerCase();
-            _navIsAdmin=(ud?.ranks||[]).some(r=>ADMIN_RANKS_PT.includes(r));
+            _navIsAdmin=(ud?.ranks||[]).some(r=>ADMIN_RANKS_PT.includes(r)) || (ud?.roles && Object.keys(ud.roles).some(k=>k.startsWith('admin_')&&ud.roles[k]===true));
             _navUpdatePrestigePending();
 
             // Show user bar (for pages whose own auth callback hasn't done it yet)

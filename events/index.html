@@ -463,7 +463,7 @@ window.updateCompletePreview=function(evId){
   const prev=document.getElementById('cprev-'+evId);
   if(!prev)return;
   if(!parts){prev.textContent='No participants yet.';return;}
-  if(!income){prev.textContent=`${parts} participant${parts!==1?'s':''} · enter income above`;return;}
+  if(!income){prev.textContent=`${parts} participant${parts!==1?'s':''} · 0 Laxi (no income)`;return;}
   const rate=calcPrestigeRate(income);
   const total=Math.floor(income/rate);
   const per=Math.floor(total/parts);
@@ -629,15 +629,19 @@ window.completeEvent=async function(evId){
 
   if (!ev.isOfficial || ev.calculatesIncome) {
     income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
-    if(!income||income<1){toast('Guild income girin.');return;}
-    const rate=calcPrestigeRate(income);
-    const incTotal=Math.floor(income/rate);
-    if(!incTotal||incTotal<1){toast('Orana göre income laxi 0 çıktı.');return;}
-    
-    total = fixedTotal + incTotal;
-    perPerson = fixedPerPerson + Math.floor(incTotal/parts.length);
-    remainder = total - (perPerson*parts.length);
-    incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
+    if(income>0){
+      const rate=calcPrestigeRate(income);
+      const incTotal=Math.floor(income/rate);
+      total = fixedTotal + incTotal;
+      perPerson = fixedPerPerson + Math.floor(incTotal/parts.length);
+      remainder = total - (perPerson*parts.length);
+      incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
+    } else {
+      total = fixedTotal;
+      perPerson = fixedPerPerson;
+      remainder = total - (perPerson*parts.length);
+      incFmt = '0';
+    }
   } else {
     total = fixedTotal;
     perPerson = fixedPerPerson;
@@ -708,7 +712,7 @@ onAuthStateChanged(auth,async user=>{
   currentUser=user;
   currentUserData=snap.val();
   const ranks=currentUserData.ranks||['serf'];
-  isAdmin=ranks.some(r=>RANKS[r]?.admin===true)||currentUserData.adminAccess===true;
+  isAdmin=ranks.some(r=>RANKS[r]?.admin===true)||((RANKS[ranks.reduce((b,r)=>(RANKS[r]?.w||0)>(RANKS[b]?.w||0)?r:b,ranks[0])]?.w||0)>=5 && currentUserData.roles?.admin_events===true);
   document.getElementById('userBar').style.display='flex';
   document.getElementById('userBarName').textContent=currentUserData.name||user.email;
   renderUserRoles(ranks);
