@@ -214,9 +214,8 @@
         </select>
       </div>
       <div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="margin-bottom:4px">
           <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632">Amount (pts)</label>
-          <span id="ptTransferAvailable" style="font-size:11px;color:#5a4632"></span>
         </div>
         <input id="ptAmount" type="number" min="1" placeholder="0" oninput="updateTransferAvailable()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
       </div>
@@ -449,8 +448,6 @@
 
         window.updateTransferAvailable=function(){
           const avail=_navMyPoints-_navPendingSellPts;
-          const el=document.getElementById('ptTransferAvailable');
-          if(el)el.textContent=`Available: ${avail}`;
           const inp=document.getElementById('ptAmount');
           if(inp){inp.max=avail;if((parseInt(inp.value)||0)>avail)inp.value=avail;}
         };
@@ -599,6 +596,8 @@
         };
 
         function _navRefreshPendingBanners(){
+          const balEl=document.getElementById('ptMyBalance');
+          if(balEl)balEl.textContent=`Available: ${_navMyPoints-_navPendingSellPts}`;
           const buyWrap=document.getElementById('ptBuyPendingWrap');
           const sellWrap=document.getElementById('ptSellPendingWrap');
           if(buyWrap){
