@@ -418,6 +418,8 @@ function startDataListeners() {
   onValue(ref(db,'prestige/members'),snap=>{members=snap.val()||{};if(currentPM)matchPM(currentPM.name);else if(currentUserData)matchPM(currentUserData.name);renderMembers();renderFamilies();renderMyFamilySection();populateFamilyDDs();});
   onValue(ref(db,'prestige/families'),snap=>{families=snap.val()||{};renderMembers();renderFamilies();renderMyCard();renderMyFamilySection();populateFamilyDDs();});
   onValue(ref(db,'prestige/invites'),snap=>{invites=snap.val()||{};renderMyFamilySection();});
+  onValue(ref(db,'users'),snap=>{window._allUsers=snap.val()||{};renderMembers();});
+  onValue(ref(db,'certificates'),snap=>{window._certificates=snap.val()||{};renderMembers();});
 }
 
 function populateFamilyDDs(){
@@ -474,14 +476,38 @@ function renderMembers(){
       if(ca)return`<label class="rank-check"><input type="checkbox" data-rank="${r}" ${checked?'checked':''}> ${RANKS[r].label}</label>`;
       return checked?`<span style="font-size:13px;color:var(--ink-soft);opacity:0.7;font-style:italic">${RANKS[r].label} 🔒</span>`:'';
     }).join('');
-    return`<tr class="${isMe?'is-me':''}">
+    // Look up user UID by name to get certificates
+    let matchedUid = null;
+    let userCerts = {};
+    if(window._allUsers && m.name) {
+      const uEntry = Object.entries(window._allUsers).find(([uid,u])=>u.name?.toLowerCase()===m.name.toLowerCase());
+      if(uEntry) { matchedUid = uEntry[0]; userCerts = uEntry[1].certificates||{}; }
+    }
+    const hasCerts = Object.keys(userCerts).length > 0;
+    
+    return`<tr class="${isMe?'is-me':''}" style="cursor:pointer" onclick="toggleMemberDetail('${m.id}')">
       <td><span class="rank-num ${rk}">${i+1}</span></td>
-      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">You</span>':''}</span></td>
+      <td><span class="member-name ${isLeader?'leader':''}">${m.name||m.id}${isMe?'<span class="me-tag">You</span>':''} ${hasCerts?'🎓':''}</span></td>
       <td><span class="tier-pill" style="color:${tier.color};border-color:${tier.color}55;background:${tier.color}14"><span class="dot" style="background:${tier.color}"></span>${tier.name}</span></td>
       <td><span class="family-tag">${fName}</span></td>
       <td class="pts-cell r">${(m.points||0).toLocaleString()}</td>
-      ${ce?`<td><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="toggleEdit('edit-${m.id}')">Edit</button></td>`:''}
+      ${ce?`<td><button class="red-btn" style="font-size:11px;padding:3px 8px" onclick="event.stopPropagation(); toggleEdit('edit-${m.id}')">Edit</button></td>`:''}
     </tr>
+    <tr id="mdetail-${m.id}" style="display:none"><td colspan="${ce?6:5}" style="padding:0">
+      <div style="padding:14px;background:rgba(200,160,74,0.05);border-bottom:1px solid rgba(120,90,50,0.15)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy)">Certificates</span>
+          ${isMe ? '' : `<button class="gold-btn" style="font-size:10px;padding:3px 10px" onclick="openPrestigeTransfer('${m.id}')">£ Send Laxi</button>`}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${hasCerts ? Object.keys(userCerts).map(cid=>{
+            const c=window._certificates?.[cid];
+            if(!c) return '';
+            return `<span style="font-size:11px;color:${c.color||'var(--ink)'};border:1px solid ${c.color||'#8a6a28'}44;background:rgba(255,255,255,0.4);padding:3px 8px;border-radius:2px;font-variant:small-caps" title="${c.description||''}">${c.icon||'🎓'} ${c.title}</span>`;
+          }).join('') : '<span style="font-size:11px;color:var(--ink-soft);font-style:italic">No certificates earned yet.</span>'}
+        </div>
+      </div>
+    </td></tr>
     ${ce?`<tr id="edit-${m.id}" style="display:none"><td colspan="6" style="padding:0">
       <div class="edit-row open">
         <div class="form-row">
@@ -520,6 +546,11 @@ function renderMembers(){
   </div>`:'';
   c.innerHTML=`<table class="lb-table"><thead><tr><th>#</th><th>Member</th><th>Tier</th><th>Family</th><th class="r">Laxi</th>${editTh}</tr></thead><tbody>${rows}</tbody></table>${mPag}`;
 }
+
+window.toggleMemberDetail = function(id) {
+  const r = document.getElementById('mdetail-' + id);
+  if(r) r.style.display = r.style.display === 'none' ? 'table-row' : 'none';
+};
 
 window.toggleEdit=function(id){
   const r=document.getElementById(id);

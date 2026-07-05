@@ -444,34 +444,6 @@
     </div>
     <div id="questCommitments" style="margin-bottom:20px"></div>
 
-    <!-- Certificates Management -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-      <span>Certificates Management</span>
-      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleCertificateForm()">+ Create Certificate</button>
-    </div>
-    <div id="certificateForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-        <input type="text" id="certTitle" placeholder="Title (e.g. ZvZ Basics)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
-        <input type="text" id="certIcon" placeholder="Icon (e.g. 🎓)" value="🎓" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100px">
-        <input type="text" id="certColor" placeholder="Color hex (e.g. #c8a04a)" value="#c8a04a" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:120px">
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="certDesc" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
-        <button class="gold-btn" onclick="addCertificate()">Save</button>
-        <button class="ghost-btn" onclick="toggleCertificateForm()">Cancel</button>
-      </div>
-    </div>
-    <div id="certificatesList" style="margin-bottom:20px"></div>
-    
-    <!-- Manual Certificate Granting -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-      <span>Grant Certificate Manually</span>
-    </div>
-    <div style="margin-bottom:20px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <select id="grantCertUser" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Member —</option></select>
-      <select id="grantCertId" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Certificate —</option></select>
-      <button class="gold-btn" onclick="manualGrantCertificate()">Grant</button>
-    </div>
 
     <!-- Transaction History -->
     <div class="section-eyebrow">Transaction History</div>
@@ -507,6 +479,72 @@
         <button class="ghost-btn" onclick="closeFundAction('events')">Cancel</button>
       </div>
     </div>
+    <!-- Official Events Scheduling -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span>Official Events Scheduling</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleOfficialEventForm()">+ Schedule Official Event</button>
+    </div>
+    <div id="officialEventForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="offEvTitle" placeholder="Event Title" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:2;min-width:140px">
+        <input type="date" id="offEvDate" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1">
+        <input type="time" id="offEvTime" value="20:00" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <select id="offEvReqCert" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"><option value="">— Requires Certificate (None) —</option></select>
+        <select id="offEvGrantCert" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1"><option value="">— Grants Certificate (None) —</option></select>
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);padding:6px 9px;border-radius:2px">
+          <label style="font-family:Georgia,serif;font-size:11px;color:var(--ink-soft);white-space:nowrap">Max Parts (0=unlim)</label>
+          <input type="number" id="offEvMax" min="0" value="0" style="font-family:Georgia,serif;font-size:13px;background:transparent;border:none;color:var(--ink);width:40px;outline:none">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <select id="offEvRewardType" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:150px">
+          <option value="per_person">Per Person Laxi</option>
+          <option value="total_pool">Total Laxi Pool</option>
+        </select>
+        <input type="number" id="offEvRewardAmt" placeholder="Reward Amount" min="0" value="0" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;max-width:140px">
+        <label style="font-family:Georgia,serif;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;margin-left:8px">
+          <input type="checkbox" id="offEvCalcIncome" checked> + Also distribute Laxi based on Guild Income
+        </label>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="offEvDesc" placeholder="Event description, rules, etc..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="postOfficialEvent()">Schedule</button>
+        <button class="ghost-btn" onclick="toggleOfficialEventForm()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Certificates Management -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span>Certificates Management</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleCertificateForm()">+ Create Certificate</button>
+    </div>
+    <div id="certificateForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="certTitle" placeholder="Title (e.g. ZvZ Basics)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
+        <input type="text" id="certIcon" placeholder="Icon (e.g. 🎓)" value="🎓" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100px">
+        <input type="text" id="certColor" placeholder="Color hex (e.g. #c8a04a)" value="#c8a04a" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:120px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="certDesc" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="addCertificate()">Save</button>
+        <button class="ghost-btn" onclick="toggleCertificateForm()">Cancel</button>
+      </div>
+    </div>
+    <div id="certificatesList" style="margin-bottom:20px"></div>
+    
+    <!-- Manual Certificate Granting -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span>Grant Certificate Manually</span>
+    </div>
+    <div style="margin-bottom:20px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select id="grantCertUser" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Member —</option></select>
+      <select id="grantCertId" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Certificate —</option></select>
+      <button class="gold-btn" onclick="manualGrantCertificate()">Grant</button>
+    </div>
+
     <!-- ══ Laxi Drop Curve ══ -->
     <div class="section-eyebrow" style="margin-top:24px">Laxi Drop Curve</div>
     <div class="add-form" style="margin-bottom:18px;padding:16px 20px">
@@ -811,7 +849,7 @@ const auth=getAuth(app);
 const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
-let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={};
+let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_budgetManagers={quest:{},events:{},island:{},recruitment:{}},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={};
 let _prestigeEntries={quest:{},events:{},island:{},recruitment:{}};
 function getFundPrestigeBal(key){return Object.values(_prestigeEntries[key]||{}).reduce((s,e)=>s+(e.amount||0),0);}
 
@@ -2570,6 +2608,7 @@ onAuthStateChanged(auth,async user=>{
     renderDropCurveChart();
   });
   safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
+  safeOnValue('certificates',snap=>{_certificates=snap.val()||{};renderCertificates();});
   safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});
   safeOnValue('budgetManagers',snap=>{
     const v=snap.val()||{};
@@ -2584,10 +2623,163 @@ onAuthStateChanged(auth,async user=>{
       renderOverview();
     });
   });
-  safeOnValue('users',snap=>{_allUsers=snap.val()||{};if(isAdmin(currentUserData))renderBudgetManagerPanels();});
+  safeOnValue('users',snap=>{_allUsers=snap.val()||{};if(isAdmin(currentUserData)){renderBudgetManagerPanels();populateCertificateUsers();}});
   safeOnValue('bondRequests',snap=>{_bondRequests=snap.val()||{};renderBonds();});
   renderBudgetPermissions();
 });
+window.toggleCertificateForm = function() {
+  const el = document.getElementById('certificateForm');
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
+
+window.renderCertificates = function() {
+  const listEl = document.getElementById('certificatesList');
+  const userSel = document.getElementById('grantCertUser');
+  const certSel = document.getElementById('grantCertId');
+  if(!listEl) return;
+
+  const certs = Object.entries(_certificates).map(([id,c])=>({id,...c}));
+  if(certs.length===0){
+    listEl.innerHTML = '<div class="empty">No certificates defined yet.</div>';
+    if(certSel) certSel.innerHTML = '<option value="">— Select Certificate —</option>';
+  } else {
+    listEl.innerHTML = certs.map(c=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.3);border:1px solid rgba(120,90,50,.2);border-radius:3px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:20px;width:24px;text-align:center">${c.icon||'🎓'}</span>
+          <div>
+            <div style="font-size:14px;color:${c.color||'var(--navy)'};font-weight:bold">${c.title}</div>
+            <div style="font-size:11px;color:var(--ink-soft);font-style:italic">${c.description||'No description'}</div>
+          </div>
+        </div>
+        <button class="red-btn" style="font-size:10px;padding:3px 8px" onclick="deleteCertificate('${c.id}')">Delete</button>
+      </div>
+    `).join('');
+    
+    if(certSel){
+      let opts = '<option value="">— Select Certificate —</option>';
+      certs.forEach(c=>{ opts += `<option value="${c.id}">${c.icon||'🎓'} ${c.title}</option>`; });
+      certSel.innerHTML = opts;
+    }
+    const offReq = document.getElementById('offEvReqCert');
+    const offGrant = document.getElementById('offEvGrantCert');
+    if(offReq){
+      let reqOpts = '<option value="">— Requires Certificate (None) —</option>';
+      certs.forEach(c=>{ reqOpts += `<option value="${c.id}">${c.icon||'🎓'} ${c.title}</option>`; });
+      offReq.innerHTML = reqOpts;
+    }
+    if(offGrant){
+      let grantOpts = '<option value="">— Grants Certificate (None) —</option>';
+      certs.forEach(c=>{ grantOpts += `<option value="${c.id}">${c.icon||'🎓'} ${c.title}</option>`; });
+      offGrant.innerHTML = grantOpts;
+    }
+  }
+};
+
+window.populateCertificateUsers = function() {
+  const userSel = document.getElementById('grantCertUser');
+  if(userSel && Object.keys(_allUsers).length > 0){
+    let opts = '<option value="">— Select Member —</option>';
+    Object.entries(_allUsers).forEach(([uid, u])=>{
+      opts += `<option value="${uid}">${u.name || uid}</option>`;
+    });
+    userSel.innerHTML = opts;
+  }
+};
+
+window.addCertificate = async function() {
+  const title = document.getElementById('certTitle').value.trim();
+  const icon = document.getElementById('certIcon').value.trim();
+  const color = document.getElementById('certColor').value.trim();
+  const desc = document.getElementById('certDesc').value.trim();
+  if(!title){ toast('Title is required.'); return; }
+  try {
+    const newRef = push(ref(db, 'certificates'));
+    await set(newRef, { title, icon, color, description: desc, createdAt: Date.now() });
+    toast('Certificate created.');
+    document.getElementById('certTitle').value = '';
+    document.getElementById('certDesc').value = '';
+    toggleCertificateForm();
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+};
+
+window.deleteCertificate = async function(id) {
+  if(!confirm('Delete this certificate type?')) return;
+  await remove(ref(db, 'certificates/' + id));
+  toast('Certificate deleted.');
+};
+
+window.manualGrantCertificate = async function() {
+  const uid = document.getElementById('grantCertUser').value;
+  const certId = document.getElementById('grantCertId').value;
+  if(!uid || !certId){ toast('Select both member and certificate.'); return; }
+  try {
+    await update(ref(db, `users/${uid}/certificates/${certId}`), { acquiredAt: Date.now(), fromEvent: 'manual', eventTitle: 'Manual Grant' });
+    toast('Certificate granted.');
+    document.getElementById('grantCertUser').value = '';
+    document.getElementById('grantCertId').value = '';
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+};
+
+window.toggleOfficialEventForm = function() {
+  const el = document.getElementById('officialEventForm');
+  if(!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  const dInput = document.getElementById('offEvDate');
+  if(el.style.display === 'block' && dInput && !dInput.value) {
+    const d=new Date();
+    dInput.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+};
+
+window.postOfficialEvent = async function() {
+  const title = document.getElementById('offEvTitle').value.trim();
+  const dateVal = document.getElementById('offEvDate').value;
+  const timeVal = document.getElementById('offEvTime').value || '00:00';
+  const desc = document.getElementById('offEvDesc').value.trim();
+  const maxP = parseInt(document.getElementById('offEvMax').value) || 0;
+  const reqC = document.getElementById('offEvReqCert').value;
+  const grantC = document.getElementById('offEvGrantCert').value;
+  const rType = document.getElementById('offEvRewardType').value;
+  const rAmt = parseInt(document.getElementById('offEvRewardAmt').value) || 0;
+  const calcIncome = document.getElementById('offEvCalcIncome').checked;
+
+  if(!title){ toast('Enter an event title.'); return; }
+  if(!dateVal){ toast('Select a date.'); return; }
+
+  const date = new Date(dateVal + 'T' + timeVal).getTime();
+  
+  const evt = {
+    title, description: desc, date, maxParticipants: maxP,
+    organizer: currentUserData?.name || 'Council',
+    organizerUid: currentUser?.uid,
+    status: 'upcoming', createdAt: Date.now(),
+    isOfficial: true,
+    rewardType: rType,
+    rewardAmount: rAmt,
+    calculatesIncome: calcIncome
+  };
+  if(reqC) evt.requiresCertificate = reqC;
+  if(grantC) evt.grantsCertificate = grantC;
+
+  try {
+    const newRef = push(ref(db, 'events'));
+    await set(newRef, evt);
+    toast(`Official Event "${title}" posted!`);
+    document.getElementById('offEvTitle').value = '';
+    document.getElementById('offEvDesc').value = '';
+    document.getElementById('offEvDate').value = '';
+    document.getElementById('offEvRewardAmt').value = '0';
+    toggleOfficialEventForm();
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+};
+
 </script>
 </body>
 </html>

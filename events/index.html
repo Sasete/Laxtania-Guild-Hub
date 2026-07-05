@@ -178,10 +178,6 @@
       <div class="form-group"><label>Max Participants <span style="font-size:10px;font-style:italic">(0 = unlimited)</span></label><input type="number" id="evMax" value="0" min="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Requires Certificate <span style="font-size:10px;font-style:italic">(Optional)</span></label><select id="evReqCert"><option value="">— None —</option></select></div>
-      <div class="form-group"><label>Grants Certificate <span style="font-size:10px;font-style:italic">(Optional)</span></label><select id="evGrantCert"><option value="">— None —</option></select></div>
-    </div>
-    <div class="form-row">
       <div class="form-group" style="flex:2"><label>Description</label><textarea id="evDesc" placeholder="What's happening, requirements, rewards info…"></textarea></div>
     </div>
     <div style="display:flex;gap:8px">
@@ -230,7 +226,7 @@ function fmtTime(ts){
   const d=new Date(ts);
   const utcStr = d.toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'});
   const locStr = d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  return utcStr+' UTC ('+locStr+' Local)';
+  return locStr+' Local ('+utcStr+' UTC)';
 }
 function timeUntil(ts){const diff=ts-Date.now();if(diff<0)return null;const h=Math.floor(diff/3600000);const d=Math.floor(h/24);if(d>0)return`in ${d} day${d!==1?'s':''}`;if(h>0)return`in ${h}h`;return'soon';}
 
@@ -332,7 +328,7 @@ function buildCard(ev){
 
   const manageBtn=canManage&&isUpcoming?`<button class="ghost-btn" style="font-size:11px;padding:4px 10px" onclick="togglePanel('parts-${ev.id}')">👥 ${parts.length}${maxParts?'/'+maxParts:''}</button>`:`<span class="participant-count" style="cursor:${isCompleted&&parts.length?'pointer':'default'}" ${isCompleted&&parts.length?`onclick="togglePanel('parts-${ev.id}')"`:''}">👥 ${parts.length}${maxParts?'/'+maxParts:''} participant${parts.length!==1?'s':''}</span>`;
 
-  const completeBtn=isAdmin&&isUpcoming?`<button class="gold-btn" style="font-size:11px;padding:4px 12px;margin-top:8px" onclick="togglePanel('complete-${ev.id}')">⚔ Complete</button>`:'';
+  const completeBtn=canManage&&isUpcoming?`<button class="gold-btn" style="font-size:11px;padding:4px 12px;margin-top:8px" onclick="togglePanel('complete-${ev.id}')">⚔ Complete</button>`:'';
   const cancelBtn=canManage&&isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="cancelEvent('${ev.id}')">Cancel Event</button>`:'';
   const deleteBtn=isAdmin&&!isUpcoming?`<button class="red-btn" style="margin-top:8px" onclick="deleteEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')">🗑 Delete</button>`:'';
   const recalcBtn='';
@@ -364,18 +360,44 @@ function buildCard(ev){
     ${addMemberRow}
   </div>`:'';
 
-  // Complete panel (admin)
-  const perPrev=parts.length?Math.floor(100/parts.length):0;
-  const remPrev=parts.length?100-(perPrev*parts.length):0;
-  const completePanel=isAdmin&&isUpcoming?`<div class="complete-panel" id="complete-${ev.id}">
-    <label>Guild Income — Estimated Silver</label>
-    <input type="number" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
-    <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · enter income above</div>
-    <div style="display:flex;gap:8px">
-      <button class="gold-btn" style="font-size:12px" onclick="completeEvent('${ev.id}')">Confirm & Distribute</button>
-      <button class="ghost-btn" style="font-size:12px" onclick="togglePanel('complete-${ev.id}')">Cancel</button>
-    </div>
-  </div>`:'';
+  // Complete panel (organizer/admin)
+  let completePanel='';
+  if(canManage&&isUpcoming){
+    if(ev.isOfficial){
+      const amt=ev.rewardAmount||0;
+      const t=ev.rewardType==='per_person'?'per person':'total pool';
+      const per=ev.rewardType==='per_person'?amt:parts.length?Math.floor(amt/parts.length):0;
+      
+      let incomeRow = '';
+      if(ev.calculatesIncome) {
+        incomeRow = `
+        <label style="margin-top:8px;display:block">Guild Income — Estimated Silver</label>
+        <input type="number" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
+        <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · enter income above</div>
+        `;
+      }
+
+      completePanel=`<div class="complete-panel" id="complete-${ev.id}">
+        <div style="font-size:13px;font-family:Georgia,serif;color:var(--navy);margin-bottom:8px">Fixed Reward: ${amt} Laxi (${t})</div>
+        <div class="complete-preview">${parts.length} participant${parts.length!==1?'s':''} · ${per} fixed Laxi each</div>
+        ${incomeRow}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="gold-btn" style="font-size:12px" onclick="completeEvent('${ev.id}')">Confirm & Distribute</button>
+          <button class="ghost-btn" style="font-size:12px" onclick="togglePanel('complete-${ev.id}')">Cancel</button>
+        </div>
+      </div>`;
+    } else {
+      completePanel=`<div class="complete-panel" id="complete-${ev.id}">
+        <label>Guild Income — Estimated Silver</label>
+        <input type="number" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
+        <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · enter income above</div>
+        <div style="display:flex;gap:8px">
+          <button class="gold-btn" style="font-size:12px" onclick="completeEvent('${ev.id}')">Confirm & Distribute</button>
+          <button class="ghost-btn" style="font-size:12px" onclick="togglePanel('complete-${ev.id}')">Cancel</button>
+        </div>
+      </div>`;
+    }
+  }
 
   const prestige=ev.prestige?`<span style="font-size:12px;font-variant:small-caps;letter-spacing:1px;color:#7a5a10">£ ${ev.prestige} Laxi distributed</span>`:'';
 
@@ -385,7 +407,7 @@ function buildCard(ev){
     <div class="event-meta">
       <span>📅 ${ev.date?fmtDate(ev.date):'TBA'}${ev.date?' · '+fmtTime(ev.date):''}</span>
       ${until?`<span style="color:var(--navy);font-variant:small-caps;font-size:11px;letter-spacing:1px">${until}</span>`:''}
-      <span>⚔ ${ev.organizer||'Unknown'}</span>
+      ${ev.isOfficial?`<span style="color:var(--seal-red);font-weight:bold">🏛 Official Event</span>`:`<span>⚔ ${ev.organizer||'Unknown'}</span>`}
     </div>
     ${reqCertHTML||grantCertHTML?`<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${reqCertHTML}${grantCertHTML}</div>`:''}
     ${ev.description?`<div class="event-desc">${ev.description}</div>`:''}
@@ -411,7 +433,13 @@ window.switchTab=function(tab){
 };
 
 window.toggleCreateForm=function(){
-  document.getElementById('createForm').classList.toggle('open');
+  const f=document.getElementById('createForm');
+  f.classList.toggle('open');
+  const dInput = document.getElementById('evDate');
+  if(f.classList.contains('open') && dInput && !dInput.value) {
+    const d=new Date();
+    dInput.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
 };
 
 window.togglePanel=function(id){
@@ -448,20 +476,17 @@ window.postEvent=async function(){
   const dateVal=document.getElementById('evDate').value;
   const timeVal=document.getElementById('evTime').value||'00:00';
   const desc=document.getElementById('evDesc').value.trim();
-  const reqC=document.getElementById('evReqCert').value;
-  const grantC=document.getElementById('evGrantCert').value;
   const maxP=parseInt(document.getElementById('evMax').value)||0;
   if(!title){toast('Enter an event title.');return;}
   if(!dateVal){toast('Select a date.');return;}
-  const date=new Date(dateVal+'T'+timeVal+'Z').getTime();
+  const date=new Date(dateVal+'T'+timeVal).getTime();
   try{
     const newRef=push(ref(db,'events'));
-    await set(newRef,{title,description:desc,date,organizer:currentUserData.name,organizerUid:currentUser.uid,status:'upcoming',maxParticipants:maxP,prestige:0,createdAt:Date.now(),requiresCertificate:reqC||null,grantsCertificate:grantC||null});
+    await set(newRef,{title,description:desc,date,organizer:currentUserData.name,organizerUid:currentUser.uid,status:'upcoming',maxParticipants:maxP,prestige:0,createdAt:Date.now()});
     toast(`"${title}" posted!`);
     document.getElementById('evTitle').value='';
     document.getElementById('evDesc').value='';
     document.getElementById('evDate').value='';
-    document.getElementById('evReqCert').value='';
     document.getElementById('evGrantCert').value='';
     document.getElementById('evMax').value='0';
     document.getElementById('createForm').classList.remove('open');
@@ -581,17 +606,44 @@ window.cancelEvent=async function(evId){
 };
 
 window.completeEvent=async function(evId){
-  if(!isAdmin){toast('Admin access required.');return;}
   const ev=events[evId];if(!ev)return;
-  const income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
-  const rate=calcPrestigeRate(income);
-  const total=Math.floor(income/rate);
+  const isOrganizer=currentUser&&ev.organizerUid===currentUser.uid;
+  if(!isAdmin&&!isOrganizer){toast('Permission denied.');return;}
+
   const parts=ev.participants?Object.entries(ev.participants):[];
-  if(!income||income<1){toast('Guild income girin.');return;}
-  if(!total||total<1){toast('Orana göre laxi 0 çıktı.');return;}
   if(!parts.length){toast('No participants to reward.');return;}
-  const perPerson=Math.floor(total/parts.length);
-  const remainder=total-(perPerson*parts.length);
+
+  let total = 0, income = 0, incFmt = 'Official', perPerson = 0, remainder = 0;
+  let fixedPerPerson = 0, fixedTotal = 0;
+
+  if (ev.isOfficial) {
+    const amt = ev.rewardAmount || 0;
+    if (ev.rewardType === 'per_person') {
+      fixedPerPerson = amt;
+      fixedTotal = amt * parts.length;
+    } else {
+      fixedTotal = amt;
+      fixedPerPerson = parts.length ? Math.floor(fixedTotal / parts.length) : 0;
+    }
+  }
+
+  if (!ev.isOfficial || ev.calculatesIncome) {
+    income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+    if(!income||income<1){toast('Guild income girin.');return;}
+    const rate=calcPrestigeRate(income);
+    const incTotal=Math.floor(income/rate);
+    if(!incTotal||incTotal<1){toast('Orana göre income laxi 0 çıktı.');return;}
+    
+    total = fixedTotal + incTotal;
+    perPerson = fixedPerPerson + Math.floor(incTotal/parts.length);
+    remainder = total - (perPerson*parts.length);
+    incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
+  } else {
+    total = fixedTotal;
+    perPerson = fixedPerPerson;
+    remainder = total - (perPerson * parts.length);
+  }
+
   const indices=[...Array(parts.length).keys()].sort(()=>Math.random()-0.5);
   const luckySet=new Set(indices.slice(0,remainder));
   const by=currentUserData?.name||'Admin';
@@ -603,8 +655,6 @@ window.completeEvent=async function(evId){
     const [uid,p]=parts[i];
     awardsMap[uid]={name:p.name,delta:perPerson+(luckySet.has(i)?1:0)};
   }
-
-  const incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
 
   // Mark event as pending approval, don't award prestige yet
   await update(ref(db,'events/'+evId),{status:'pending_approval',prestige:total,guildIncome:income});
@@ -628,14 +678,16 @@ window.completeEvent=async function(evId){
     notes:`${parts.length} participants · ${incFmt}S income · ${total} laxi total`
   });
 
-  // Loot settlement task
-  await push(ref(db,'tasks'),{
-    title:`Event Loot Settlement — ${ev.title} — ~${incFmt}S`,
-    type:'payment_in',amount:income,fundType:'events',status:'pending',
-    eventId:evId,eventTitle:ev.title,estimated:true,
-    notes:`Tahmini loot geliri: ${income.toLocaleString()} S`,
-    createdAt:at,createdBy:by,auto:true
-  });
+  // Loot settlement task (Ad-hoc events or Official events with income)
+  if (!ev.isOfficial || ev.calculatesIncome) {
+    await push(ref(db,'tasks'),{
+      title:`Event Loot Settlement — ${ev.title} — ~${incFmt}S`,
+      type:'payment_in',amount:income,fundType:'events',status:'pending',
+      eventId:evId,eventTitle:ev.title,estimated:true,
+      notes:`Tahmini loot geliri: ${income.toLocaleString()} S`,
+      createdAt:at,createdBy:by
+    });
+  }
 
   toast(`"${ev.title}" onay bekliyor — ${total} laxi task oluşturuldu.`);
 };

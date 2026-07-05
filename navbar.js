@@ -232,7 +232,10 @@
     </div>
     <!-- Buy Panel -->
     <div id="ptPanel-buy" style="display:none">
-      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Buy Laxi from the Guild Treasury at <strong>+10% margin</strong>.<br>Silver will be deducted from your in-game wallet.</p>
+      <p style="font-size:12px;color:#5a4632;margin-bottom:10px;line-height:1.5">Buy Laxi from the Guild Treasury at <strong>+10% margin</strong>.<br>Silver will be deducted from your in-game wallet.</p>
+      <div style="background:rgba(28,42,64,0.07);border:1px solid rgba(28,42,64,0.18);border-radius:3px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#2e2014;line-height:1.55">
+        ⚠ After submitting, please donate the silver in-game or hand it directly to a councillor before the request is approved.
+      </div>
       <div style="margin-bottom:12px">
         <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Laxi Amount</label>
         <input id="ptBuyAmount" type="number" min="1" placeholder="0" oninput="updateBuyPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
@@ -241,6 +244,12 @@
         <div style="display:flex;justify-content:space-between"><span>Rate (×1.1)</span><span id="ptBuyRate">—</span></div>
         <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:6px;font-size:13px;color:#2e2014"><span>You pay</span><span id="ptBuyCost">—</span></div>
       </div>
+      <div id="ptBuyPendingWrap" style="display:none;margin-bottom:12px">
+        <div style="background:rgba(200,160,74,.12);border:1px solid rgba(200,160,74,.5);border-radius:3px;padding:8px 12px;font-size:12px;color:#5a4632;display:flex;justify-content:space-between;align-items:center">
+          <span id="ptBuyPendingLabel">⏳ Purchase pending…</span>
+          <button onclick="cancelPendingLaxiTask('buy')" style="background:rgba(140,36,36,0.1);border:1px solid rgba(140,36,36,0.4);color:#8c2424;border-radius:3px;padding:3px 10px;font-family:Georgia,serif;font-size:11px;cursor:pointer">Cancel</button>
+        </div>
+      </div>
       <div style="display:flex;gap:8px">
         <button id="ptBuyBtn" onclick="doPrestigeBuy()" style="flex:1;padding:9px;background:#2a5a2a;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-variant:small-caps;letter-spacing:1px">Request Purchase</button>
         <button onclick="closePrestigeTransfer()" style="padding:9px 18px;background:#5a4632;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
@@ -248,7 +257,10 @@
     </div>
     <!-- Sell Panel -->
     <div id="ptPanel-sell" style="display:none">
-      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Sell Laxi back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
+      <p style="font-size:12px;color:#5a4632;margin-bottom:10px;line-height:1.5">Sell Laxi back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
+      <div style="background:rgba(28,42,64,0.07);border:1px solid rgba(28,42,64,0.18);border-radius:3px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#2e2014;line-height:1.55">
+        ⚠ After the request is approved, a councillor will pay out the silver to you in-game.
+      </div>
       <div style="margin-bottom:12px">
         <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Laxi Amount</label>
         <input id="ptSellAmount" type="number" min="1" placeholder="0" oninput="updateSellPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
@@ -256,6 +268,12 @@
       <div id="ptSellPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
         <div style="display:flex;justify-content:space-between"><span>Rate (×0.9)</span><span id="ptSellRate">—</span></div>
         <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:6px;font-size:13px;color:#2e2014"><span>You receive</span><span id="ptSellPayout">—</span></div>
+      </div>
+      <div id="ptSellPendingWrap" style="display:none;margin-bottom:12px">
+        <div style="background:rgba(200,160,74,.12);border:1px solid rgba(200,160,74,.5);border-radius:3px;padding:8px 12px;font-size:12px;color:#5a4632;display:flex;justify-content:space-between;align-items:center">
+          <span id="ptSellPendingLabel">⏳ Sale pending…</span>
+          <button onclick="cancelPendingLaxiTask('sell')" style="background:rgba(140,36,36,0.1);border:1px solid rgba(140,36,36,0.4);color:#8c2424;border-radius:3px;padding:3px 10px;font-family:Georgia,serif;font-size:11px;cursor:pointer">Cancel</button>
+        </div>
       </div>
       <div style="display:flex;gap:8px">
         <button id="ptSellBtn" onclick="doPrestigeSell()" style="flex:1;padding:9px;background:#8c2424;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-variant:small-caps;letter-spacing:1px">Request Sale</button>
@@ -278,6 +296,7 @@
         const auth=getAuth(app);
         const db=getDatabase(app);
         let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
+        let _navPendingBuyTaskId=null,_navPendingBuyPts=0,_navPendingSellTaskId=null,_navPendingSellPts=0;
         onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
 
         onAuthStateChanged(auth,user=>{
@@ -295,30 +314,48 @@
           let _navAllTasks={};
           function _navUpdatePrestigePending(){
             if(!_navUserName)return;
-            let delta=0;
+            let buyPts=0,sellPts=0,questPts=0,eventPts=0;
             for(const t of Object.values(_navAllTasks)){
               if(t.status!=='pending')continue;
-              if(t.type==='prestige_buy'&&t.holder?.toLowerCase()===_navUserName)delta+=t.prestigePoints||0;
-              if(t.type==='prestige_sell'&&t.holder?.toLowerCase()===_navUserName)delta-=t.prestigePoints||0;
+              if(t.type==='prestige_buy'&&t.holder?.toLowerCase()===_navUserName)buyPts+=t.prestigePoints||0;
+              if(t.type==='prestige_sell'&&t.holder?.toLowerCase()===_navUserName)sellPts+=t.prestigePoints||0;
               if(t.type==='prestige_quest'){
                 const party=Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers||{});
-                if(party.some(n=>n?.toLowerCase()===_navUserName))delta+=Math.floor((t.prestigePoints||0)/Math.max(1,party.length));
+                if(party.some(n=>n?.toLowerCase()===_navUserName))questPts+=Math.floor((t.prestigePoints||0)/Math.max(1,party.length));
               }
               if(t.type==='prestige_event'&&t.awardsMap){
                 const award=Object.values(t.awardsMap).find(a=>a.name?.toLowerCase()===_navUserName);
-                if(award)delta+=award.delta||0;
+                if(award)eventPts+=award.delta||0;
               }
             }
             const pendingEl=document.getElementById('myPrestigePending');
             if(!pendingEl)return;
-            if(delta<0){pendingEl.textContent=String(delta);pendingEl.style.color='#8c2424';pendingEl.style.display='inline';pendingEl.title=delta+' Laxi pending';}
-            else{pendingEl.style.display='none';}
+            const parts=[];
+            if(buyPts>0)parts.push(`+${buyPts}`);
+            if(sellPts>0)parts.push(`−${sellPts}`);
+            const questEvent=questPts+eventPts;
+            if(questEvent>0)parts.push(`+${questEvent}`);
+            if(sellPts>0&&parts.length){
+              pendingEl.textContent=parts.join(' ');pendingEl.style.color='#8c2424';pendingEl.style.display='inline';
+              pendingEl.title=`Pending Laxi: ${parts.join(', ')}`;
+            } else if(parts.length){
+              pendingEl.textContent=parts.join(' ');pendingEl.style.color='#2a5a2a';pendingEl.style.display='inline';
+              pendingEl.title=`Pending Laxi: ${parts.join(', ')}`;
+            } else{pendingEl.style.display='none';}
           }
           onValue(ref(db,'tasks'),snap=>{
             _navAllTasks=snap.val()||{};
             _navPendingTasks=Object.values(_navAllTasks).filter(t=>t.status==='pending').length;
             _navUpdateBadge();
             _navUpdatePrestigePending();
+            // Track own pending buy/sell tasks
+            if(_navUserName){
+              const myBuy=Object.entries(_navAllTasks).find(([,t])=>t.status==='pending'&&t.type==='prestige_buy'&&t.holder?.toLowerCase()===_navUserName);
+              const mySell=Object.entries(_navAllTasks).find(([,t])=>t.status==='pending'&&t.type==='prestige_sell'&&t.holder?.toLowerCase()===_navUserName);
+              _navPendingBuyTaskId=myBuy?myBuy[0]:null; _navPendingBuyPts=myBuy?myBuy[1].prestigePoints||0:0;
+              _navPendingSellTaskId=mySell?mySell[0]:null; _navPendingSellPts=mySell?mySell[1].prestigePoints||0:0;
+              _navRefreshPendingBanners();
+            }
           });
           onValue(ref(db,'bondRequests'),snap=>{
             const reqs=snap.val()||{};
@@ -438,6 +475,7 @@
             document.getElementById('ptBuyAmount').value='';
             document.getElementById('ptBuyPreview').style.display='none';
             okEl.textContent='✓ Request submitted — awaiting Council approval.';okEl.style.display='block';
+            _navRefreshPendingBanners();
           }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
           btn.disabled=false;btn.textContent='Request Purchase';
         };
@@ -464,18 +502,20 @@
             document.getElementById('ptSellAmount').value='';
             document.getElementById('ptSellPreview').style.display='none';
             okEl.textContent='✓ Request submitted — awaiting Council approval.';okEl.style.display='block';
+            _navRefreshPendingBanners();
           }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
           btn.disabled=false;btn.textContent='Request Sale';
         };
 
-        window.openPrestigeTransfer=function(){
+        window.openPrestigeTransfer=function(preselectMid){
           const modal=document.getElementById('prestigeTransferModal');
           if(!modal)return;
           modal.style.display='flex';
           switchPrestigeTab('transfer');
+          _navRefreshPendingBanners();
           document.getElementById('ptAmount').value='';
           document.getElementById('ptNote').value='';
-          document.getElementById('ptMyBalance').textContent=`Your prestige: ${_navMyPoints} pts`;
+          document.getElementById('ptMyBalance').textContent=`Your Laxi: ${_navMyPoints}`;
           const sel=document.getElementById('ptRecipient');
           sel.innerHTML='<option value="">— Select —</option>';
           if(_navMyFid&&_navAllFamilies[_navMyFid]){
@@ -489,6 +529,7 @@
           Object.entries(_navAllMembers).filter(([mid])=>mid!==_navMyMid).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'')).forEach(([mid,m])=>{
             const o=document.createElement('option');o.value='member:'+mid;o.textContent=m.name||mid;sel.appendChild(o);
           });
+          if(preselectMid) sel.value = 'member:'+preselectMid;
           onValue(query(ref(db,'prestige/transfers'),orderByChild('at'),limitToLast(12)),logSnap=>{
             const logs=logSnap.val();
             const logList=document.getElementById('ptLogList');
@@ -506,6 +547,40 @@
         window.closePrestigeTransfer=function(){
           const modal=document.getElementById('prestigeTransferModal');
           if(modal)modal.style.display='none';
+        };
+
+        function _navRefreshPendingBanners(){
+          const buyWrap=document.getElementById('ptBuyPendingWrap');
+          const sellWrap=document.getElementById('ptSellPendingWrap');
+          if(buyWrap){
+            if(_navPendingBuyTaskId){
+              document.getElementById('ptBuyPendingLabel').textContent=`⏳ Purchase pending — +${_navPendingBuyPts} Laxi`;
+              buyWrap.style.display='block';
+            } else { buyWrap.style.display='none'; }
+          }
+          if(sellWrap){
+            if(_navPendingSellTaskId){
+              document.getElementById('ptSellPendingLabel').textContent=`⏳ Sale pending — −${_navPendingSellPts} Laxi`;
+              sellWrap.style.display='block';
+            } else { sellWrap.style.display='none'; }
+          }
+        }
+
+        window.cancelPendingLaxiTask=async function(type){
+          const tid=type==='buy'?_navPendingBuyTaskId:_navPendingSellTaskId;
+          if(!tid)return;
+          if(!confirm('Cancel this pending request?'))return;
+          try{
+            await update(ref(db,'tasks/'+tid),{status:'cancelled',cancelledAt:Date.now(),cancelledBy:_navUserName});
+            if(type==='buy'){_navPendingBuyTaskId=null;_navPendingBuyPts=0;}
+            else{_navPendingSellTaskId=null;_navPendingSellPts=0;}
+            _navRefreshPendingBanners();
+            const okEl=document.getElementById('ptSuccess');
+            if(okEl){okEl.textContent='Request cancelled.';okEl.style.display='block';}
+          }catch(e){
+            const errEl=document.getElementById('ptError');
+            if(errEl){errEl.textContent='Cancel failed: '+e.message;errEl.style.display='block';}
+          }
         };
 
         window.doPrestigeTransfer=async function(){
@@ -542,7 +617,7 @@
             await push(ref(db,'prestige/transfers'),{type,fromName:myName,toName,amount,note,at:Date.now(),by:myName});
             document.getElementById('ptAmount').value='';
             document.getElementById('ptNote').value='';
-            document.getElementById('ptMyBalance').textContent=`Your prestige: ${_navMyPoints-amount} pts`;
+            document.getElementById('ptMyBalance').textContent=`Your Laxi: ${_navMyPoints-amount}`;
             btn.textContent='Sent ✓';
             setTimeout(()=>{btn.disabled=false;btn.textContent='Send';},2000);
           }catch(e){
