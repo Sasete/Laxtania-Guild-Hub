@@ -188,35 +188,79 @@
   
   placeholder.outerHTML = navHtml;
 
-  // Prestige Transfer Modal
+  // Prestige Modal (Transfer / Buy / Sell)
   const transferModalHtml = `
 <div id="prestigeTransferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
   <div style="background:#f1e4c4;border-radius:6px;padding:24px;min-width:320px;max-width:440px;width:90%;font-family:Georgia,serif;box-shadow:0 8px 32px rgba(0,0,0,.4)">
-    <h3 style="color:#2e2014;margin-bottom:4px;font-size:16px">⇄ Send Prestige</h3>
-    <p id="ptMyBalance" style="font-size:12px;color:#5a4632;margin-bottom:14px"></p>
-    <div style="margin-bottom:12px">
-      <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Send To</label>
-      <select id="ptRecipient" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;background:white">
-        <option value="">— Select —</option>
-      </select>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h3 style="color:#2e2014;font-size:16px;margin:0">⇄ Prestige</h3>
+      <span id="ptMyBalance" style="font-size:12px;color:#5a4632"></span>
     </div>
-    <div style="margin-bottom:12px">
-      <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Amount (pts)</label>
-      <input id="ptAmount" type="number" min="1" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;margin:12px 0;border:1px solid #ddc69a;border-radius:3px;overflow:hidden">
+      <button id="ptTab-transfer" onclick="switchPrestigeTab('transfer')" style="flex:1;padding:7px;background:#1c2a40;color:#f1e4c4;border:none;cursor:pointer;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px">Transfer</button>
+      <button id="ptTab-buy" onclick="switchPrestigeTab('buy')" style="flex:1;padding:7px;background:transparent;color:#5a4632;border:none;border-left:1px solid #ddc69a;cursor:pointer;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px">Buy</button>
+      <button id="ptTab-sell" onclick="switchPrestigeTab('sell')" style="flex:1;padding:7px;background:transparent;color:#5a4632;border:none;border-left:1px solid #ddc69a;cursor:pointer;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px">Sell</button>
     </div>
-    <div style="margin-bottom:16px">
-      <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Note (optional)</label>
-      <input id="ptNote" type="text" placeholder="Reason for transfer..." style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+    <!-- Transfer Panel -->
+    <div id="ptPanel-transfer">
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Send To</label>
+        <select id="ptRecipient" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;background:white">
+          <option value="">— Select —</option>
+        </select>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Amount (pts)</label>
+        <input id="ptAmount" type="number" min="1" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Note (optional)</label>
+        <input id="ptNote" type="text" placeholder="Reason for transfer..." style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+      </div>
+      <div id="ptTransferLog" style="margin-bottom:16px;max-height:140px;overflow-y:auto;display:none">
+        <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;margin-bottom:6px">Recent Transfers</div>
+        <div id="ptLogList"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="ptSendBtn" onclick="doPrestigeTransfer()" style="flex:1;padding:9px;background:#1c2a40;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-variant:small-caps;letter-spacing:1px">Send</button>
+        <button onclick="closePrestigeTransfer()" style="padding:9px 18px;background:#5a4632;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
+      </div>
     </div>
-    <div id="ptTransferLog" style="margin-bottom:16px;max-height:140px;overflow-y:auto;display:none">
-      <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;margin-bottom:6px">Recent Transfers</div>
-      <div id="ptLogList"></div>
+    <!-- Buy Panel -->
+    <div id="ptPanel-buy" style="display:none">
+      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Buy prestige from the Guild Treasury at <strong>+10% margin</strong>.<br>Silver will be deducted from your in-game wallet.</p>
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Prestige Amount (pts)</label>
+        <input id="ptBuyAmount" type="number" min="1" placeholder="0" oninput="updateBuyPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+      </div>
+      <div id="ptBuyPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
+        <div style="display:flex;justify-content:space-between"><span>Rate (×1.1)</span><span id="ptBuyRate">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:6px;font-size:13px;color:#2e2014"><span>You pay</span><span id="ptBuyCost">—</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="ptBuyBtn" onclick="doPrestigeBuy()" style="flex:1;padding:9px;background:#2a5a2a;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-variant:small-caps;letter-spacing:1px">Request Purchase</button>
+        <button onclick="closePrestigeTransfer()" style="padding:9px 18px;background:#5a4632;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
+      </div>
     </div>
-    <div style="display:flex;gap:8px">
-      <button id="ptSendBtn" onclick="doPrestigeTransfer()" style="flex:1;padding:9px;background:#1c2a40;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-variant:small-caps;letter-spacing:1px">Send</button>
-      <button onclick="closePrestigeTransfer()" style="padding:9px 18px;background:#5a4632;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
+    <!-- Sell Panel -->
+    <div id="ptPanel-sell" style="display:none">
+      <p style="font-size:12px;color:#5a4632;margin-bottom:14px;line-height:1.5">Sell prestige back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:#5a4632;display:block;margin-bottom:4px">Prestige Amount (pts)</label>
+        <input id="ptSellAmount" type="number" min="1" placeholder="0" oninput="updateSellPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
+      </div>
+      <div id="ptSellPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
+        <div style="display:flex;justify-content:space-between"><span>Rate (×0.9)</span><span id="ptSellRate">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:6px;font-size:13px;color:#2e2014"><span>You receive</span><span id="ptSellPayout">—</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="ptSellBtn" onclick="doPrestigeSell()" style="flex:1;padding:9px;background:#8c2424;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-variant:small-caps;letter-spacing:1px">Request Sale</button>
+        <button onclick="closePrestigeTransfer()" style="padding:9px 18px;background:#5a4632;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:13px">Close</button>
+      </div>
     </div>
     <p id="ptError" style="color:#8c2424;font-size:12px;margin-top:8px;display:none"></p>
+    <p id="ptSuccess" style="color:#2a5a2a;font-size:12px;margin-top:8px;display:none"></p>
   </div>
 </div>`;
   document.body.insertAdjacentHTML('beforeend', transferModalHtml);
@@ -230,7 +274,8 @@
         const app=getApps()[0]; if(!app)return;
         const auth=getAuth(app);
         const db=getDatabase(app);
-        let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false;
+        let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000;
+        onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
 
         onAuthStateChanged(auth,user=>{
           if(!user)return;
@@ -311,11 +356,95 @@
           });
         });
 
+        function _navFmtS(v){if(!v)return'0 S';const a=Math.abs(v);let s=a>=1000000?(a/1000000).toFixed(1)+'M':a>=1000?(a/1000).toFixed(0)+'K':a.toString();return(v<0?'-':'')+s+' S';}
+
+        window.switchPrestigeTab=function(tab){
+          ['transfer','buy','sell'].forEach(t=>{
+            const panel=document.getElementById('ptPanel-'+t);
+            const btn=document.getElementById('ptTab-'+t);
+            if(panel)panel.style.display=t===tab?'block':'none';
+            if(btn){btn.style.background=t===tab?'#1c2a40':'transparent';btn.style.color=t===tab?'#f1e4c4':'#5a4632';}
+          });
+          document.getElementById('ptError').style.display='none';
+          document.getElementById('ptSuccess').style.display='none';
+        };
+
+        window.updateBuyPreview=function(){
+          const pts=parseInt(document.getElementById('ptBuyAmount').value)||0;
+          const prev=document.getElementById('ptBuyPreview');
+          if(!pts){prev.style.display='none';return;}
+          const cost=Math.round(pts*_navSilverRate*1.1);
+          document.getElementById('ptBuyRate').textContent=Math.round(_navSilverRate*1.1).toLocaleString()+' S/pt';
+          document.getElementById('ptBuyCost').textContent=_navFmtS(cost);
+          prev.style.display='block';
+        };
+
+        window.updateSellPreview=function(){
+          const pts=parseInt(document.getElementById('ptSellAmount').value)||0;
+          const prev=document.getElementById('ptSellPreview');
+          if(!pts){prev.style.display='none';return;}
+          const payout=Math.round(pts*_navSilverRate*0.9);
+          document.getElementById('ptSellRate').textContent=Math.round(_navSilverRate*0.9).toLocaleString()+' S/pt';
+          document.getElementById('ptSellPayout').textContent=_navFmtS(payout);
+          prev.style.display='block';
+        };
+
+        window.doPrestigeBuy=async function(){
+          const errEl=document.getElementById('ptError');const okEl=document.getElementById('ptSuccess');
+          errEl.style.display='none';okEl.style.display='none';
+          const pts=parseInt(document.getElementById('ptBuyAmount').value,10);
+          if(!pts||pts<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
+          if(!_navMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
+          const myName=_navAllMembers[_navMyMid]?.name||'?';
+          const cost=Math.round(pts*_navSilverRate*1.1);
+          const btn=document.getElementById('ptBuyBtn');
+          btn.disabled=true;btn.textContent='Submitting…';
+          try{
+            await push(ref(db,'tasks'),{
+              title:`Prestige Purchase — ${myName} — ${pts} pts`,
+              type:'prestige_buy',amount:cost,prestigePoints:pts,
+              holder:myName,memberMid:_navMyMid,status:'pending',
+              createdAt:Date.now(),createdBy:myName,
+              notes:`${pts} pts × ${_navSilverRate.toLocaleString()} S + 10% = ${cost.toLocaleString()} S`
+            });
+            document.getElementById('ptBuyAmount').value='';
+            document.getElementById('ptBuyPreview').style.display='none';
+            okEl.textContent='✓ Request submitted — awaiting Council approval.';okEl.style.display='block';
+          }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
+          btn.disabled=false;btn.textContent='Request Purchase';
+        };
+
+        window.doPrestigeSell=async function(){
+          const errEl=document.getElementById('ptError');const okEl=document.getElementById('ptSuccess');
+          errEl.style.display='none';okEl.style.display='none';
+          const pts=parseInt(document.getElementById('ptSellAmount').value,10);
+          if(!pts||pts<=0){errEl.textContent='Enter a valid amount.';errEl.style.display='block';return;}
+          if(pts>_navMyPoints){errEl.textContent=`Not enough prestige (you have ${_navMyPoints} pts).`;errEl.style.display='block';return;}
+          if(!_navMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
+          const myName=_navAllMembers[_navMyMid]?.name||'?';
+          const payout=Math.round(pts*_navSilverRate*0.9);
+          const btn=document.getElementById('ptSellBtn');
+          btn.disabled=true;btn.textContent='Submitting…';
+          try{
+            await push(ref(db,'tasks'),{
+              title:`Prestige Sale — ${myName} — ${pts} pts`,
+              type:'prestige_sell',amount:payout,prestigePoints:pts,
+              holder:myName,memberMid:_navMyMid,status:'pending',
+              createdAt:Date.now(),createdBy:myName,
+              notes:`${pts} pts × ${_navSilverRate.toLocaleString()} S - 10% = ${payout.toLocaleString()} S`
+            });
+            document.getElementById('ptSellAmount').value='';
+            document.getElementById('ptSellPreview').style.display='none';
+            okEl.textContent='✓ Request submitted — awaiting Council approval.';okEl.style.display='block';
+          }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
+          btn.disabled=false;btn.textContent='Request Sale';
+        };
+
         window.openPrestigeTransfer=function(){
           const modal=document.getElementById('prestigeTransferModal');
           if(!modal)return;
           modal.style.display='flex';
-          document.getElementById('ptError').style.display='none';
+          switchPrestigeTab('transfer');
           document.getElementById('ptAmount').value='';
           document.getElementById('ptNote').value='';
           document.getElementById('ptMyBalance').textContent=`Your prestige: ${_navMyPoints} pts`;
