@@ -205,6 +205,30 @@
 <div id="toast"></div>
 
 <script type="module">
+// Number formatting logic
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('silver-input')) {
+    let raw = e.target.value.replace(/[^\d-]/g, '');
+    if (raw === '' || raw === '-') { e.target.value = raw; return; }
+    e.target.value = parseInt(raw, 10).toLocaleString('tr-TR');
+  }
+});
+window.parseAmt = function(val) {
+  if (!val) return 0;
+  return parseInt(val.toString().replace(/[^\d-]/g, ''), 10) || 0;
+};
+// Number formatting logic
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('silver-input')) {
+    let raw = e.target.value.replace(/[^\d-]/g, '');
+    if (raw === '' || raw === '-') { e.target.value = raw; return; }
+    e.target.value = parseInt(raw, 10).toLocaleString('tr-TR');
+  }
+});
+window.parseAmt = function(val) {
+  if (!val) return 0;
+  return parseInt(val.toString().replace(/[^\d-]/g, ''), 10) || 0;
+};
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, set, get, update, remove, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -372,7 +396,7 @@ function buildCard(ev){
       if(ev.calculatesIncome) {
         incomeRow = `
         <label style="margin-top:8px;display:block">Guild Income — Estimated Silver</label>
-        <input type="number" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
+        <input type="text" class="silver-input" inputmode="numeric" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
         <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · enter income above</div>
         `;
       }
@@ -389,7 +413,7 @@ function buildCard(ev){
     } else {
       completePanel=`<div class="complete-panel" id="complete-${ev.id}">
         <label>Guild Income — Estimated Silver</label>
-        <input type="number" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
+        <input type="text" class="silver-input" inputmode="numeric" id="cpts-${ev.id}" value="0" min="0" step="10000" oninput="updateCompletePreview('${ev.id}')">
         <div class="complete-preview" id="cprev-${ev.id}">${parts.length} participant${parts.length!==1?'s':''} · enter income above</div>
         <div style="display:flex;gap:8px">
           <button class="gold-btn" style="font-size:12px" onclick="completeEvent('${ev.id}')">Confirm & Distribute</button>
@@ -459,7 +483,7 @@ function calcPrestigeRate(income){
 window.updateCompletePreview=function(evId){
   const ev=events[evId];if(!ev)return;
   const parts=ev.participants?Object.keys(ev.participants).length:0;
-  const income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+  const income=parseAmt(document.getElementById('cpts-'+evId)?.value)||0;
   const prev=document.getElementById('cprev-'+evId);
   if(!prev)return;
   if(!parts){prev.textContent='No participants yet.';return;}
@@ -476,7 +500,7 @@ window.postEvent=async function(){
   const dateVal=document.getElementById('evDate').value;
   const timeVal=document.getElementById('evTime').value||'00:00';
   const desc=document.getElementById('evDesc').value.trim();
-  const maxP=parseInt(document.getElementById('evMax').value)||0;
+  const maxP=parseAmt(document.getElementById('evMax').value)||0;
   if(!title){toast('Enter an event title.');return;}
   if(!dateVal){toast('Select a date.');return;}
   const date=new Date(dateVal+'T'+timeVal).getTime();
@@ -628,7 +652,7 @@ window.completeEvent=async function(evId){
   }
 
   if (!ev.isOfficial || ev.calculatesIncome) {
-    income=parseInt(document.getElementById('cpts-'+evId)?.value)||0;
+    income=parseAmt(document.getElementById('cpts-'+evId)?.value)||0;
     if(income>0){
       const rate=calcPrestigeRate(income);
       const incTotal=Math.floor(income/rate);
@@ -671,27 +695,18 @@ window.completeEvent=async function(evId){
     }
   }
 
-  // Create prestige_event task — councillor approves to award prestige
+  // Single combined task: approving awards Laxi AND records loot income to Events Budget
+  const hasIncome = (!ev.isOfficial || ev.calculatesIncome) && income > 0;
   await push(ref(db,'tasks'),{
-    title:`Event Laxi — ${ev.title} — ${total} Laxi`,
+    title:`Event — ${ev.title} — ${total} Laxi${hasIncome?' · ~'+incFmt+'S':''}`,
     type:'prestige_event',
     prestigeTotal:total,
     awardsMap,
     eventId:evId,eventTitle:ev.title,
     status:'pending',createdAt:at,createdBy:by,
-    notes:`${parts.length} participants · ${incFmt}S income · ${total} laxi total`
+    ...(hasIncome?{guildIncome:income,fundType:'events',estimated:true}:{}),
+    notes:`${parts.length} participants · ${hasIncome?incFmt+'S income · ':''}${total} laxi total`
   });
-
-  // Loot settlement task (Ad-hoc events or Official events with income)
-  if (!ev.isOfficial || ev.calculatesIncome) {
-    await push(ref(db,'tasks'),{
-      title:`Event Loot Settlement — ${ev.title} — ~${incFmt}S`,
-      type:'payment_in',amount:income,fundType:'events',status:'pending',
-      eventId:evId,eventTitle:ev.title,estimated:true,
-      notes:`Tahmini loot geliri: ${income.toLocaleString()} S`,
-      createdAt:at,createdBy:by
-    });
-  }
 
   toast(`"${ev.title}" onay bekliyor — ${total} laxi task oluşturuldu.`);
 };

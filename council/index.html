@@ -253,7 +253,7 @@
           <div id="actionPanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid rgba(120,90,50,.2)">
             <div id="actionLabel" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              <input type="number" id="actionAmt" placeholder="Amount" step="100000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+              <input type="text" class="silver-input" inputmode="numeric" id="actionAmt" placeholder="Amount" step="100000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
               <input type="text" id="actionReason" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
               <button class="gold-btn" onclick="submitAction()">Record</button>
               <button class="ghost-btn" onclick="closeAction()">Cancel</button>
@@ -289,7 +289,7 @@
         </div>
         <div id="ovFundPanel-quest" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
           <div id="ovFundLabel-quest" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <input type="number" id="ovFundAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" class="silver-input" inputmode="numeric" id="ovFundAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
           <input type="text" id="ovFundReason-quest" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
           <div style="display:flex;gap:6px">
             <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('quest')">Record</button>
@@ -313,7 +313,7 @@
         </div>
         <div id="ovFundPanel-events" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
           <div id="ovFundLabel-events" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <input type="number" id="ovFundAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" class="silver-input" inputmode="numeric" id="ovFundAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
           <input type="text" id="ovFundReason-events" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
           <div style="display:flex;gap:6px">
             <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('events')">Record</button>
@@ -337,7 +337,7 @@
         </div>
         <div id="ovFundPanel-island" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
           <div id="ovFundLabel-island" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <input type="number" id="ovFundAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" class="silver-input" inputmode="numeric" id="ovFundAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
           <input type="text" id="ovFundReason-island" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
           <div style="display:flex;gap:6px">
             <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('island')">Record</button>
@@ -361,7 +361,7 @@
         </div>
         <div id="ovFundPanel-recruitment" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,90,50,.2)">
           <div id="ovFundLabel-recruitment" style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:8px"></div>
-          <input type="number" id="ovFundAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
+          <input type="text" class="silver-input" inputmode="numeric" id="ovFundAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:6px">
           <input type="text" id="ovFundReason-recruitment" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:8px">
           <div style="display:flex;gap:6px">
             <button class="gold-btn" style="flex:1" onclick="submitFundOverviewAction('recruitment')">Record</button>
@@ -409,7 +409,7 @@
     <div id="fundActionPanel-quest" class="add-form" style="display:none;margin-bottom:18px">
       <div id="fundActionLabel-quest" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="number" id="fAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" class="silver-input" inputmode="numeric" id="fAmt-quest" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
         <input type="text" id="fReason-quest" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
         <button class="gold-btn" onclick="submitFundAction('quest')">Record</button>
         <button class="ghost-btn" onclick="closeFundAction('quest')">Cancel</button>
@@ -425,7 +425,7 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <input type="text" id="wishItemName" placeholder="Item name..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
         <input type="number" id="wishItemQty" placeholder="Qty" step="1" min="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
-        <input type="number" id="wishItemPrice" placeholder="Target price" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:140px">
+        <input type="text" class="silver-input" inputmode="numeric" id="wishItemPrice" placeholder="Target price" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:140px">
         <button class="gold-btn" onclick="addWishlistItem()">Add</button>
         <button class="ghost-btn" onclick="toggleWishlistForm()">Cancel</button>
       </div>
@@ -448,34 +448,6 @@
     <div id="questEntryList"><div class="empty">No entries yet.</div></div>
     <div id="questEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
 
-    <!-- Certificates Management -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:28px">
-      <span>Certificates Management</span>
-      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleCertificateForm()">+ Create Certificate</button>
-    </div>
-    <div id="certificateForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-        <input type="text" id="certTitle" placeholder="Title (e.g. ZvZ Basics)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
-        <input type="text" id="certIcon" placeholder="Icon (e.g. 🎓)" value="🎓" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100px">
-        <input type="text" id="certColor" placeholder="Color hex (e.g. #c8a04a)" value="#c8a04a" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:120px">
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="certDesc" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
-        <button class="gold-btn" onclick="addCertificate()">Save</button>
-        <button class="ghost-btn" onclick="toggleCertificateForm()">Cancel</button>
-      </div>
-    </div>
-    <div id="certificatesList" style="margin-bottom:20px"></div>
-    
-    <!-- Manual Certificate Granting -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-      <span>Grant Certificate Manually</span>
-    </div>
-    <div style="margin-bottom:20px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <select id="grantCertUser" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Member —</option></select>
-      <select id="grantCertId" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px"><option value="">— Select Certificate —</option></select>
-      <button class="gold-btn" onclick="manualGrantCertificate()">Grant</button>
-    </div>
   </div>
 
   <!-- ══ EVENTS FUND ══ -->
@@ -497,7 +469,7 @@
     <div id="fundActionPanel-events" class="add-form" style="display:none;margin-bottom:18px">
       <div id="fundActionLabel-events" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="number" id="fAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" class="silver-input" inputmode="numeric" id="fAmt-events" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
         <input type="text" id="fReason-events" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
         <button class="gold-btn" onclick="submitFundAction('events')">Record</button>
         <button class="ghost-btn" onclick="closeFundAction('events')">Cancel</button>
@@ -527,7 +499,7 @@
           <option value="per_person">Per Person Laxi</option>
           <option value="total_pool">Total Laxi Pool</option>
         </select>
-        <input type="number" id="offEvRewardAmt" placeholder="Reward Amount" min="0" value="0" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;max-width:140px">
+        <input type="text" class="silver-input" inputmode="numeric" id="offEvRewardAmt" placeholder="Reward Amount" min="0" value="0" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;max-width:140px">
         <label style="font-family:Georgia,serif;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;margin-left:8px">
           <input type="checkbox" id="offEvCalcIncome" checked> + Also distribute Laxi based on Guild Income
         </label>
@@ -597,12 +569,20 @@
     <div id="fundActionPanel-island" class="add-form" style="display:none;margin-bottom:18px">
       <div id="fundActionLabel-island" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="number" id="fAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" class="silver-input" inputmode="numeric" id="fAmt-island" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
         <input type="text" id="fReason-island" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
         <button class="gold-btn" onclick="submitFundAction('island')">Record</button>
         <button class="ghost-btn" onclick="closeFundAction('island')">Cancel</button>
       </div>
     </div>
+    <!-- Weekly House Distribution -->
+    <div class="add-form" style="margin-bottom:20px" id="houseDistSection">
+      <div class="section-eyebrow" style="margin:0 0 12px">Weekly Private House Income Distribution</div>
+      <div id="houseDistRows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+      <div id="houseDistPreview" style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-bottom:10px"></div>
+      <button class="gold-btn" style="font-size:12px" onclick="doHouseDist()">Distribute</button>
+    </div>
+
     <div class="section-eyebrow">Transaction History</div>
     <div id="islandEntryList"><div class="empty">No entries yet.</div></div>
     <div id="islandEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
@@ -627,7 +607,7 @@
     <div id="fundActionPanel-recruitment" class="add-form" style="display:none;margin-bottom:18px">
       <div id="fundActionLabel-recruitment" style="font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="number" id="fAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
+        <input type="text" class="silver-input" inputmode="numeric" id="fAmt-recruitment" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:130px">
         <input type="text" id="fReason-recruitment" placeholder="Description" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
         <button class="gold-btn" onclick="submitFundAction('recruitment')">Record</button>
         <button class="ghost-btn" onclick="closeFundAction('recruitment')">Cancel</button>
@@ -673,7 +653,7 @@
       </div>
       <div class="form-row">
         <div class="form-group"><label>Bonds Released</label><input type="number" id="bp-released" min="1" placeholder="40"></div>
-        <div class="form-group"><label>Bond Value (Silver)</label><input type="number" id="bp-value" step="100000" placeholder="1000000"></div>
+        <div class="form-group"><label>Bond Value (Silver)</label><input type="text" class="silver-input" inputmode="numeric" id="bp-value" step="100000" placeholder="1000000"></div>
         <div class="form-group"><label>Interest Rate (%)</label><input type="number" id="bp-rate" min="0" max="100" step="1" placeholder="20"></div>
       </div>
       <div class="form-actions">
@@ -709,7 +689,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Amount (Silver)</label>
-          <input type="number" id="taskAmount" value="0" step="1000" min="0">
+          <input type="text" class="silver-input" inputmode="numeric" id="taskAmount" value="0" step="1000" min="0">
         </div>
         <div class="form-group">
           <label>Holder <span style="font-size:10px;color:var(--ink-soft)">(for payment notices)</span></label>
@@ -745,6 +725,7 @@
 
   <!-- ══ SETTINGS ══ -->
   <div id="tab-settings" class="tab-panel">
+
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px">
       <div class="add-form" style="flex:2;min-width:280px" id="prestigeValueCard">
         <div style="font-size:11px;color:var(--ink-soft);font-style:italic">Loading…</div>
@@ -754,12 +735,33 @@
         <div class="form-group">
           <label>1 Laxi = how many Silver</label>
           <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-            <input type="number" id="silverRateInput" value="10000" step="1000" min="1" style="width:130px">
+            <input type="text" class="silver-input" inputmode="numeric" id="silverRateInput" value="10000" step="1000" min="1" style="width:130px">
             <button class="gold-btn" onclick="saveRate()">Save</button>
           </div>
         </div>
         <div id="rateHint" style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:8px"></div>
       </div>
+    </div>
+
+    <!-- Certificates Management -->
+    <div id="certManagementWrapper" style="display:none">
+      <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span>Certificates Management</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleCertificateForm()">+ Create Certificate</button>
+    </div>
+    <div id="certificateForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="certTitle" placeholder="Title (e.g. ZvZ Basics)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:140px">
+        <input type="text" id="certIcon" placeholder="Icon (e.g. 🎓)" value="🎓" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100px">
+        <input type="text" id="certColor" placeholder="Color hex (e.g. #c8a04a)" value="#c8a04a" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:120px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="certDesc" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
+        <button class="gold-btn" onclick="addCertificate()">Save</button>
+        <button class="ghost-btn" onclick="toggleCertificateForm()">Cancel</button>
+      </div>
+    </div>
+    <div id="certificatesList" style="margin-bottom:32px"></div>
     </div>
 
     <!-- Crisis History -->
@@ -798,7 +800,7 @@
     <div style="display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;gap:8px;align-items:center">
         <label style="font-size:12px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);width:80px">Amount</label>
-        <input type="number" id="paAmount" placeholder="e.g. 50 or -20" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1">
+        <input type="text" class="silver-input" inputmode="numeric" id="paAmount" placeholder="e.g. 50 or -20" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1">
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <label style="font-size:12px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);width:80px">Reason</label>
@@ -813,6 +815,30 @@
 </div>
 
 <script type="module">
+// Number formatting logic
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('silver-input')) {
+    let raw = e.target.value.replace(/[^\d-]/g, '');
+    if (raw === '' || raw === '-') { e.target.value = raw; return; }
+    e.target.value = parseInt(raw, 10).toLocaleString('tr-TR');
+  }
+});
+window.parseAmt = function(val) {
+  if (!val) return 0;
+  return parseInt(val.toString().replace(/[^\d-]/g, ''), 10) || 0;
+};
+// Number formatting logic
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('silver-input')) {
+    let raw = e.target.value.replace(/[^\d-]/g, '');
+    if (raw === '' || raw === '-') { e.target.value = raw; return; }
+    e.target.value = parseInt(raw, 10).toLocaleString('tr-TR');
+  }
+});
+window.parseAmt = function(val) {
+  if (!val) return 0;
+  return parseInt(val.toString().replace(/[^\d-]/g, ''), 10) || 0;
+};
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import{getDatabase,ref,set,get,update,remove,onValue,push,serverTimestamp,query,orderByChild,limitToLast}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -821,6 +847,7 @@ const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-
 const RANKS={serf:{w:1},commoner:{w:2},knight:{w:3},lord:{w:4},councillor:{w:5},hand:{w:6,admin:true},sovereign:{w:7,admin:true}};
 
 const GUILD_ROLES = {
+  'manage_treasury': {label: 'Treasury Manager', color: '#7a5a10'},
   'manage_quest_budget': {label: 'Quest Budget Manager', color: '#7a5a10'},
   'manage_events_budget': {label: 'Events Budget Manager', color: '#7a5a10'},
   'manage_island_budget': {label: 'Island Budget Manager', color: '#7a5a10'},
@@ -956,13 +983,15 @@ function canManageBudget(key){
 
 function renderBudgetPermissions(){
   const admin=isAdmin(currentUserData) || hasRole(currentUserData, 'admin_council');
+  const treasuryManager=isAdmin(currentUserData) || hasRole(currentUserData, 'manage_treasury');
+  
   // Treasury overview buttons
   const tb=document.getElementById('ovButtons-treasury');
-  if(tb)tb.style.display=admin?'block':'none';
+  if(tb)tb.style.display=treasuryManager?'block':'none';
   // Budget overview cards — admin only (all 4 buttons incl Transfer In)
   ['quest','events','island','recruitment'].forEach(key=>{
     const ob=document.getElementById('ovButtons-'+key);
-    if(ob)ob.style.display=admin?'flex':'none';
+    if(ob)ob.style.display=treasuryManager?'flex':'none';
     // Budget tab actions
     const ta=document.getElementById('fundTabActions-'+key);
     const can=canManageBudget(key);
@@ -977,6 +1006,11 @@ function renderBudgetPermissions(){
   if(cTabBtn) cTabBtn.style.display = admin ? 'inline-block' : 'none';
   
   if(admin) renderCircleTable();
+
+  // Show Certificates Management only if authorized
+  const canManageCerts = admin || hasRole(currentUserData, 'admin_members') || hasRole(currentUserData, 'manage_quest_budget') || hasRole(currentUserData, 'admin_events');
+  const certWrapper = document.getElementById('certManagementWrapper');
+  if(certWrapper) certWrapper.style.display = canManageCerts ? 'block' : 'none';
 }
 
 function renderCircleTable(){
@@ -1003,7 +1037,10 @@ function renderCircleTable(){
 
   grid.innerHTML = circleMembers.map(([uid, u]) => {
     const name = u.name || uid;
-    const title = u.title ? `<div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px">${u.title}</div>` : '';
+    // Resolve customTitle from prestige/members by matching name
+    const pmEntry = Object.values(prestigeMembers).find(m => m.name?.toLowerCase() === name.toLowerCase());
+    const customTitle = u.title || pmEntry?.customTitle || '';
+    const title = customTitle ? `<div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px">${customTitle}</div>` : '';
     
     // Determine highest rank name
     const highestRank = (u.ranks||[]).reduce((best, r) => (RANKS[r]?.w||0) > (RANKS[best]?.w||0) ? r : best, (u.ranks||['serf'])[0]);
@@ -1400,7 +1437,7 @@ window.closeAction=function(){
 window.submitAction=async function(){
   if(!_activeAction)return;
   const{sign,fund}=_activeAction;
-  const rawAmt=parseInt(document.getElementById('actionAmt').value)||0;
+  const rawAmt=parseAmt(document.getElementById('actionAmt').value)||0;
   const reason=document.getElementById('actionReason').value.trim();
   if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
   if(!reason){toast('Enter a description.');return;}
@@ -1707,8 +1744,8 @@ window.toggleWishlistForm=function(){
 
 window.addWishlistItem=async function(){
   const name=document.getElementById('wishItemName').value.trim();
-  const qty=parseInt(document.getElementById('wishItemQty').value)||1;
-  const price=parseInt(document.getElementById('wishItemPrice').value)||0;
+  const qty=parseAmt(document.getElementById('wishItemQty').value)||1;
+  const price=parseAmt(document.getElementById('wishItemPrice').value)||0;
   if(!name)return;
   const by=currentUserData?.name||'?';
   await push(ref(db,'questBudget/wishlist'),{name,qty,targetPrice:price,inStock:true,addedAt:Date.now(),addedBy:by});
@@ -1739,8 +1776,8 @@ window.cancelWishlistEdit=function(id){
 
 window.saveWishlistEdit=async function(id){
   const name=document.getElementById('wish-name-'+id).value.trim();
-  const qty=parseInt(document.getElementById('wish-qty-'+id).value)||1;
-  const price=parseInt(document.getElementById('wish-price-'+id).value)||0;
+  const qty=parseAmt(document.getElementById('wish-qty-'+id).value)||1;
+  const price=parseAmt(document.getElementById('wish-price-'+id).value)||0;
   if(!name)return;
   await update(ref(db,'questBudget/wishlist/'+id),{name,qty,targetPrice:price});
   const row=document.getElementById('wish-edit-'+id);
@@ -1811,7 +1848,7 @@ window.submitFundOverviewAction=async function(fund){
   const panel=document.getElementById('ovFundPanel-'+fund);
   const sign=panel?panel._sign:1;
   const mode=panel?panel._mode:'income';
-  const rawAmt=parseInt(document.getElementById('ovFundAmt-'+fund).value)||0;
+  const rawAmt=parseAmt(document.getElementById('ovFundAmt-'+fund).value)||0;
   const reason=document.getElementById('ovFundReason-'+fund).value.trim();
   if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
   if(!reason){toast('Enter a description.');return;}
@@ -1825,6 +1862,59 @@ window.submitFundOverviewAction=async function(fund){
   }
   closeFundOverviewAction(fund);
   toast(`Recorded: ${amount>0?'+':''}${fmtS(amount)}`);
+};
+
+function renderHouseDistRows(){
+  const rows=document.getElementById('houseDistRows');
+  if(!rows)return;
+  const families=Object.entries(prestigeFamilies).filter(([,f])=>f.name);
+  if(!families.length){rows.innerHTML='<div style="font-size:12px;font-style:italic;color:var(--ink-soft)">No families found.</div>';return;}
+  rows.innerHTML=families.map(([fid,f])=>`
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:160px;font-size:13px;font-family:Georgia,serif;color:var(--navy)">${f.name}</div>
+      <div style="font-size:11px;color:var(--ink-soft);width:90px">Pool: ${fmtLaxi(f.bonusPoints||0)} £</div>
+      <input type="number" id="hdist-${fid}" placeholder="0" min="0" step="1"
+        style="font-family:Georgia,serif;font-size:13px;padding:4px 7px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:90px"
+        oninput="updateHouseDistPreview()">
+    </div>`).join('');
+}
+
+window.updateHouseDistPreview=function(){
+  const families=Object.entries(prestigeFamilies).filter(([,f])=>f.name);
+  let totalLaxi=0;
+  const lines=[];
+  for(const[fid,f]of families){
+    const v=parseInt(document.getElementById('hdist-'+fid)?.value)||0;
+    if(v>0){totalLaxi+=v;lines.push(`${f.name} +${v}`);}
+  }
+  const prev=document.getElementById('houseDistPreview');
+  if(!prev)return;
+  if(!totalLaxi){prev.textContent='';return;}
+  prev.innerHTML=`${lines.join(' · ')} — <strong>${totalLaxi} Laxi</strong> toplam · <strong>${fmtS(totalLaxi*silverRate)}</strong> → Free Treasury`;
+};
+
+window.doHouseDist=async function(){
+  const families=Object.entries(prestigeFamilies).filter(([,f])=>f.name);
+  const entries=families.map(([fid,f])=>({fid,f,laxi:parseInt(document.getElementById('hdist-'+fid)?.value)||0})).filter(e=>e.laxi>0);
+  if(!entries.length){toast('En az bir aileye Laxi girin.');return;}
+  const totalLaxi=entries.reduce((s,e)=>s+e.laxi,0);
+  const totalSilver=totalLaxi*silverRate;
+  const summary=entries.map(e=>`${e.f.name} +${e.laxi}`).join(', ');
+  if(!confirm(`Dağıtılacak:\n${summary}\n\nToplam: ${totalLaxi} Laxi · ${fmtS(totalSilver)} hazineye aktarılacak.`))return;
+  const by=currentUserData?.name||'Admin';
+  const at=Date.now();
+  const reason='Weekly Private House Income Distribution';
+  const upd={};
+  for(const{fid,f,laxi}of entries){
+    upd[`prestige/families/${fid}/bonusPoints`]=(f.bonusPoints||0)+laxi;
+  }
+  await update(ref(db),upd);
+  await push(ref(db,'funds/island/prestigeEntries'),{amount:-totalLaxi,reason,by,at,auto:true,detail:summary});
+  await _fundDeductSilver('island',totalSilver,reason,by,at,null);
+  // Reset inputs
+  entries.forEach(e=>{const el=document.getElementById('hdist-'+e.fid);if(el)el.value='';});
+  document.getElementById('houseDistPreview').textContent='';
+  toast(`Dağıtıldı — ${totalLaxi} Laxi · ${fmtS(totalSilver)} hazineye aktarıldı.`);
 };
 
 window.openFundAction=function(fund,sign){
@@ -1845,7 +1935,7 @@ window.closeFundAction=function(fund){
 window.submitFundAction=async function(fund,forceMode){
   const panel=document.getElementById('fundActionPanel-'+fund);
   const sign=panel?panel._sign:1;
-  const rawAmt=parseInt(document.getElementById('fAmt-'+fund).value)||0;
+  const rawAmt=parseAmt(document.getElementById('fAmt-'+fund).value)||0;
   const reason=document.getElementById('fReason-'+fund).value.trim();
   if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
   if(!reason){toast('Enter a description.');return;}
@@ -2048,7 +2138,7 @@ function renderBonds(){
 
 window.previewBondSale=function(pid){
   const p=bondPeriods[pid];if(!p)return;
-  const qty=parseInt(document.getElementById('bs-qty-'+pid)?.value)||0;
+  const qty=parseAmt(document.getElementById('bs-qty-'+pid)?.value)||0;
   const val=qty*(p.bondValue||0);
   const rep=Math.round(val*(1+(p.interestRate||0)));
   const prev=document.getElementById('bs-preview-'+pid);
@@ -2092,7 +2182,7 @@ window.deleteBondSale=async function(pid,sid,couponId,value){
 window.addBondSale=async function(pid){
   const p=bondPeriods[pid];if(!p)return;
   const holder=document.getElementById('bs-holder-'+pid)?.value.trim();
-  const qty=parseInt(document.getElementById('bs-qty-'+pid)?.value)||0;
+  const qty=parseAmt(document.getElementById('bs-qty-'+pid)?.value)||0;
   if(!holder){toast('Enter holder name.');return;}
   if(!qty||qty<1){toast('Enter a valid quantity.');return;}
   const existingCoupons=Object.values(p.sales||{}).map(s=>s.couponId||'').filter(Boolean);
@@ -2319,8 +2409,8 @@ window.createBondPeriod=async function(){
   const name=document.getElementById('bp-name').value.trim();
   const announcedStr=document.getElementById('bp-announced').value;
   const dueStr=document.getElementById('bp-due').value;
-  const released=parseInt(document.getElementById('bp-released').value)||0;
-  const bondValue=parseInt(document.getElementById('bp-value').value)||0;
+  const released=parseAmt(document.getElementById('bp-released').value)||0;
+  const bondValue=parseAmt(document.getElementById('bp-value').value)||0;
   const rateRaw=parseFloat(document.getElementById('bp-rate').value)||0;
   if(!announcedStr||!dueStr){toast('Announced and due dates are required.');return;}
   if(!released||!bondValue){toast('Bond count and value are required.');return;}
@@ -2405,7 +2495,7 @@ function taskCardHtml(id,t){
   const holderBadge=t.holder?`<span style="font-weight:bold;color:var(--navy)"> — ${t.holder}</span>`:'';
   const amtLine=target?`<div class="task-amount">${typeIcon} ${fmtS(target)}${holderBadge}${t.notes?` — ${t.notes}`:''} ${fundLabel(t.fundType)}</div>`:'';
   const partialForm=`<div id="pf-${id}" style="display:none;margin-top:8px;display:none;gap:8px;flex-wrap:wrap;align-items:center">
-    <input type="number" id="pf-amt-${id}" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);width:130px">
+    <input type="text" class="silver-input" inputmode="numeric" id="pf-amt-${id}" placeholder="Amount" step="10000" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);width:130px">
     <input type="text" id="pf-note-${id}" placeholder="Note (optional)" style="font-family:Georgia,serif;font-size:12px;padding:5px 8px;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.7);flex:1;min-width:120px">
     <button class="gold-btn" style="font-size:11px;padding:5px 12px" onclick="recordPayment('${id}')">Record</button>
     <button class="ghost-btn" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('pf-${id}').style.display='none'">✕</button>
@@ -2413,7 +2503,8 @@ function taskCardHtml(id,t){
   const isBondRepayment=t.type==='payment_out'&&!!t.bondPeriodId;
   const isPrestigeTask=isPrestigeBuy||isPrestigeSell||isPrestigeQuest;
   const partyStr=isPrestigeQuest&&t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)).join(', '):'';
-  const prestigePtsLine=isPrestigeTask&&t.prestigePoints?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints} pts</strong> prestige ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}</div>`:'';
+  const isPrestigeEvent=t.type==='prestige_event';
+  const prestigePtsLine=isPrestigeTask&&(t.prestigePoints||t.prestigeTotal)?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints||t.prestigeTotal} pts</strong> Laxi ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}${isPrestigeEvent&&t.guildIncome?' · <strong>'+fmtS(t.guildIncome)+'</strong> income → Events Budget'+(t.estimated?' <em>(estimated)</em>':''):''}</div>`:'';
   const actions=isPending?`<div class="task-actions" style="margin-top:8px">
     ${!isPrestigeTask&&target>0?`<button class="ghost-btn" style="font-size:11px" onclick="document.getElementById('pf-${id}').style.display=document.getElementById('pf-${id}').style.display==='none'?'flex':'none'">+ Payment</button>`:''}
     <button class="gold-btn" onclick="completeTask('${id}')">${isPrestigeTask?'✓ Approve':'✓ Complete'}</button>
@@ -2429,7 +2520,7 @@ function taskCardHtml(id,t){
 
 window.recordPayment=async function(id){
   const t=tasks[id];if(!t)return;
-  const rawAmt=parseInt(document.getElementById('pf-amt-'+id)?.value)||0;
+  const rawAmt=parseAmt(document.getElementById('pf-amt-'+id)?.value)||0;
   const note=document.getElementById('pf-note-'+id)?.value.trim()||'';
   if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
   const by=currentUserData.name;const at=Date.now();
@@ -2513,7 +2604,7 @@ function renderPrestigeValue(){
 window.createTask=async function(){
   const title=document.getElementById('taskTitle').value.trim();
   const type=document.getElementById('taskType').value;
-  const amount=parseInt(document.getElementById('taskAmount').value)||0;
+  const amount=parseAmt(document.getElementById('taskAmount').value)||0;
   const notes=document.getElementById('taskNotes').value.trim();
   const fundType=document.getElementById('taskFundType').value||null;
   if(!title){toast('Enter a task title.');return;}
@@ -2564,7 +2655,11 @@ window.completeTask=async function(id){
       await push(ref(db,'funds/events/prestigeEntries'),{amount:-evTotalPts,reason:`Event: ${t.eventTitle||t.title}`,at,by,auto:true,taskId:id});
       await _fundDeductSilver('events',evSilver,evReason,by,at,id);
     }
-    toast(`Event prestige approved — ${t.prestigeTotal||0} pts distributed.`);
+    // Record loot income to Events Budget if bundled in this task
+    if(t.guildIncome>0&&t.fundType==='events'){
+      await push(ref(db,'funds/events/entries'),{amount:t.guildIncome,reason:`Event income — ${t.eventTitle||t.title}`,by,at,auto:true,taskId:id,eventId:t.eventId||null,estimated:t.estimated||false});
+    }
+    toast(`Event approved — ${t.prestigeTotal||0} pts distributed${t.guildIncome>0?' · '+fmtS(t.guildIncome)+' income recorded':''}.`);
     return;
   } else if(t.type==='prestige_quest'&&t.prestigePoints){
     // Award prestige split among party members
@@ -2702,7 +2797,7 @@ window.closePrestigeAlloc=function(){
 };
 window.submitPrestigeAlloc=async function(){
   if(!_paCurrentKey)return;
-  const amt=parseInt(document.getElementById('paAmount').value)||0;
+  const amt=parseAmt(document.getElementById('paAmount').value)||0;
   const reason=document.getElementById('paReason').value.trim();
   if(!amt){toast('Enter a non-zero amount.');return;}
   await push(ref(db,'funds/'+_paCurrentKey+'/prestigeEntries'),{
@@ -2715,7 +2810,7 @@ window.submitPrestigeAlloc=async function(){
 
 // ── SETTINGS ──
 window.saveRate=async function(){
-  const v=parseInt(document.getElementById('silverRateInput').value)||10000;
+  const v=parseAmt(document.getElementById('silverRateInput').value)||10000;
   await set(ref(db,'treasury/settings/silverPerLaxi'),v);
   silverRate=v;
   document.getElementById('rateHint').textContent=`1 Laxi = ${v.toLocaleString()} Silver`;
@@ -2833,7 +2928,7 @@ onAuthStateChanged(auth,async user=>{
 
   safeOnValue('prestige/members',snap=>{prestigeMembers=snap.val()||{};renderPrestigeValue();});
   safeOnValue('certificates',snap=>{_certificates=snap.val()||{};renderCertificates();});
-  safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();});
+  safeOnValue('prestige/families',snap=>{prestigeFamilies=snap.val()||{};renderPrestigeValue();renderHouseDistRows();});
   safeOnValue('users',snap=>{
     _allUsers=snap.val()||{};
     const admin = isAdmin(currentUserData) || hasRole(currentUserData, 'admin_council');
@@ -2960,11 +3055,11 @@ window.postOfficialEvent = async function() {
   const dateVal = document.getElementById('offEvDate').value;
   const timeVal = document.getElementById('offEvTime').value || '00:00';
   const desc = document.getElementById('offEvDesc').value.trim();
-  const maxP = parseInt(document.getElementById('offEvMax').value) || 0;
+  const maxP = parseAmt(document.getElementById('offEvMax').value) || 0;
   const reqC = document.getElementById('offEvReqCert').value;
   const grantC = document.getElementById('offEvGrantCert').value;
   const rType = document.getElementById('offEvRewardType').value;
-  const rAmt = parseInt(document.getElementById('offEvRewardAmt').value) || 0;
+  const rAmt = parseAmt(document.getElementById('offEvRewardAmt').value) || 0;
   const calcIncome = document.getElementById('offEvCalcIncome').checked;
 
   if(!title){ toast('Enter an event title.'); return; }

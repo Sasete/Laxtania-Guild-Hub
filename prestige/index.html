@@ -247,7 +247,7 @@
   <div class="form-row">
     <div class="form-group"><label>In-Game Name</label><input type="text" id="newMName" placeholder="Character name"></div>
     <div class="form-group"><label>Family</label><select id="newMFamily"><option value="">— None —</option></select></div>
-    <div class="form-group"><label>Points</label><input type="number" id="newMPoints" value="0" min="0"></div>
+    <div class="form-group"><label>Points</label><input type="text" class="silver-input" inputmode="numeric" id="newMPoints" value="0" min="0"></div>
   </div>
   <label style="font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);display:block;margin-bottom:6px;">Ranks</label>
   <div class="rank-checkboxes" id="newMRanks">
@@ -272,7 +272,7 @@
 <div class="inline-form" id="addFamilyForm" style="max-width:980px;margin:0 auto;">
   <div class="form-row">
     <div class="form-group"><label>Family Name</label><input type="text" id="newFName" placeholder="e.g. House Ravenmoor"></div>
-    <div class="form-group"><label>Bonus Points</label><input type="number" id="newFBonus" value="0" min="0"></div>
+    <div class="form-group"><label>Bonus Points</label><input type="text" class="silver-input" inputmode="numeric" id="newFBonus" value="0" min="0"></div>
   </div>
   <div style="display:flex;gap:8px">
     <button class="gold-btn" onclick="addFamily()">Establish Family</button>
@@ -328,6 +328,30 @@
 <div id="toast"></div>
 
 <script type="module">
+// Number formatting logic
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('silver-input')) {
+    let raw = e.target.value.replace(/[^\d-]/g, '');
+    if (raw === '' || raw === '-') { e.target.value = raw; return; }
+    e.target.value = parseInt(raw, 10).toLocaleString('tr-TR');
+  }
+});
+window.parseAmt = function(val) {
+  if (!val) return 0;
+  return parseInt(val.toString().replace(/[^\d-]/g, ''), 10) || 0;
+};
+// Number formatting logic
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('silver-input')) {
+    let raw = e.target.value.replace(/[^\d-]/g, '');
+    if (raw === '' || raw === '-') { e.target.value = raw; return; }
+    e.target.value = parseInt(raw, 10).toLocaleString('tr-TR');
+  }
+});
+window.parseAmt = function(val) {
+  if (!val) return 0;
+  return parseInt(val.toString().replace(/[^\d-]/g, ''), 10) || 0;
+};
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, set, get, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -606,7 +630,7 @@ function loadFamilyLog(fid){
 }
 
 window.adjustPrestige=async function(id,name,sign){
-  const amount=parseInt(document.getElementById('padj-'+id)?.value)||0;
+  const amount=parseAmt(document.getElementById('padj-'+id)?.value)||0;
   const reason=document.getElementById('preason-'+id)?.value.trim();
   if(!amount||amount<1){toast('Enter a valid amount.');return;}
   if(!reason){toast('Enter a reason.');return;}
@@ -644,7 +668,7 @@ window.manualRevokeCert = async function(uid, certId) {
 };
 
 window.adjustFamilyBonus=async function(id,name,sign){
-  const amount=parseInt(document.getElementById('fadj-'+id)?.value)||0;
+  const amount=parseAmt(document.getElementById('fadj-'+id)?.value)||0;
   const reason=document.getElementById('freason-'+id)?.value.trim();
   if(!amount||amount<1){toast('Enter a valid amount.');return;}
   if(!reason){toast('Enter a reason.');return;}
@@ -693,7 +717,7 @@ window.addMember=async function(){
   const name=document.getElementById('newMName').value.trim();
   if(!name){toast('Enter a name.');return;}
   const fam=document.getElementById('newMFamily').value;
-  const pts=parseInt(document.getElementById('newMPoints').value)||0;
+  const pts=parseAmt(document.getElementById('newMPoints').value)||0;
   const customTitle=document.getElementById('newMTitle').value.trim();
   const ranks=[...document.querySelectorAll('#newMRanks input:checked')].map(c=>c.value);
   if(!ranks.length)ranks.push('serf');
@@ -872,7 +896,7 @@ function renderMyFamilySection(){
       ${showGive?`<div id="giveRow-${m.id}" style="display:none;padding:10px 12px;background:rgba(200,160,74,0.07);border-bottom:1px solid rgba(120,90,50,0.1);">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);white-space:nowrap;">Pool → ${m.name||m.id}:</span>
-          <input type="number" id="giveAmt-${m.id}" min="1" placeholder="pts" style="width:72px;padding:4px 6px;font-family:Georgia,serif;font-size:12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+          <input type="text" class="silver-input" inputmode="numeric" id="giveAmt-${m.id}" min="1" placeholder="pts" style="width:72px;padding:4px 6px;font-family:Georgia,serif;font-size:12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
           <input type="text" id="giveNote-${m.id}" placeholder="note (optional)" style="flex:1;min-width:100px;padding:4px 6px;font-family:Georgia,serif;font-size:12px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
           <button class="gold-btn" style="font-size:11px;padding:4px 12px;" onclick="submitFamilyGive('${m.id}','${(m.name||m.id).replace(/'/g,"\\'")}')">Send</button>
           <button class="ghost-btn" style="font-size:11px;padding:4px 8px;" onclick="toggleGiveRow('${m.id}')">✕</button>
@@ -927,7 +951,7 @@ function renderMyFamilySection(){
           ${otherFamilies.length===0?'<div style="font-style:italic;color:var(--ink-soft);font-size:13px;">No other families exist yet.</div>':`
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
             <select id="famSendTarget" class="rank-select" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;flex:1;">${familyOptions}</select>
-            <input type="number" id="famSendAmt" min="1" placeholder="pts" style="width:80px;padding:6px 8px;font-family:Georgia,serif;font-size:13px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
+            <input type="text" class="silver-input" inputmode="numeric" id="famSendAmt" min="1" placeholder="pts" style="width:80px;padding:6px 8px;font-family:Georgia,serif;font-size:13px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <input type="text" id="famSendNote" placeholder="Note (optional)" style="flex:1;min-width:120px;padding:6px 8px;font-family:Georgia,serif;font-size:13px;border:1px solid rgba(120,90,50,0.3);background:rgba(255,255,255,0.7);border-radius:2px;">
@@ -1327,7 +1351,7 @@ window.deleteFamily=async function(id,name){
 window.addFamily=async function(){
   const name=document.getElementById('newFName').value.trim();
   if(!name){toast('Enter a name.');return;}
-  const bonus=parseInt(document.getElementById('newFBonus').value)||0;
+  const bonus=parseAmt(document.getElementById('newFBonus').value)||0;
   await set(push(ref(db,'prestige/families')),{name,bonusPoints:bonus});
   toast(`${name} established.`);
   document.getElementById('newFName').value='';document.getElementById('newFBonus').value='0';
@@ -1355,7 +1379,7 @@ function renderAdminTab(){
         <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(140,36,36,0.15)">
           <div class="form-row">
             <div class="form-group"><label>Name</label><input type="text" id="newTierName" placeholder="Diamond"></div>
-            <div class="form-group"><label>Min Pts</label><input type="number" id="newTierMin" placeholder="2500" min="0"></div>
+            <div class="form-group"><label>Min Pts</label><input type="text" class="silver-input" inputmode="numeric" id="newTierMin" placeholder="2500" min="0"></div>
             <div class="form-group"><label>Colour</label><input type="text" id="newTierColor" placeholder="#aabbcc"></div>
           </div>
           <button class="red-btn" style="font-size:12px;padding:6px 14px" onclick="addTier()">Add Tier</button>
@@ -1375,7 +1399,7 @@ window.rejectUser=async function(uid,name){
 };
 window.addTier=async function(){
   const name=document.getElementById('newTierName').value.trim();
-  const min=parseInt(document.getElementById('newTierMin').value);
+  const min=parseAmt(document.getElementById('newTierMin').value);
   const color=document.getElementById('newTierColor').value.trim();
   if(!name||isNaN(min)||!color){toast('Fill all fields.');return;}
   await push(ref(db,'prestige/tiers'),{name,minPts:min,color});
