@@ -791,6 +791,13 @@
       </div>
     </div>
 
+    <!-- DEV: Fake crisis log — remove after test -->
+    <div id="fakeCrisisBtn" class="add-form" style="margin-bottom:28px;border:1px dashed rgba(140,36,36,.4)">
+      <div class="section-eyebrow" style="margin:0 0 8px;color:#8c2424">🧪 Dev — Fake Crisis Log</div>
+      <p style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">Writes a realistic fake closed crisis to crisis_log for UI testing. Remove after.</p>
+      <button class="ghost-btn" onclick="runFakeCrisisLog()">Insert Fake Crisis</button>
+    </div>
+
     <!-- Certificates Management -->
     <div id="certManagementWrapper" style="display:none">
       <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -2865,6 +2872,28 @@ window.saveRate=async function(){
   toast(`Rate saved: ${v.toLocaleString()} S`);
 };
 
+// ── DEV: Fake crisis log — remove after test ──
+window.runFakeCrisisLog=async function(){
+  const now=Date.now();
+  const detectedAt=now-(7*60*60*1000); // 7 hours ago
+  const fakeCrisis={
+    detectedAt,
+    resolvedAt:now,
+    nominalAtStart:10000,
+    nominalAtEnd:7500,
+    realValueAtEnd:6800,
+    log:[
+      {at:detectedAt,                  type:'detected',    nominal:10000,realValue:7800,dropPct:22,sellPressurePct:4.1},
+      {at:detectedAt+(2*3600*1000),    type:'escalation',  stepBefore:0,stepAfter:1,penaltyBefore:0,penaltyAfter:10,sellPressurePct:5.3},
+      {at:detectedAt+(4*3600*1000),    type:'escalation',  stepBefore:1,stepAfter:2,penaltyBefore:10,penaltyAfter:20,sellPressurePct:6.7},
+      {at:detectedAt+(6*3600*1000),    type:'correction',  nominalBefore:10000,nominalAfter:7500,realValue:6800,dropPct:32,marginBefore:0.20,marginAfter:0.20,sellsRefunded:3,refundedNames:['Brom','Sasete','Aelindra'],sellPressurePct:8.2},
+      {at:now,                         type:'resolved',    nominal:7500,realValue:6800},
+    ],
+  };
+  await push(ref(db,'treasury/settings/crisis_log'),fakeCrisis);
+  toast('Fake crisis log inserted.');
+};
+
 // ── AUTH ──
 window.doSignOut=async function(){await signOut(auth);window.location.href='../';};
 function renderUserRoles(ranks){const c=document.getElementById('userBarRoles');if(!c)return;c.innerHTML=(ranks||['serf']).map(r=>`<span class="role-tag">${r}</span>`).join('');}
@@ -2931,7 +2960,7 @@ onAuthStateChanged(auth,async user=>{
 
   // ── Crisis breaker listeners ──
   function _fmtSC(v){if(!v)return'0 S';const a=Math.abs(v);const s=a>=1000000?(a/1000000).toFixed(2)+'M':a>=1000?(a/1000).toFixed(0)+'K':a.toLocaleString();return(v<0?'-':'')+s+' S';}
-  onValue(ref(db,'treasury/settings/crisis_pending'),snap=>{
+  onValue(ref(db,'treasury/settings/crisis'),snap=>{
     const badge=document.getElementById('crisisPendingBadge');
     const info=document.getElementById('crisisPendingInfo');
     if(!badge||!info)return;
@@ -2940,36 +2969,52 @@ onAuthStateChanged(auth,async user=>{
     badge.style.display='inline';
     info.style.display='block';
     const detectedAgo=Math.round((Date.now()-(c.detectedAt||0))/60000);
-    const hoursLeft=Math.max(0,(120-detectedAgo));
+    const penalty=Math.round((c.sellMarginPenalty||0)*100);
+    const totalMargin=10+penalty;
     info.innerHTML=`
-      <strong>Circuit breaker armed</strong> — detected ${detectedAgo} min ago.<br>
-      Nominal at detection: <strong>${(c.nominalAtDetection||0).toLocaleString()} S</strong> &nbsp;·&nbsp;
-      Real at detection: <strong>${(c.realAtDetection||0).toLocaleString()} S</strong> &nbsp;·&nbsp;
-      Drop: <strong>${c.dropPct||0}%</strong><br>
-      <span style="color:#8c2424">Will snap nominal to real in ~${hoursLeft} min if crisis persists.</span>`;
+      <strong>Crisis active</strong> — detected ${detectedAgo} min ago &nbsp;·&nbsp; Step <strong>${c.step||0}</strong><br>
+      Sell margin: <strong style="color:#8c2424">−${totalMargin}%</strong> (base 10% + ${penalty}% crisis penalty)<br>
+      <span style="color:#8c2424">Margin increases every 2h while sell pressure persists. Correction triggers at −50%.</span>`;
   });
-  onValue(query(ref(db,'treasury/settings/crisis_log'),orderByChild('triggeredAt'),limitToLast(20)),snap=>{
+  onValue(query(ref(db,'treasury/settings/crisis_log'),orderByChild('detectedAt'),limitToLast(10)),snap=>{
     const el=document.getElementById('crisisLogList');
     if(!el)return;
-    if(!snap.exists()){el.innerHTML='<span style="font-style:italic;color:var(--ink-soft)">No circuit breaker events on record.</span>';return;}
-    const rows=Object.values(snap.val()).reverse().map(c=>{
-      const d=new Date(c.triggeredAt||0);
-      const dateStr=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-      const timeStr=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(120,90,50,0.12)">
-        <div>
-          <span style="color:#8c2424;font-weight:bold">⚡ Circuit Break</span>
-          <span style="color:var(--ink-soft);margin-left:10px">${dateStr} ${timeStr}</span>
-        </div>
-        <div style="text-align:right;font-size:11px;color:var(--ink-soft)">
-          <span title="Nominal before snap">${(c.nominalBefore||0).toLocaleString()} S</span>
-          <span style="margin:0 6px">→</span>
-          <span title="Real value at snap" style="color:var(--navy);font-weight:bold">${(c.realValue||0).toLocaleString()} S</span>
-          <span style="margin-left:8px;color:#8c2424">−${c.dropPct||0}%</span>
-        </div>
-      </div>`;
+    if(!snap.exists()){el.innerHTML='<span style="font-style:italic;color:var(--ink-soft)">No crisis events on record.</span>';return;}
+    function _fmtDate(ts){if(!ts)return'—';const d=new Date(ts);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
+    function _fmtStepType(t){
+      if(t==='detected')return'<span style="color:#8c2424">⚠ Detected</span>';
+      if(t==='escalation')return'<span style="color:#8c2424">↑ Escalation</span>';
+      if(t==='deescalation')return'<span style="color:#2a5a2a">↓ De-escalation</span>';
+      if(t==='check')return'<span style="color:var(--ink-soft)">· Check</span>';
+      if(t==='correction')return'<span style="color:#8c2424;font-weight:bold">🔴 Correction</span>';
+      if(t==='resolved')return'<span style="color:#2a5a2a;font-weight:bold">✅ Resolved</span>';
+      return t;
+    }
+    const crises=Object.entries(snap.val()).reverse();
+    const rows=crises.map(([cid,c])=>{
+      const steps=c.log?Object.values(c.log):[];
+      const duration=c.resolvedAt&&c.detectedAt?Math.round((c.resolvedAt-c.detectedAt)/60000):null;
+      const durationStr=duration!=null?(duration<60?`${duration}m`:`${Math.floor(duration/60)}h ${duration%60}m`):'ongoing';
+      const stepRows=steps.map(s=>`
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 0 3px 10px;border-left:2px solid rgba(120,90,50,0.15);margin-left:4px;font-size:11px;color:var(--ink-soft)">
+          <span>${_fmtStepType(s.type)} <span style="margin-left:6px;opacity:.7">${_fmtDate(s.at)}</span></span>
+          <span style="text-align:right">
+            ${s.type==='correction'?`${(s.nominalBefore||0).toLocaleString()} → ${(s.nominalAfter||0).toLocaleString()} S · ${s.sellsRefunded||0} refunded`:''}
+            ${s.type==='escalation'||s.type==='deescalation'?`step ${s.stepBefore}→${s.stepAfter} · penalty ${Math.round((s.penaltyBefore||0)*100+10)}%→${Math.round((s.penaltyAfter||0)*100+10)}%`:''}
+            ${s.type==='detected'?`${(s.realValue||0).toLocaleString()} S (${s.dropPct||0}% drop)`:''}
+          </span>
+        </div>`).join('');
+      return`<details style="margin-bottom:10px;border:1px solid rgba(120,90,50,0.2);border-radius:4px;overflow:hidden">
+        <summary style="cursor:pointer;padding:9px 12px;background:rgba(120,90,50,0.05);display:flex;justify-content:space-between;align-items:center;list-style:none">
+          <span style="font-weight:bold;color:var(--navy)">⚡ Crisis — ${_fmtDate(c.detectedAt)}</span>
+          <span style="font-size:11px;color:var(--ink-soft)">
+            ${(c.nominalAtStart||0).toLocaleString()} S → ${(c.nominalAtEnd||0).toLocaleString()} S &nbsp;·&nbsp; ${durationStr}
+          </span>
+        </summary>
+        <div style="padding:8px 12px">${stepRows}</div>
+      </details>`;
     }).join('');
-    el.innerHTML=rows||'<span style="font-style:italic;color:var(--ink-soft)">No circuit breaker events on record.</span>';
+    el.innerHTML=rows||'<span style="font-style:italic;color:var(--ink-soft)">No crisis events on record.</span>';
   });
 
   // ── Fund deficit listeners ──

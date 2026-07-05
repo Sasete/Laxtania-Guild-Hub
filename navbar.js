@@ -259,7 +259,10 @@
     </div>
     <!-- Sell Panel -->
     <div id="ptPanel-sell" style="display:none">
-      <p style="font-size:12px;color:#5a4632;margin-bottom:10px;line-height:1.5">Sell Laxi back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
+      <p id="ptSellMarginDesc" style="font-size:12px;color:#5a4632;margin-bottom:10px;line-height:1.5">Sell Laxi back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.</p>
+      <div id="ptCrisisWarning" style="display:none;background:rgba(140,36,36,0.08);border:1px solid rgba(140,36,36,0.35);border-radius:3px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#8c2424;line-height:1.55">
+        ⚡ <strong>Crisis margin active</strong> — sell penalty temporarily increased.
+      </div>
       <div style="background:rgba(28,42,64,0.07);border:1px solid rgba(28,42,64,0.18);border-radius:3px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#2e2014;line-height:1.55">
         ⚠ After the request is approved, a councillor will pay out the silver to you in-game.
       </div>
@@ -271,7 +274,7 @@
         <input id="ptSellAmount" type="number" min="1" placeholder="0" oninput="updateSellPreview()" style="width:100%;padding:8px;border:1px solid #ddc69a;border-radius:3px;font-family:Georgia,serif;font-size:13px;box-sizing:border-box">
       </div>
       <div id="ptSellPreview" style="background:rgba(200,160,74,.1);border:1px solid rgba(200,160,74,.4);border-radius:3px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#5a4632;display:none">
-        <div style="display:flex;justify-content:space-between"><span>Rate (×0.9)</span><span id="ptSellRate">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span id="ptSellRateLabel">Rate (×0.9)</span><span id="ptSellRate">—</span></div>
         <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:6px;font-size:13px;color:#2e2014"><span>You receive</span><span id="ptSellPayout">—</span></div>
       </div>
       <div id="ptSellPendingWrap" style="display:none;margin-bottom:12px">
@@ -302,7 +305,12 @@
         const db=getDatabase(app);
         let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
         let _navPendingBuyTaskId=null,_navPendingBuyPts=0,_navPendingSellTaskId=null,_navPendingSellPts=0;
+        let _navCrisisPenalty=0; // extra sell margin penalty from crisis (0.0–0.50)
         onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
+        onValue(ref(db,'treasury/settings/crisis'),snap=>{
+          _navCrisisPenalty=snap.exists()?(snap.val().sellMarginPenalty||0):0;
+          updateSellPreview&&updateSellPreview();
+        });
 
         onAuthStateChanged(auth,user=>{
           if(!user)return;
@@ -489,13 +497,26 @@
           const prev=document.getElementById('ptSellPreview');
           const available=_navMyPoints-_navPendingSellPts;
           let pts=parseInt(input.value)||0;
-          // Clamp to available
           if(pts>available){pts=available;input.value=available;}
           if(!pts||pts<=0){prev.style.display='none';btn.disabled=true;btn.style.opacity='0.45';return;}
           btn.disabled=false;btn.style.opacity='1';
-          const payout=Math.round(pts*_navSilverRate*0.9);
-          document.getElementById('ptSellRate').textContent=Math.round(_navSilverRate*0.9).toLocaleString()+' S/pt';
+          const totalPenalty=0.10+(_navCrisisPenalty||0);
+          const multiplier=1-totalPenalty;
+          const payout=Math.round(pts*_navSilverRate*multiplier);
+          const marginPct=Math.round(totalPenalty*100);
+          document.getElementById('ptSellRateLabel').textContent=`Rate (×${multiplier.toFixed(2)})`;
+          document.getElementById('ptSellRate').textContent=Math.round(_navSilverRate*multiplier).toLocaleString()+' S/pt';
           document.getElementById('ptSellPayout').textContent=_navFmtS(payout);
+          // Crisis warning
+          const warn=document.getElementById('ptCrisisWarning');
+          const desc=document.getElementById('ptSellMarginDesc');
+          if(_navCrisisPenalty>0){
+            if(warn)warn.style.display='block';
+            if(desc)desc.innerHTML=`Sell Laxi back to the Guild Treasury at <strong>-${marginPct}% margin</strong> <span style="color:#8c2424">(+${Math.round(_navCrisisPenalty*100)}% crisis)</span>.<br>Silver will be paid to your in-game wallet.`;
+          } else {
+            if(warn)warn.style.display='none';
+            if(desc)desc.innerHTML=`Sell Laxi back to the Guild Treasury at <strong>-10% margin</strong>.<br>Silver will be paid to your in-game wallet.`;
+          }
           prev.style.display='block';
         };
 
@@ -534,7 +555,10 @@
           if(pts>availablePts){errEl.textContent=`Not enough Laxi (available: ${availablePts} pts).`;errEl.style.display='block';return;}
           if(!_navMyMid){errEl.textContent='Could not identify your member record.';errEl.style.display='block';return;}
           const myName=_navAllMembers[_navMyMid]?.name||'?';
-          const payout=Math.round(pts*_navSilverRate*0.9);
+          const totalPenalty=0.10+(_navCrisisPenalty||0);
+          const multiplier=1-totalPenalty;
+          const payout=Math.round(pts*_navSilverRate*multiplier);
+          const marginPct=Math.round(totalPenalty*100);
           const btn=document.getElementById('ptSellBtn');
           btn.disabled=true;btn.textContent='Submitting…';
           try{
@@ -543,7 +567,8 @@
               type:'prestige_sell',amount:payout,prestigePoints:pts,
               holder:myName,memberMid:_navMyMid,status:'pending',
               createdAt:Date.now(),createdBy:myName,
-              notes:`${pts} pts × ${_navSilverRate.toLocaleString()} S - 10% = ${payout.toLocaleString()} S`
+              crisisPenalty:_navCrisisPenalty||0,
+              notes:`${pts} pts × ${_navSilverRate.toLocaleString()} S - ${marginPct}% = ${payout.toLocaleString()} S`
             });
             document.getElementById('ptSellAmount').value='';
             document.getElementById('ptSellPreview').style.display='none';
