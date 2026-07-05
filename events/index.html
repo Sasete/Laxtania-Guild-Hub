@@ -568,25 +568,30 @@ window.completeEvent=async function(evId){
   const by=currentUserData?.name||'Admin';
   const at=Date.now();
 
-  const pmSnap=await get(ref(db,'prestige/members'));
-  const pmData=pmSnap.val()||{};
-  const pmByName={};
-  Object.entries(pmData).forEach(([id,m])=>{if(m.name)pmByName[m.name.toLowerCase()]={id,...m};});
-
+  // Build per-participant prestige map
+  const awardsMap={};
   for(let i=0;i<parts.length;i++){
     const [uid,p]=parts[i];
-    const delta=perPerson+(luckySet.has(i)?1:0);
-    await update(ref(db,`events/${evId}/participants/${uid}`),{prestigeAwarded:delta});
-    const pm=pmByName[p.name?.toLowerCase()];
-    if(pm){
-      const newPts=(pm.points||0)+delta;
-      await update(ref(db,'prestige/members/'+pm.id),{points:newPts});
-      await push(ref(db,'prestige/members/'+pm.id+'/log'),{delta,reason:`Event: ${ev.title}`,by,at});
-    }
+    awardsMap[uid]={name:p.name,delta:perPerson+(luckySet.has(i)?1:0)};
   }
-  await update(ref(db,'events/'+evId),{status:'completed',prestige:total,guildIncome:income});
 
   const incFmt=income>=1000000?parseFloat((Math.round(income/10000)/100).toFixed(2))+'M':income>=1000?parseFloat((Math.round(income/100)/10).toFixed(1))+'K':income.toLocaleString();
+
+  // Mark event as pending approval, don't award prestige yet
+  await update(ref(db,'events/'+evId),{status:'pending_approval',prestige:total,guildIncome:income});
+
+  // Create prestige_event task — councillor approves to award prestige
+  await push(ref(db,'tasks'),{
+    title:`Event Prestige — ${ev.title} — ${total} pts`,
+    type:'prestige_event',
+    prestigeTotal:total,
+    awardsMap,
+    eventId:evId,eventTitle:ev.title,
+    status:'pending',createdAt:at,createdBy:by,
+    notes:`${parts.length} participants · ${incFmt}S income · ${total} pts total`
+  });
+
+  // Loot settlement task
   await push(ref(db,'tasks'),{
     title:`Event Loot Settlement — ${ev.title} — ~${incFmt}S`,
     type:'payment_in',amount:income,fundType:'events',status:'pending',
@@ -595,7 +600,7 @@ window.completeEvent=async function(evId){
     createdAt:at,createdBy:by,auto:true
   });
 
-  toast(`"${ev.title}" tamamlandı — ${total} pts · ${incFmt}S settlement görevi oluşturuldu.`);
+  toast(`"${ev.title}" onay bekliyor — ${total} pts prestige task oluşturuldu.`);
 };
 
 // ── AUTH ──

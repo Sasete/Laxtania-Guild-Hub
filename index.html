@@ -405,6 +405,7 @@
     </div>
 
     <!-- Bond Sections -->
+    <div id="questApprovalSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
     <div id="bondCampaignSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
     <div id="bondPendingSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
     <div id="bondOwnedSection" style="display:none;max-width:980px;margin:0 auto 16px"></div>
@@ -1029,6 +1030,58 @@ onAuthStateChanged(auth,async user=>{
     await remove(ref(db,'bondRequests/'+rid));
   };
   _startBondListener();
+
+  // Quest approval listener — for personal request issuers
+  onValue(ref(db,'tasks'),snap=>{
+    const allTasks=snap.val()||{};
+    const uid=currentUserData?.uid;
+    const pending=Object.entries(allTasks).filter(([,t])=>
+      t.type==='prestige_quest'&&t.status==='pending'&&t.issuerApproval&&t.issuerUid===uid
+    );
+    const el=document.getElementById('questApprovalSection');
+    if(!el)return;
+    if(!pending.length){el.style.display='none';el.innerHTML='';return;}
+    el.style.display='block';
+    el.innerHTML=`<div class="message-box" style="border-color:rgba(200,160,74,.55);background:rgba(200,160,74,.07)">
+      <span class="message-eyebrow">Quest Completion — Awaiting Your Approval</span>
+      ${pending.map(([tid,t])=>{
+        const party=(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers||{})).join(', ')||t.holder||'?';
+        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(120,90,50,.15)">
+          <div>
+            <div style="font-weight:bold;color:var(--navy);font-size:14px">${t.questName||'Quest'}</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:2px">Completed by: <strong>${party}</strong> · <strong>${t.prestigePoints} pts</strong> prestige reward</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button onclick="approveQuestCompletion('${tid}')" style="padding:6px 14px;background:#2a5a2a;color:#f1e4c4;border:none;border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:12px;font-variant:small-caps;letter-spacing:1px">✓ Approve</button>
+            <button onclick="rejectQuestCompletion('${tid}')" style="padding:6px 14px;background:transparent;color:var(--seal-red);border:1px solid var(--seal-red);border-radius:3px;cursor:pointer;font-family:Georgia,serif;font-size:12px">✗ Reject</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+
+  window.approveQuestCompletion=async function(tid){
+    const t=(await get(ref(db,'tasks/'+tid))).val();
+    if(!t||t.status!=='pending')return;
+    const party=Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers||{});
+    if(party.length&&t.prestigePoints){
+      const perMember=Math.floor(t.prestigePoints/party.length);
+      const membersSnap=await get(ref(db,'prestige/members'));
+      const members=membersSnap.val()||{};
+      const upd={};
+      for(const mName of party){
+        const entry=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===mName.toLowerCase());
+        if(entry)upd[`prestige/members/${entry[0]}/points`]=(entry[1].points||0)+perMember;
+      }
+      if(Object.keys(upd).length)await update(ref(db),upd);
+    }
+    await update(ref(db,'tasks/'+tid),{status:'completed',completedAt:Date.now(),completedBy:currentUserData.name});
+  };
+
+  window.rejectQuestCompletion=async function(tid){
+    if(!confirm('Reject this quest completion?'))return;
+    await update(ref(db,'tasks/'+tid),{status:'cancelled',cancelledAt:Date.now(),cancelledBy:currentUserData.name});
+  };
 
   show('viewHall');
 });

@@ -171,7 +171,10 @@
       </div>
       <button id="prestigeTransferBtn" onclick="openPrestigeTransfer()" style="display:none;flex-direction:column;align-items:center;gap:1px;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:3px;transition:background 0.15s" title="Prestige & Transfer" onmouseover="this.style.background='rgba(200,160,74,0.1)'" onmouseout="this.style.background='none'">
         <span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:rgba(230,200,120,0.6)">Prestige</span>
-        <span id="myPrestigeCount" style="font-family:Georgia,serif;font-size:15px;color:var(--gold-bright);font-weight:bold;line-height:1">—</span>
+        <span style="display:flex;align-items:baseline;gap:4px">
+          <span id="myPrestigeCount" style="font-family:Georgia,serif;font-size:15px;color:var(--gold-bright);font-weight:bold;line-height:1">—</span>
+          <span id="myPrestigePending" style="display:none;font-family:Georgia,serif;font-size:10px;font-weight:bold;line-height:1"></span>
+        </span>
         <span style="font-size:9px;color:rgba(200,160,74,0.5);letter-spacing:0.5px">⇄ transfer</span>
       </button>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
@@ -274,7 +277,7 @@
         const app=getApps()[0]; if(!app)return;
         const auth=getAuth(app);
         const db=getDatabase(app);
-        let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000;
+        let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
         onValue(ref(db,'treasury/settings/silverPerPrestige'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
 
         onAuthStateChanged(auth,user=>{
@@ -289,10 +292,34 @@
             if(total>0){badge.textContent=total;badge.style.display='inline';}
             else{badge.style.display='none';}
           }
+          let _navAllTasks={};
+          function _navUpdatePrestigePending(){
+            if(!_navUserName)return;
+            let delta=0;
+            for(const t of Object.values(_navAllTasks)){
+              if(t.status!=='pending')continue;
+              if(t.type==='prestige_buy'&&t.holder?.toLowerCase()===_navUserName)delta+=t.prestigePoints||0;
+              if(t.type==='prestige_sell'&&t.holder?.toLowerCase()===_navUserName)delta-=t.prestigePoints||0;
+              if(t.type==='prestige_quest'){
+                const party=Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers||{});
+                if(party.some(n=>n?.toLowerCase()===_navUserName))delta+=Math.floor((t.prestigePoints||0)/Math.max(1,party.length));
+              }
+              if(t.type==='prestige_event'&&t.awardsMap){
+                const award=Object.values(t.awardsMap).find(a=>a.name?.toLowerCase()===_navUserName);
+                if(award)delta+=award.delta||0;
+              }
+            }
+            const pendingEl=document.getElementById('myPrestigePending');
+            if(!pendingEl)return;
+            if(delta>0){pendingEl.textContent='+'+delta;pendingEl.style.color='#4a9a4a';pendingEl.style.display='inline';}
+            else if(delta<0){pendingEl.textContent=String(delta);pendingEl.style.color='#8c2424';pendingEl.style.display='inline';}
+            else{pendingEl.style.display='none';}
+          }
           onValue(ref(db,'tasks'),snap=>{
-            const tasks=snap.val()||{};
-            _navPendingTasks=Object.values(tasks).filter(t=>t.status==='pending').length;
+            _navAllTasks=snap.val()||{};
+            _navPendingTasks=Object.values(_navAllTasks).filter(t=>t.status==='pending').length;
             _navUpdateBadge();
+            _navUpdatePrestigePending();
           });
           onValue(ref(db,'bondRequests'),snap=>{
             const reqs=snap.val()||{};
@@ -304,8 +331,9 @@
           get(ref(db,'users/'+user.uid)).then(usnap=>{
             if(!usnap.exists())return;
             const ud=usnap.val();
-            const _navUserName=(ud?.name||'').toLowerCase();
+            _navUserName=(ud?.name||'').toLowerCase();
             _navIsAdmin=(ud?.ranks||[]).some(r=>ADMIN_RANKS_PT.includes(r));
+            _navUpdatePrestigePending();
 
             // Show user bar (for pages whose own auth callback hasn't done it yet)
             const userBarEl=document.getElementById('userBar');
@@ -352,6 +380,7 @@
               const btn=document.getElementById('prestigeTransferBtn');
               if(el)el.textContent=_navMyPoints;
               if(btn)btn.style.display='flex';
+              _navUpdatePrestigePending();
             });
           });
         });

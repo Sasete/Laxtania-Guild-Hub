@@ -2090,8 +2090,8 @@ function fundLabel(ft){
 function taskCardHtml(id,t){
   const isPending=t.status==='pending';
   const badgeClass=t.status==='completed'?'badge-completed':t.status==='cancelled'?'badge-cancelled':'badge-pending';
-  const isPrestigeBuy=t.type==='prestige_buy';const isPrestigeSell=t.type==='prestige_sell';
-  const typeIcon=t.type==='payment_out'?'💸':t.type==='payment_in'?'💰':isPrestigeBuy?'⬆':isPrestigeSell?'⬇':'📋';
+  const isPrestigeBuy=t.type==='prestige_buy';const isPrestigeSell=t.type==='prestige_sell';const isPrestigeQuest=t.type==='prestige_quest';
+  const typeIcon=t.type==='payment_out'?'💸':t.type==='payment_in'?'💰':isPrestigeBuy?'⬆':isPrestigeSell?'⬇':isPrestigeQuest?'♦':'📋';
   const paid=t.paidAmount||0;
   const target=t.amount||0;
   const pct=target>0?Math.min(100,Math.round(paid/target*100)):0;
@@ -2111,8 +2111,9 @@ function taskCardHtml(id,t){
     <button class="ghost-btn" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('pf-${id}').style.display='none'">✕</button>
   </div>`;
   const isBondRepayment=t.type==='payment_out'&&!!t.bondPeriodId;
-  const isPrestigeTask=isPrestigeBuy||isPrestigeSell;
-  const prestigePtsLine=isPrestigeTask&&t.prestigePoints?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays':'Member receives'} <strong>${fmtS(target)}</strong> · <strong>${t.prestigePoints} pts</strong> prestige ${isPrestigeBuy?'added':'deducted'} on approval</div>`:'';
+  const isPrestigeTask=isPrestigeBuy||isPrestigeSell||isPrestigeQuest;
+  const partyStr=isPrestigeQuest&&t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)).join(', '):'';
+  const prestigePtsLine=isPrestigeTask&&t.prestigePoints?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints} pts</strong> prestige ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}</div>`:'';
   const actions=isPending?`<div class="task-actions" style="margin-top:8px">
     ${!isPrestigeTask&&target>0?`<button class="ghost-btn" style="font-size:11px" onclick="document.getElementById('pf-${id}').style.display=document.getElementById('pf-${id}').style.display==='none'?'flex':'none'">+ Payment</button>`:''}
     <button class="gold-btn" onclick="completeTask('${id}')">${isPrestigeTask?'✓ Approve':'✓ Complete'}</button>
@@ -2243,6 +2244,59 @@ window.completeTask=async function(id){
     await push(ref(db,'treasury/entries'),{...entry,fund:t.fundType});
   } else if(t.type==='payment_in'&&t.bondPeriodId&&remainder>0){
     await push(ref(db,'treasury/entries'),{amount:remainder,reason:`Bond payment — ${t.couponId||''} (${t.holder||''})`,by,at,auto:true,taskId:id});
+  } else if(t.type==='prestige_event'&&t.awardsMap){
+    const pmSnap=await get(ref(db,'prestige/members'));
+    const pmData=pmSnap.val()||{};
+    const pmByName={};
+    Object.entries(pmData).forEach(([mid,m])=>{if(m.name)pmByName[m.name.toLowerCase()]={mid,...m};});
+    const upd={};
+    for(const award of Object.values(t.awardsMap)){
+      const pm=pmByName[award.name?.toLowerCase()];
+      if(pm)upd[`prestige/members/${pm.mid}/points`]=(pm.points||0)+award.delta;
+    }
+    if(Object.keys(upd).length)await update(ref(db),upd);
+    if(t.eventId)await update(ref(db,'events/'+t.eventId),{status:'completed'});
+    toast(`Event prestige approved — ${t.prestigeTotal||0} pts distributed.`);
+    return;
+  } else if(t.type==='prestige_quest'&&t.prestigePoints){
+    // Award prestige split among party members
+    const party=t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)):[t.holder];
+    const perMember=Math.floor(t.prestigePoints/party.length);
+    if(perMember>0){
+      const membersSnap=await get(ref(db,'prestige/members'));
+      const members=membersSnap.val()||{};
+      const upd={};
+      for(const mName of party){
+        const entry=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===mName.toLowerCase());
+        if(entry)upd[`prestige/members/${entry[0]}/points`]=(entry[1].points||0)+perMember;
+      }
+      if(Object.keys(upd).length)await update(ref(db),upd);
+    }
+    // Clean up quest from board if it was pending completion
+    if(t.questId){
+      const qdSnap=await get(ref(db,'questDefs/'+t.questId));
+      if(qdSnap.exists()){
+        const qd=qdSnap.val();
+        // Remove claimant from quests list and reduce slots
+        const questSnap=await get(ref(db,'quests/'+t.questId));
+        const claimsArr=questSnap.exists()?(Array.isArray(questSnap.val())?questSnap.val():Object.values(questSnap.val()||{})):[];
+        const holderIdx=claimsArr.findIndex(n=>n?.toLowerCase()===(t.holder||'').toLowerCase());
+        if(holderIdx>=0)claimsArr.splice(holderIdx,1);
+        const newSlots=Math.max(0,(qd.slots||1)-1);
+        const newActive=newSlots>0?(qd.active!==false):false;
+        const questUpd={};
+        questUpd['questDefs/'+t.questId+'/slots']=newSlots||1;
+        questUpd['questDefs/'+t.questId+'/active']=newActive;
+        questUpd['questDefs/'+t.questId+'/pendingComplete/'+id]=null;
+        questUpd['quests/'+t.questId]=claimsArr.length?claimsArr:null;
+        await update(ref(db),questUpd);
+        // Clean up party data
+        function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
+        await remove(ref(db,'questParties/'+t.questId+'/'+partyKey(t.holder||'')));
+      }
+    }
+    toast(`Approved — ${t.prestigePoints} pts awarded to ${party.join(', ')}.`);
+    return;
   } else if(t.type==='prestige_buy'&&t.prestigePoints&&t.memberMid){
     // Member paid silver → add prestige + credit treasury
     const memberSnap=await get(ref(db,'prestige/members/'+t.memberMid));
@@ -2290,6 +2344,10 @@ window.cancelTask=async function(id){
   if(!confirm(`Cancel "${t.title}"?`))return;
   const at=Date.now();const by=currentUserData.name;
   await update(ref(db,'tasks/'+id),{status:'cancelled',cancelledAt:at,cancelledBy:by});
+  // If cancelling a prestige_quest, clear its pendingComplete flag so claimant can retry
+  if(t.type==='prestige_quest'&&t.questId){
+    await remove(ref(db,'questDefs/'+t.questId+'/pendingComplete/'+id));
+  }
   if(t.type==='payment_in'&&t.bondPeriodId){
     const alreadyPaid=t.paidAmount||0;
     if(alreadyPaid>0){
