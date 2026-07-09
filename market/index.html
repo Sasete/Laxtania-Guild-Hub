@@ -96,9 +96,14 @@
   .seller-name{font-size:11px;color:var(--mk-text-dim);}
   .seller-name.mine{color:var(--mk-green);}
 
-  .action-cell{white-space:nowrap;display:flex;gap:6px;align-items:center;}
+  .action-cell{white-space:nowrap;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
   .sold-tag{font-size:10px;font-variant:small-caps;color:var(--mk-text-dim);background:rgba(255,255,255,0.06);padding:3px 8px;}
   .mine-tag{font-size:10px;font-variant:small-caps;color:var(--mk-green);padding:3px 0;}
+  .pending-tag{font-size:10px;font-variant:small-caps;color:#e09a00;background:rgba(224,154,0,0.1);border:1px solid rgba(224,154,0,0.3);padding:3px 8px;}
+  .awaiting-tag{font-size:10px;font-variant:small-caps;color:#4a8fef;background:rgba(74,143,239,0.08);border:1px solid rgba(74,143,239,0.25);padding:3px 8px;}
+  .mk-btn.confirm{background:linear-gradient(180deg,rgba(55,160,55,0.4),rgba(55,160,55,0.2));border-color:rgba(55,160,55,0.5);color:#7dda7d;}
+  .mk-btn.confirm:hover{background:rgba(55,160,55,0.35);}
+  .item-note{font-size:10px;color:var(--mk-text-dim);font-style:italic;margin-top:2px;}
 
   .market-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--mk-border);flex-wrap:wrap;gap:8px;}
   .market-count{font-size:11px;color:var(--mk-text-dim);}
@@ -178,6 +183,7 @@
   <div class="mk-tab-bar">
     <button class="mk-tab active" id="tab-browse" onclick="switchTab('browse',this)">Browse</button>
     <button class="mk-tab" id="tab-mine" onclick="switchTab('mine',this)">My Listings</button>
+    <button class="mk-tab" id="tab-purchases" onclick="switchTab('purchases',this)">My Purchases</button>
     <button class="mk-tab" id="tab-sold" onclick="switchTab('sold',this)">Sold History</button>
   </div>
 
@@ -310,9 +316,14 @@
       <button class="mk-modal-close" onclick="closeBuyModal()">×</button>
     </div>
     <p id="buyModalText"></p>
+    <div id="buyModalNote" style="display:none;margin:0 18px 16px;padding:10px 12px;background:rgba(200,160,74,0.08);border:1px solid rgba(200,160,74,0.25);border-radius:3px;font-size:12px;color:var(--mk-text);line-height:1.6;">
+      <span style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--mk-gold);display:block;margin-bottom:4px;">Seller's Note</span>
+      <span id="buyModalNoteText"></span>
+    </div>
+    <p style="padding:0 18px 16px;font-size:11px;color:var(--mk-text-dim);line-height:1.6;">Your Laxi will be reserved immediately. The transaction completes after you receive the item in-game and confirm.</p>
     <div class="mk-modal-footer">
       <button class="mk-btn" onclick="closeBuyModal()">Cancel</button>
-      <button class="mk-btn primary" onclick="confirmBuy()">Confirm — Spend Laxi</button>
+      <button class="mk-btn primary" onclick="confirmBuy()">Reserve &amp; Lock</button>
     </div>
   </div>
 </div>
@@ -398,10 +409,14 @@ function render() {
 
   // Tab filter
   if (activeTab === 'browse') {
-    entries = entries.filter(([,l]) => l.status === 'active');
+    entries = entries.filter(([,l]) => l.status === 'active' || l.status === 'pending' || l.status === 'awaiting_confirmation');
   } else if (activeTab === 'mine') {
     entries = currentUser
-      ? entries.filter(([,l]) => l.sellerId === currentUser.uid)
+      ? entries.filter(([,l]) => l.sellerId === currentUser.uid && l.status !== 'cancelled')
+      : [];
+  } else if (activeTab === 'purchases') {
+    entries = currentUser
+      ? entries.filter(([,l]) => l.buyerId === currentUser.uid && (l.status === 'pending' || l.status === 'awaiting_confirmation'))
       : [];
   } else if (activeTab === 'sold') {
     entries = currentUser
@@ -440,13 +455,19 @@ function render() {
   ).join('') : '';
 
   if (slice.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-market">${activeTab==='mine'&&!currentUser?'Sign in to see your listings.':'No listings found.'}</td></tr>`;
+    const emptyMsg = !currentUser && (activeTab==='mine'||activeTab==='purchases') ? 'Sign in to see your listings.'
+      : activeTab==='purchases' ? 'No pending purchases.'
+      : 'No listings found.';
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-market">${emptyMsg}</td></tr>`;
     return;
   }
 
   tbody.innerHTML = slice.map(([id,l]) => {
-    const isMine = currentUser && l.sellerId===currentUser.uid;
-    const isSold = l.status === 'sold';
+    const isMine    = currentUser && l.sellerId===currentUser.uid;
+    const isMyBuy   = currentUser && l.buyerId===currentUser.uid;
+    const isSold    = l.status === 'sold';
+    const isPending = l.status === 'pending';
+    const isAwaiting= l.status === 'awaiting_confirmation';
     const tier   = l.tier||0;
     const enc    = l.enchant||0;
     const tierLabel = tier ? `T${tier}${enc?'.'+enc:''}` : '';
@@ -456,13 +477,33 @@ function render() {
     let actionHtml = '';
     if (isSold) {
       actionHtml = `<div class="action-cell"><span class="sold-tag">Sold${l.buyerName?' → '+escHtml(l.buyerName):''}</span></div>`;
+    } else if (isPending) {
+      if (isMine) {
+        // Seller: confirm delivery
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved by ${escHtml(l.buyerName||'?')}</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmDelivery('${id}')">Confirm Delivery</button><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
+      } else if (isMyBuy) {
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Waiting for seller…</span></div>`;
+      } else {
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved</span></div>`;
+      }
+    } else if (isAwaiting) {
+      if (isMyBuy) {
+        // Buyer: confirm receipt
+        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Item delivered?</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmReceipt('${id}')">Confirm Receipt</button></div>`;
+      } else if (isMine) {
+        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Awaiting buyer…</span></div>`;
+      } else {
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved</span></div>`;
+      }
     } else if (isMine) {
       actionHtml = `<div class="action-cell"><span class="mine-tag">Your listing</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
     } else {
       actionHtml = `<div class="action-cell"><button class="mk-btn primary" style="padding:5px 14px;" onclick="openBuyModal('${id}')" ${!currentUser?'disabled title="Sign in first"':''}>Buy</button></div>`;
     }
 
-    return `<tr class="${isMine?'mine-row':''} ${isSold?'sold-row':''}">
+    const noteHtml = l.description ? `<div class="item-note">${escHtml(l.description)}</div>` : '';
+
+    return `<tr class="${isMine?'mine-row':''} ${isSold?'sold-row':''} ${(isPending||isAwaiting)?'pending-row':''}">
       <td><div class="item-cell">
         <div class="item-icon-wrap">
           <img src="${imgUrl}" alt="" onerror="this.src='https://render.albiononline.com/v1/item/T4_BAG.png'">
@@ -471,6 +512,7 @@ function render() {
         <div>
           <div class="item-name">${escHtml(l.itemName||'Unknown')}</div>
           <div class="item-cat-badge">${escHtml(l.category||'')}</div>
+          ${noteHtml}
         </div>
       </div></td>
       <td><span style="font-size:12px;color:var(--mk-gold);">${tierLabel||'—'}</span></td>
@@ -591,13 +633,23 @@ window.openBuyModal = function(id) {
   pendingBuyId = id;
   const total = (l.price||0)*(l.quantity||1);
   document.getElementById('buyModalText').innerHTML =
-    `Buy <strong>${escHtml(l.itemName)}</strong>${l.quantity>1?' ×'+l.quantity:''} from <strong>${escHtml(l.sellerName)}</strong> for <strong>${total.toLocaleString()} Laxi</strong>.<br><br>Laxi will transfer immediately.`;
+    `Buy <strong>${escHtml(l.itemName)}</strong>${l.quantity>1?' ×'+l.quantity:''} from <strong>${escHtml(l.sellerName)}</strong> for <strong>${total.toLocaleString()} Laxi</strong>.`;
+  const noteEl = document.getElementById('buyModalNote');
+  const noteTextEl = document.getElementById('buyModalNoteText');
+  if (l.description) {
+    noteTextEl.textContent = l.description;
+    noteEl.style.display = 'block';
+  } else {
+    noteEl.style.display = 'none';
+  }
   document.getElementById('buyModal').classList.add('show');
 };
 window.closeBuyModal = function() {
   document.getElementById('buyModal').classList.remove('show');
   pendingBuyId = null;
 };
+
+// Step 1: Buyer reserves — Laxi deducted from buyer, listing locked
 window.confirmBuy = async function() {
   if (!pendingBuyId||!currentUser) return;
   const id = pendingBuyId;
@@ -609,29 +661,71 @@ window.confirmBuy = async function() {
 
   const membersSnap = await get(ref(db,'prestige/members'));
   const members = membersSnap.val()||{};
-  const buyerEntry  = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(currentUserData?.name||'').toLowerCase());
-  const sellerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.sellerName||'').toLowerCase());
-
-  if (!buyerEntry)  return alert("Couldn't find your Laxi balance.");
-  if (!sellerEntry) return alert("Couldn't find seller's Laxi balance.");
+  const buyerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(currentUserData?.name||'').toLowerCase());
+  if (!buyerEntry) return alert("Couldn't find your Laxi balance.");
   const [bk,bd] = buyerEntry;
-  const [sk,sd] = sellerEntry;
   if ((bd.points||0)<total) return alert(`Not enough Laxi. You have ${(bd.points||0).toLocaleString()}, need ${total.toLocaleString()}.`);
 
-  await update(ref(db,'prestige/members'),{
-    [`${bk}/points`]: (bd.points||0)-total,
-    [`${sk}/points`]: (sd.points||0)+total,
-  });
+  // Deduct from buyer only — seller gets paid after buyer confirms receipt
+  await update(ref(db,'prestige/members'),{[`${bk}/points`]: (bd.points||0)-total});
   await update(ref(db,`market/listings/${id}`),{
-    status:'sold', buyerId:currentUser.uid,
-    buyerName:currentUserData?.name||currentUser.email, soldAt:Date.now()
+    status:'pending',
+    buyerId:   currentUser.uid,
+    buyerName: currentUserData?.name||currentUser.email,
+    reservedAt: Date.now(),
+    reservedPts: total,
   });
-  alert(`Done! ${total.toLocaleString()} Laxi paid to ${l.sellerName}.`);
+  alert(`${total.toLocaleString()} Laxi reserved. Listing is now locked — contact ${l.sellerName} in-game to arrange the trade.`);
+};
+
+// Step 2: Seller confirms they delivered the item in-game
+window.confirmDelivery = async function(id) {
+  if (!currentUser) return;
+  const l = allListings[id];
+  if (!l||l.status!=='pending') return alert('Order is no longer pending.');
+  if (l.sellerId!==currentUser.uid) return alert('Only the seller can confirm delivery.');
+  if (!confirm(`Confirm you've delivered "${l.itemName}" to ${l.buyerName} in-game?`)) return;
+  await update(ref(db,`market/listings/${id}`),{status:'awaiting_confirmation', deliveredAt:Date.now()});
+  alert('Delivery confirmed. Waiting for buyer to confirm receipt.');
+};
+
+// Step 3: Buyer confirms receipt — Laxi credited to seller
+window.confirmReceipt = async function(id) {
+  if (!currentUser) return;
+  const l = allListings[id];
+  if (!l||l.status!=='awaiting_confirmation') return alert('Nothing to confirm yet.');
+  if (l.buyerId!==currentUser.uid) return alert('Only the buyer can confirm receipt.');
+  if (!confirm(`Confirm you received "${l.itemName}" from ${l.sellerName}? This will release ${(l.reservedPts||0).toLocaleString()} Laxi to the seller.`)) return;
+
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+  const sellerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.sellerName||'').toLowerCase());
+  if (!sellerEntry) return alert("Couldn't find seller's Laxi balance.");
+  const [sk,sd] = sellerEntry;
+  const pts = l.reservedPts || (l.price||0)*(l.quantity||1);
+
+  await update(ref(db,'prestige/members'),{[`${sk}/points`]: (sd.points||0)+pts});
+  await update(ref(db,`market/listings/${id}`),{status:'sold', soldAt:Date.now()});
+  alert(`Done! ${pts.toLocaleString()} Laxi sent to ${l.sellerName}.`);
 };
 
 // ── Cancel ──
 window.cancelListing = async function(id) {
+  if (!currentUser) return;
+  const l = allListings[id];
+  if (!l) return;
   if (!confirm('Cancel this listing?')) return;
+
+  // Refund buyer if Laxi was reserved
+  if (l.status === 'pending' && l.buyerId && l.reservedPts) {
+    const membersSnap = await get(ref(db,'prestige/members'));
+    const members = membersSnap.val()||{};
+    const buyerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.buyerName||'').toLowerCase());
+    if (buyerEntry) {
+      const [bk,bd] = buyerEntry;
+      await update(ref(db,'prestige/members'),{[`${bk}/points`]: (bd.points||0)+l.reservedPts});
+    }
+  }
   await update(ref(db,`market/listings/${id}`),{status:'cancelled',cancelledAt:Date.now()});
 };
 

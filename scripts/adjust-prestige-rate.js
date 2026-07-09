@@ -24,13 +24,17 @@ const VOL_LOW      = 0.08;   // 3-8%  → +1 step
 // > 8%              → +2 steps
 
 // Normal price adjustment (runs when NOT in crisis)
-const UP_RATIO        = 0.05;
-const UP_MIN          = 50;
-const UP_DAILY_CAP_PCT = 0.006;
-const DOWN_RATIO      = 0.20;
-const DOWN_MIN        = 100;
-const DOWN_MAX        = 1500;
+// Script runs every 4h → 6×/day. Per-run cap = 0.001 → total daily ≈ 0.6%
+const UP_RATIO         = 0.05;
+const UP_MIN           = 8;     // min step per run (S)
+const UP_RUN_CAP_PCT   = 0.001; // max step per run as % of nominal
+const DOWN_RATIO       = 0.20;
+const DOWN_MIN         = 100;
+const DOWN_MAX         = 1500;
 // ─────────────────────────────────────────────────────────────────────────
+
+// --crisis-only: skip normal price adjustment, only handle crisis zone logic
+const CRISIS_ONLY = process.argv.includes('--crisis-only');
 
 async function main() {
   const now = Date.now();
@@ -221,23 +225,25 @@ async function main() {
     console.log('✅ Crisis resolved — archived to crisis_log.');
   }
 
-  // ── Normal step adjustment ──
+  // ── Normal step adjustment (skipped in crisis-only mode) ──
   let newNominal = nominal;
-  const gap = Math.abs(realValue - nominal);
 
-  if (realValue > nominal) {
-    const nearConvergence = gap < nominal * 0.05;
-    const dailyCap = nearConvergence ? gap : Math.round(nominal * UP_DAILY_CAP_PCT);
-    const step     = Math.min(Math.max(Math.round(gap * UP_RATIO), UP_MIN), dailyCap);
-    newNominal     = nominal + step;
-    if (nearConvergence) console.log(`↑ Near convergence — closing gap in one step: +${step.toLocaleString()} S`);
-    else console.log(`↑ Adjusting up by ${step.toLocaleString()} S (cap: ${dailyCap.toLocaleString()} S/day)`);
-  } else if (realValue < nominal) {
-    const step = Math.min(Math.max(Math.round(gap * DOWN_RATIO), DOWN_MIN), DOWN_MAX);
-    newNominal = nominal - step;
-    console.log(`↓ Adjusting down by ${step.toLocaleString()} S`);
+  if (CRISIS_ONLY) {
+    console.log('ℹ️  Crisis-only mode — skipping normal price adjustment.');
   } else {
-    console.log('= Already at real value — no change.');
+    const gap = Math.abs(realValue - nominal);
+    if (realValue > nominal) {
+      const runCap  = Math.round(nominal * UP_RUN_CAP_PCT);
+      const step    = Math.min(Math.max(Math.round(gap * UP_RATIO), UP_MIN), runCap);
+      newNominal    = nominal + step;
+      console.log(`↑ Adjusting up by ${step.toLocaleString()} S (run cap: ${runCap.toLocaleString()} S)`);
+    } else if (realValue < nominal) {
+      const step = Math.min(Math.max(Math.round(gap * DOWN_RATIO), DOWN_MIN), DOWN_MAX);
+      newNominal = nominal - step;
+      console.log(`↓ Adjusting down by ${step.toLocaleString()} S`);
+    } else {
+      console.log('= Already at real value — no change.');
+    }
   }
 
   if (newNominal !== nominal) {

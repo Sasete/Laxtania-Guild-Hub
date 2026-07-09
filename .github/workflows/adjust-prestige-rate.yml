@@ -1,9 +1,9 @@
-name: Daily Laxi Rate Adjustment
+name: Laxi Rate Adjustment
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # Her gün 00:00 Turkey time (UTC+3)
-  workflow_dispatch:       # Manuel tetiklemek için
+    - cron: '0 */4 * * *'  # Every 4 hours — 6 runs/day
+  workflow_dispatch:
 
 jobs:
   adjust-rate:

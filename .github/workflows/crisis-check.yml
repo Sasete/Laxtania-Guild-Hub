@@ -2,7 +2,7 @@ name: Laxi Rate Crisis Check
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours
+    - cron: '0 */2 * * *'  # Every 2 hours — fast response when crisis active
   workflow_dispatch:
 
 jobs:
@@ -22,5 +22,5 @@ jobs:
       - name: Check crisis status
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: node adjust-prestige-rate.js
+        run: node adjust-prestige-rate.js --crisis-only
         working-directory: scripts

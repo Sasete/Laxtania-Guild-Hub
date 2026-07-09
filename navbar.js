@@ -262,52 +262,6 @@
   const _navEl = document.getElementById('guildNav');
   if (_navEl) _navEl.style.display = 'flex';
 
-  // ── Footer ──
-  const footerStyle = document.createElement('style');
-  footerStyle.textContent = `
-  .guild-footer{background:rgba(22,34,52,0.97);border-top:1px solid rgba(200,160,74,0.35);margin-top:60px;padding:32px 20px 20px;font-family:Georgia,'Times New Roman',serif;}
-  .guild-footer-inner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;}
-  .guild-footer-brand{display:flex;flex-direction:column;gap:6px;}
-  .guild-footer-name{font-size:18px;font-variant:small-caps;letter-spacing:3px;color:var(--gold-bright,#e6c878);font-weight:bold;}
-  .guild-footer-tagline{font-size:11px;font-style:italic;color:rgba(241,228,196,0.45);letter-spacing:1px;}
-  .guild-footer-col h4{font-size:10px;font-variant:small-caps;letter-spacing:2.5px;color:rgba(200,160,74,0.5);margin-bottom:10px;border-bottom:1px solid rgba(200,160,74,0.15);padding-bottom:6px;}
-  .guild-footer-col a{display:block;font-size:12px;color:rgba(241,228,196,0.55);text-decoration:none;margin-bottom:6px;transition:color 0.15s;letter-spacing:0.5px;}
-  .guild-footer-col a:hover{color:var(--gold-bright,#e6c878);}
-  .guild-footer-col p{font-size:12px;color:rgba(241,228,196,0.45);line-height:1.7;margin-bottom:4px;}
-  .guild-footer-bottom{max-width:980px;margin:24px auto 0;padding-top:12px;border-top:1px solid rgba(200,160,74,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
-  .guild-footer-bottom span{font-size:10px;color:rgba(241,228,196,0.3);letter-spacing:0.5px;font-variant:small-caps;}
-  @media(max-width:600px){.guild-footer-inner{grid-template-columns:1fr;gap:20px;}.guild-footer-bottom{flex-direction:column;text-align:center;}}
-  `;
-  document.head.appendChild(footerStyle);
-
-  const footerEl = document.createElement('footer');
-  footerEl.className = 'guild-footer';
-  footerEl.innerHTML = `
-  <div class="guild-footer-inner">
-    <div class="guild-footer-brand">
-      <span class="guild-footer-name">Laxtania</span>
-      <span class="guild-footer-tagline">Albion Online — EU Server</span>
-    </div>
-    <div class="guild-footer-col">
-      <h4>Pages</h4>
-      <a href="${prefix}">Hall</a>
-      <a href="${prefix}prestige/">Members</a>
-      <a href="${prefix}events/">Events</a>
-      <a href="${prefix}quest-board/">Quests</a>
-      <a href="${prefix}market/">Market</a>
-      <a href="${prefix}builds/">Builds</a>
-    </div>
-    <div class="guild-footer-col">
-      <h4>Info</h4>
-      <p>Guild market operates on Laxi — the internal prestige currency.</p>
-      <p>Builds are curated by Council members.</p>
-    </div>
-  </div>
-  <div class="guild-footer-bottom">
-    <span>Laxtania Guild Hub</span>
-    <span>For guild members only</span>
-  </div>
-  `;
   // Prestige Modal (Transfer / Buy / Sell)
   const transferModalHtml = `
 <div id="prestigeTransferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
@@ -411,9 +365,6 @@
 </div>`;
   document.body.insertAdjacentHTML('beforeend', transferModalHtml);
 
-  // Footer — deferred so it lands at the end of body after full parse
-  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(footerEl));
-
   // ── Firebase: prestige, badge, user bar ──
   // If the page already has a Firebase app (modular SDK), reuse it.
   // If not (market/builds init in ESM module which runs after this sync script),
@@ -436,7 +387,9 @@
         let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
         let _navPendingBuyTaskId=null,_navPendingBuyPts=0,_navPendingSellTaskId=null,_navPendingSellPts=0;
         let _navCrisisPenalty=0; // extra sell margin penalty from crisis (0.0–0.50)
-        onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{_navSilverRate=snap.exists()?snap.val():10000;});
+        onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
+          _navSilverRate=snap.exists()?snap.val():10000;
+        });
         onValue(ref(db,'treasury/settings/crisis'),snap=>{
           _navCrisisPenalty=snap.exists()?(snap.val().sellMarginPenalty||0):0;
           updateSellPreview&&updateSellPreview();
@@ -568,7 +521,7 @@
               _navAllFamilies=fsnap.val()||{};
             });
 
-            // Prestige members → update count in nav
+            // Prestige members → update count in nav + footer stats
             onValue(ref(db,'prestige/members'),snap=>{
               _navAllMembers=snap.val()||{};
               const entry=_navUserName?Object.entries(_navAllMembers).find(([,m])=>m.name?.toLowerCase()===_navUserName):null;
