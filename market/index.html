@@ -176,7 +176,7 @@
   <div class="market-topbar">
     <span class="market-topbar-title">Market</span>
     <input class="market-search" id="tableSearch" placeholder="Search listings…" oninput="applyFilters()">
-    <button class="mk-btn primary" onclick="openListForm()">+ List Item</button>
+    <button class="mk-btn primary" onclick="openListForm()">+ Sell Order</button>
     <button class="mk-btn" onclick="openBuyOrderModal()" style="border-color:rgba(74,143,239,0.5);color:#6ab0f5;">+ Buy Order</button>
   </div>
 
@@ -236,7 +236,7 @@
 <div class="modal-bg" id="listModal">
   <div class="mk-modal">
     <div class="mk-modal-header">
-      <h3>List an Item</h3>
+      <h3>Sell Order</h3>
       <button class="mk-modal-close" onclick="closeListForm()">×</button>
     </div>
     <div class="mk-modal-body">
@@ -618,25 +618,36 @@ window.onItemSearch = function(query) {
   clearTimeout(searchTimer);
   const resultsEl = document.getElementById('itemResults');
   if (query.length < 2) { resultsEl.classList.remove('open'); return; }
-  searchTimer = setTimeout(() => {
-    const items = window.searchAlbionItems ? window.searchAlbionItems(query, 15) : [];
-    const looksLikeId = /^T\d_|_/.test(query.toUpperCase());
-    const rawOption = looksLikeId
-      ? `<div class="item-result" style="border-top:1px solid var(--mk-border);opacity:0.8;" onclick="selectItem('${escHtml(query.toUpperCase())}','${escHtml(query.toUpperCase())}')">
-           <img src="${window.albionItemImg(query.toUpperCase())}" onerror="this.style.opacity='0.2'" width="28" height="28">
-           <span class="item-result-name" style="color:var(--mk-text-dim);">Use "<strong style="color:var(--mk-text)">${escHtml(query.toUpperCase())}</strong>" as item ID</span>
-         </div>` : '';
-    if (!items.length) {
-      resultsEl.innerHTML = rawOption || `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results — try item name or ID (e.g. "T5_MAIN_SWORD")</div>`;
-      resultsEl.classList.add('open');
-      return;
-    }
-    resultsEl.innerHTML = items.map(item =>
+  searchTimer = setTimeout(async () => {
+    const items = window.searchAlbionItemsAsync ? await window.searchAlbionItemsAsync(query, 14) : (window.searchAlbionItems ? window.searchAlbionItems(query, 14) : []);
+    const upperQ = query.toUpperCase().trim();
+    const looksLikeId = /^T\d_|_[A-Z]/.test(upperQ);
+
+    // Build result HTML from database hits
+    let html = items.map(item =>
       `<div class="item-result" onclick="selectItem('${escHtml(item.id)}','${escHtml(item.name).replace(/'/g,"\\'")}')">
         <img src="${window.albionItemImg(item.id)}" onerror="this.style.opacity='0.3'" width="28" height="28">
         <span class="item-result-name">${escHtml(item.name)}</span>
       </div>`
-    ).join('') + rawOption;
+    ).join('');
+
+    // If it looks like a raw item ID, probe Albion render API to confirm it's real
+    if (looksLikeId && !items.some(i => i.id === upperQ)) {
+      const probeUrl = `https://render.albiononline.com/v1/item/${encodeURIComponent(upperQ)}.png`;
+      const divId = 'raw-probe-' + Date.now();
+      html += `<div class="item-result" id="${divId}" style="display:none;" onclick="selectItem('${escHtml(upperQ)}','${escHtml(upperQ)}')">
+        <img id="${divId}-img" src="${probeUrl}" width="28" height="28"
+          onload="document.getElementById('${divId}').style.display='flex'"
+          onerror="">
+        <span class="item-result-name"><strong style="color:var(--mk-text)">${escHtml(upperQ)}</strong> <span style="color:var(--mk-text-dim);font-size:10px;">· verified on Albion servers</span></span>
+      </div>`;
+    }
+
+    if (!html) {
+      resultsEl.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results — try item name or ID (e.g. "T5_MAIN_SWORD")</div>`;
+    } else {
+      resultsEl.innerHTML = html;
+    }
     resultsEl.classList.add('open');
   }, 150);
 };
@@ -1022,24 +1033,30 @@ window.onBOItemSearch = function(query) {
   clearTimeout(boSearchTimer);
   const resultsEl = document.getElementById('boItemResults');
   if (query.length < 2) { resultsEl.classList.remove('open'); return; }
-  boSearchTimer = setTimeout(() => {
-    const items = window.searchAlbionItems ? window.searchAlbionItems(query, 15) : [];
-    const looksLikeId = /^T\d_|_/.test(query.toUpperCase());
-    const rawOption = looksLikeId
-      ? `<div class="item-result" style="border-top:1px solid var(--mk-border);opacity:0.8;" onclick="selectBOItem('${escHtml(query.toUpperCase())}','${escHtml(query.toUpperCase())}')">
-           <img src="${window.albionItemImg(query.toUpperCase())}" onerror="this.style.opacity='0.2'" width="28" height="28">
-           <span class="item-result-name" style="color:var(--mk-text-dim);">Use "<strong style="color:var(--mk-text)">${escHtml(query.toUpperCase())}</strong>" as item ID</span>
-         </div>` : '';
-    if (!items.length) {
-      resultsEl.innerHTML = rawOption || `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results</div>`;
-    } else {
-      resultsEl.innerHTML = items.map(item =>
-        `<div class="item-result" onclick="selectBOItem('${escHtml(item.id)}','${escHtml(item.name).replace(/'/g,"\\'")}')">
-          <img src="${window.albionItemImg(item.id)}" onerror="this.style.opacity='0.3'" width="28" height="28">
-          <span class="item-result-name">${escHtml(item.name)}</span>
-        </div>`
-      ).join('') + rawOption;
+  boSearchTimer = setTimeout(async () => {
+    const items = window.searchAlbionItemsAsync ? await window.searchAlbionItemsAsync(query, 14) : (window.searchAlbionItems ? window.searchAlbionItems(query, 14) : []);
+    const upperQ = query.toUpperCase().trim();
+    const looksLikeId = /^T\d_|_[A-Z]/.test(upperQ);
+
+    let html = items.map(item =>
+      `<div class="item-result" onclick="selectBOItem('${escHtml(item.id)}','${escHtml(item.name).replace(/'/g,"\\'")}')">
+        <img src="${window.albionItemImg(item.id)}" onerror="this.style.opacity='0.3'" width="28" height="28">
+        <span class="item-result-name">${escHtml(item.name)}</span>
+      </div>`
+    ).join('');
+
+    if (looksLikeId && !items.some(i => i.id === upperQ)) {
+      const probeUrl = `https://render.albiononline.com/v1/item/${encodeURIComponent(upperQ)}.png`;
+      const divId = 'bo-probe-' + Date.now();
+      html += `<div class="item-result" id="${divId}" style="display:none;" onclick="selectBOItem('${escHtml(upperQ)}','${escHtml(upperQ)}')">
+        <img src="${probeUrl}" width="28" height="28"
+          onload="document.getElementById('${divId}').style.display='flex'"
+          onerror="">
+        <span class="item-result-name"><strong style="color:var(--mk-text)">${escHtml(upperQ)}</strong> <span style="color:var(--mk-text-dim);font-size:10px;">· verified on Albion servers</span></span>
+      </div>`;
     }
+
+    resultsEl.innerHTML = html || `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results</div>`;
     resultsEl.classList.add('open');
   }, 150);
 };
