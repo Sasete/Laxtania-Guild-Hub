@@ -419,13 +419,13 @@
   // If not (market/builds init in ESM module which runs after this sync script),
   // initialize our own app instance.
   const NAVBAR_FB_CONFIG = {
-    apiKey:"AIzaSyDtfHGjWMtCYOxU8VfqTGaqxiV0LGf4a40",
+    apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",
     authDomain:"laxtania-albion-quest-board.firebaseapp.com",
     databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
     projectId:"laxtania-albion-quest-board",
-    storageBucket:"laxtania-albion-quest-board.appspot.com",
-    messagingSenderId:"688820431424",
-    appId:"1:688820431424:web:c2462dd96ed6e7c4c0a7cd"
+    storageBucket:"laxtania-albion-quest-board.firebasestorage.app",
+    messagingSenderId:"636241022279",
+    appId:"1:636241022279:web:42d7af06401d9cdda89062"
   };
   import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({getApps,initializeApp})=>{
     import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({getAuth,onAuthStateChanged})=>{

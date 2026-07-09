@@ -272,12 +272,6 @@
         </div>
       </div>
 
-      <div class="mk-form-group" style="margin-bottom:10px;">
-        <label class="mk-label">Tier</label>
-        <div class="pill-row" id="tierPills">
-          <button class="pill" onclick="selTier(1)">T1</button><button class="pill" onclick="selTier(2)">T2</button><button class="pill" onclick="selTier(3)">T3</button><button class="pill sel" onclick="selTier(4)">T4</button><button class="pill" onclick="selTier(5)">T5</button><button class="pill" onclick="selTier(6)">T6</button><button class="pill" onclick="selTier(7)">T7</button><button class="pill" onclick="selTier(8)">T8</button>
-        </div>
-      </div>
       <div class="mk-form-group" style="margin-bottom:12px;">
         <label class="mk-label">Enchantment</label>
         <div class="pill-row" id="encPills">
@@ -330,13 +324,13 @@ import { getDatabase, ref, push, update, onValue, get }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const _fbConfig = {
-  apiKey:"AIzaSyDtfHGjWMtCYOxU8VfqTGaqxiV0LGf4a40",
+  apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",
   authDomain:"laxtania-albion-quest-board.firebaseapp.com",
   databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
   projectId:"laxtania-albion-quest-board",
-  storageBucket:"laxtania-albion-quest-board.appspot.com",
-  messagingSenderId:"688820431424",
-  appId:"1:688820431424:web:c2462dd96ed6e7c4c0a7cd"
+  storageBucket:"laxtania-albion-quest-board.firebasestorage.app",
+  messagingSenderId:"636241022279",
+  appId:"1:636241022279:web:42d7af06401d9cdda89062"
 };
 const app  = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
 const auth = getAuth(app);
@@ -546,12 +540,7 @@ document.getElementById('listQuality')?.addEventListener('change', () => {
   if (id) document.getElementById('itemPreviewImg').src = itemImgUrl(id, selectedEnc, parseInt(document.getElementById('listQuality').value)||1);
 });
 
-// ── Tier / Enchant ──
-window.selTier = function(t) {
-  selectedTier = t;
-  document.querySelectorAll('#tierPills .pill').forEach((b,i)=>b.classList.toggle('sel',i+1===t));
-  refreshPreviewImg();
-};
+// ── Enchant ──
 window.selEnc = function(e) {
   selectedEnc = e;
   document.querySelectorAll('#encPills .enc-pill').forEach((b,i)=>b.classList.toggle('sel',i===e));
@@ -578,10 +567,11 @@ window.submitListing = async function() {
   if (!price||price<1) return alert('Enter a valid price.');
   const qty = parseInt(document.getElementById('listQty').value)||1;
 
+  const autoTier = itemId ? (parseInt(itemId.match(/^T(\d)/)?.[1]) || 0) : 0;
   await push(ref(db,'market/listings'),{
     itemId:   itemId||null,
     itemName, category: document.getElementById('listCat').value,
-    tier:     selectedTier, enchant: selectedEnc,
+    tier:     autoTier, enchant: selectedEnc,
     quality:  parseInt(document.getElementById('listQuality').value)||1,
     quantity: qty, price,
     description: document.getElementById('listNote').value.trim()||null,

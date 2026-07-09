@@ -249,13 +249,13 @@ import { getDatabase, ref, push, remove, onValue, get }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const _fbConfig = {
-  apiKey:"AIzaSyDtfHGjWMtCYOxU8VfqTGaqxiV0LGf4a40",
+  apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",
   authDomain:"laxtania-albion-quest-board.firebaseapp.com",
   databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
   projectId:"laxtania-albion-quest-board",
-  storageBucket:"laxtania-albion-quest-board.appspot.com",
-  messagingSenderId:"688820431424",
-  appId:"1:688820431424:web:c2462dd96ed6e7c4c0a7cd"
+  storageBucket:"laxtania-albion-quest-board.firebasestorage.app",
+  messagingSenderId:"636241022279",
+  appId:"1:636241022279:web:42d7af06401d9cdda89062"
 };
 const app = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
 const auth = getAuth(app);
@@ -300,15 +300,10 @@ ALL_SLOT_KEYS.forEach(k => { slotData[k] = { id: null, name: null, enc: 0 }; });
 
 // ── Auth ──
 onAuthStateChanged(auth, async user => {
-  console.log('[Builds] onAuthStateChanged fired, user:', user ? user.email : null);
   currentUser = user;
   if (user) {
-    console.log('[Builds] user UID:', user.uid);
-    let snap;
-    try { snap = await get(ref(db,'users/'+user.uid)); }
-    catch(e) { console.error('[Builds] users/ read error:', e); }
+    const snap = await get(ref(db,'users/'+user.uid));
     currentUserData = snap?.val();
-    console.log('[Builds] currentUserData:', currentUserData);
     const ud = currentUserData;
     isCouncil = !!(ud?.roles?.council || ud?.roles?.admin)
       || (ud?.ranks||[]).some(r=>['councillor','hand','sovereign'].includes(r));
