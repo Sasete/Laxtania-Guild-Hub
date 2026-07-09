@@ -1011,19 +1011,22 @@
         const rate = rateSnap.exists() ? rateSnap.val() : 10000;
         const needed = totalPts * rate;
         const reason = `Laxi award — ${t.questName||''} (${totalPts} pts × ${rate.toLocaleString()} S)`;
-        const fundSnap = await db.ref('funds/quest/entries').get();
+        // Use quest's ministry fund if set, otherwise fall back to market (quest) fund
+        const qdSnap2 = t.questId ? await db.ref('questDefs/' + t.questId).get() : null;
+        const fundKey = qdSnap2?.val()?.ministry || 'quest';
+        const fundSnap = await db.ref(`funds/${fundKey}/entries`).get();
         const fundBal = Object.values(fundSnap.val() || {}).reduce((s, e) => s + (e.amount || 0), 0);
         const canPay = Math.max(0, Math.min(fundBal, needed));
         const shortfall = needed - canPay;
-        await db.ref('funds/quest/prestigeEntries').push({amount:-totalPts,reason:`Quest: ${t.questName||''}`,at,by,auto:true,taskId:tid});
+        await db.ref(`funds/${fundKey}/prestigeEntries`).push({amount:-totalPts,reason:`Quest: ${t.questName||''}`,at,by,auto:true,taskId:tid});
         if (canPay > 0) {
-          await db.ref('funds/quest/entries').push({amount:-canPay,reason,by,at,auto:true,taskId:tid});
-          await db.ref('treasury/entries').push({amount:canPay,reason,by,at,auto:true,taskId:tid,fund:'quest'});
+          await db.ref(`funds/${fundKey}/entries`).push({amount:-canPay,reason,by,at,auto:true,taskId:tid});
+          await db.ref('treasury/entries').push({amount:canPay,reason,by,at,auto:true,taskId:tid,fund:fundKey});
         }
         if (shortfall > 0) {
-          const defSnap = await db.ref('funds/quest/deficit').get();
+          const defSnap = await db.ref(`funds/${fundKey}/deficit`).get();
           const prevDef = defSnap.exists() ? defSnap.val() : 0;
-          await db.ref('funds/quest/deficit').set(prevDef - shortfall);
+          await db.ref(`funds/${fundKey}/deficit`).set(prevDef - shortfall);
         }
       }
       await db.ref('tasks/' + tid).update({ status: 'completed', completedAt: Date.now(), completedBy: currentUserData.name });
@@ -1974,8 +1977,9 @@
         <span class="slots">${pluralize(def.slots, 'contract')} open</span>
       </div>
       ${def.deadline ? `<div class="deadline-tag">Open until ${escapeHtml(formatDeadline(def.deadline))}</div>` : ''}
+      ${def.ministry ? `<div style="display:inline-block;font-size:10px;font-variant:small-caps;letter-spacing:1.5px;padding:2px 10px;border-radius:20px;background:rgba(28,42,64,.1);color:var(--navy);margin-bottom:6px;border:1px solid rgba(28,42,64,.18)">${escapeHtml(def.issuer)}</div>` : ''}
       <h2 class="quest-name">${escapeHtml(def.name)}</h2>
-      <p class="issuer">${escapeHtml(def.issuer)}</p>
+      ${!def.ministry ? `<p class="issuer">${escapeHtml(def.issuer)}</p>` : ''}
       <hr class="divider">
       <p class="description">${def.description}</p>
       <p class="guild-gain"><strong>Guild Gain:</strong> ${escapeHtml(def.guildGain)}</p>

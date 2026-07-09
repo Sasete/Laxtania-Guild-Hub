@@ -173,6 +173,7 @@ async function main() {
       });
 
       await db.ref('treasury/settings/silverPerLaxi').set(newNominal);
+      await db.ref('treasury/settings/rateHistory').push({value:newNominal,prevValue:nominal,changedAt:now,changedBy:'system',source:'crisis_correction',dropPct});
       await db.ref('treasury/settings/crisis').set({
         step:              resetStep,
         sellMarginPenalty: resetPenalty,
@@ -241,6 +242,7 @@ async function main() {
 
   if (newNominal !== nominal) {
     await db.ref('treasury/settings/silverPerLaxi').set(newNominal);
+    await db.ref('treasury/settings/rateHistory').push({value:newNominal,prevValue:nominal,changedAt:now,changedBy:'system',source:'auto_adjust'});
     console.log(`New nominal: ${newNominal.toLocaleString()} S`);
   }
 

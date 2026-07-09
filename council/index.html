@@ -206,19 +206,19 @@
 
 <div class="board-header">
   <h1>⚜ Council Chamber</h1>
-  <p>Treasury · Budgets · Bonds — Restricted Access</p>
+  <p>Treasury · Ministries · Bonds — Restricted Access</p>
 </div>
 
 <div class="parchment-wrap">
   <div class="tabs tab-bar">
     <button class="tab-btn active" onclick="switchTab('overview')">Overview <span id="overviewTabBadge" class="tab-badge" style="display:none;background:#2e7d32"></span></button>
     <div class="tab-dropdown" id="budgetDropdown">
-      <button class="tab-dropdown-btn" id="budgetDropdownBtn">Budgets</button>
+      <button class="tab-dropdown-btn" id="budgetDropdownBtn">Ministries</button>
       <div class="tab-dropdown-menu">
-        <button class="tab-dropdown-item" id="bdItem-quest" onclick="switchTab('quest')">Quest Budget</button>
-        <button class="tab-dropdown-item" id="bdItem-events" onclick="switchTab('events')">Events Budget</button>
-        <button class="tab-dropdown-item" id="bdItem-island" onclick="switchTab('island')">Island Budget</button>
-        <button class="tab-dropdown-item" id="bdItem-recruitment" onclick="switchTab('recruitment')">Recruitment</button>
+        <button class="tab-dropdown-item" id="bdItem-quest" onclick="switchTab('quest')">Market Commission</button>
+        <button class="tab-dropdown-item" id="bdItem-events" onclick="switchTab('events')">Ministry of Events</button>
+        <button class="tab-dropdown-item" id="bdItem-island" onclick="switchTab('island')">Ministry of Island Affairs</button>
+        <button class="tab-dropdown-item" id="bdItem-recruitment" onclick="switchTab('recruitment')">Ministry of Recruitment</button>
       </div>
     </div>
     <button class="tab-btn" onclick="switchTab('bonds')" id="bondsTabBtn">Bonds <span id="bondTabBadge" class="tab-badge" style="display:none"></span></button>
@@ -275,7 +275,7 @@
     <div class="fund-summary-row" style="margin-bottom:4px">
       <div class="fund-summary-card">
         <div class="fs-pct" id="ovPct-quest">—</div>
-        <div class="fs-label">Quest Budget</div>
+        <div class="fs-label">Market Commission</div>
         <div class="fs-value" id="ovQuestBal">—</div>
         <div id="ovPending-quest" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
 
@@ -299,7 +299,7 @@
       </div>
       <div class="fund-summary-card">
         <div class="fs-pct" id="ovPct-events">—</div>
-        <div class="fs-label">Events Budget</div>
+        <div class="fs-label">Ministry of Events</div>
         <div class="fs-value" id="ovEventsBal">—</div>
         <div id="ovPending-events" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
 
@@ -323,7 +323,7 @@
       </div>
       <div class="fund-summary-card">
         <div class="fs-pct" id="ovPct-island">—</div>
-        <div class="fs-label">Island Budget</div>
+        <div class="fs-label">Ministry of Island Affairs</div>
         <div class="fs-value" id="ovIslandBal">—</div>
         <div id="ovPending-island" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
 
@@ -347,7 +347,7 @@
       </div>
       <div class="fund-summary-card">
         <div class="fs-pct" id="ovPct-recruitment">—</div>
-        <div class="fs-label">Recruitment Budget</div>
+        <div class="fs-label">Ministry of Recruitment</div>
         <div class="fs-value" id="ovRecruitmentBal">—</div>
         <div id="ovPending-recruitment" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
 
@@ -394,11 +394,11 @@
     <div id="adjPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
 
-  <!-- ══ QUEST BUDGET ══ -->
+  <!-- ══ MARKET BUDGET ══ -->
   <div id="tab-quest" class="tab-panel">
     <div class="fund-header">
       <div>
-        <div class="fund-bal-label">Quest Budget Balance</div>
+        <div class="fund-bal-label">Market Budget Balance</div>
         <div class="fund-bal-value" id="questBal">—</div>
         <div id="questPending" style="margin-top:2px;min-height:16px"></div>
         <div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(28,42,64,.06);border-radius:20px">
@@ -461,7 +461,30 @@
     <div id="questCommitments" style="margin-bottom:20px"></div>
 
 
-    <!-- Transaction History -->
+
+    <!-- Ministry Quests: Market Commission -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <span>Market Commission — Quests</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('quest')">+ Post Quest</button>
+    </div>
+    <div id="ministryForm-quest" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-name-quest" placeholder="Quest title..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:2;min-width:160px">
+        <input type="text" id="mq-level-quest" placeholder="Type (e.g. T5 · Gathering)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:120px">
+        <input type="number" id="mq-slots-quest" min="1" value="1" placeholder="Slots" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-desc-quest" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px">
+        <input type="number" id="mq-laxi-quest" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="gold-btn" onclick="submitMinistryQuest('quest')">Post Quest</button>
+        <button class="ghost-btn" onclick="toggleMinistryForm('quest')">Cancel</button>
+      </div>
+    </div>
+    <div id="ministryQuestList-quest" style="margin-bottom:20px"><div class="empty">No active quests.</div></div>
+
+        <!-- Transaction History -->
     <div class="section-eyebrow">Transaction History</div>
     <div id="questEntryList"><div class="empty">No entries yet.</div></div>
     <div id="questEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
@@ -573,7 +596,30 @@
       </div>
     </div>
 
-    <div class="section-eyebrow">Transaction History</div>
+
+    <!-- Ministry Quests: Ministry of Events -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <span>Ministry of Events — Quests</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('events')">+ Post Quest</button>
+    </div>
+    <div id="ministryForm-events" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-name-events" placeholder="Quest title..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:2;min-width:160px">
+        <input type="text" id="mq-level-events" placeholder="Type (e.g. T5 · Gathering)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:120px">
+        <input type="number" id="mq-slots-events" min="1" value="1" placeholder="Slots" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-desc-events" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px">
+        <input type="number" id="mq-laxi-events" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="gold-btn" onclick="submitMinistryQuest('events')">Post Quest</button>
+        <button class="ghost-btn" onclick="toggleMinistryForm('events')">Cancel</button>
+      </div>
+    </div>
+    <div id="ministryQuestList-events" style="margin-bottom:20px"><div class="empty">No active quests.</div></div>
+
+        <div class="section-eyebrow">Transaction History</div>
     <div id="eventsEntryList"><div class="empty">No entries yet.</div></div>
     <div id="eventsEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
@@ -621,7 +667,30 @@
       <button class="gold-btn" style="font-size:12px" onclick="doHouseDist()">Distribute</button>
     </div>
 
-    <div class="section-eyebrow">Transaction History</div>
+
+    <!-- Ministry Quests: Ministry of Island Affairs -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <span>Ministry of Island Affairs — Quests</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('island')">+ Post Quest</button>
+    </div>
+    <div id="ministryForm-island" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-name-island" placeholder="Quest title..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:2;min-width:160px">
+        <input type="text" id="mq-level-island" placeholder="Type (e.g. T5 · Gathering)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:120px">
+        <input type="number" id="mq-slots-island" min="1" value="1" placeholder="Slots" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-desc-island" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px">
+        <input type="number" id="mq-laxi-island" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="gold-btn" onclick="submitMinistryQuest('island')">Post Quest</button>
+        <button class="ghost-btn" onclick="toggleMinistryForm('island')">Cancel</button>
+      </div>
+    </div>
+    <div id="ministryQuestList-island" style="margin-bottom:20px"><div class="empty">No active quests.</div></div>
+
+        <div class="section-eyebrow">Transaction History</div>
     <div id="islandEntryList"><div class="empty">No entries yet.</div></div>
     <div id="islandEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
@@ -661,7 +730,30 @@
         <button class="ghost-btn" onclick="closeFundAction('recruitment')">Cancel</button>
       </div>
     </div>
-    <div class="section-eyebrow">Transaction History</div>
+
+    <!-- Ministry Quests: Ministry of Recruitment -->
+    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <span>Ministry of Recruitment — Quests</span>
+      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('recruitment')">+ Post Quest</button>
+    </div>
+    <div id="ministryForm-recruitment" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-name-recruitment" placeholder="Quest title..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:2;min-width:160px">
+        <input type="text" id="mq-level-recruitment" placeholder="Type (e.g. T5 · Gathering)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:120px">
+        <input type="number" id="mq-slots-recruitment" min="1" value="1" placeholder="Slots" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-desc-recruitment" placeholder="Description..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px">
+        <input type="number" id="mq-laxi-recruitment" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="gold-btn" onclick="submitMinistryQuest('recruitment')">Post Quest</button>
+        <button class="ghost-btn" onclick="toggleMinistryForm('recruitment')">Cancel</button>
+      </div>
+    </div>
+    <div id="ministryQuestList-recruitment" style="margin-bottom:20px"><div class="empty">No active quests.</div></div>
+
+        <div class="section-eyebrow">Transaction History</div>
     <div id="recruitmentEntryList"><div class="empty">No entries yet.</div></div>
     <div id="recruitmentEntryPagination" style="display:flex;justify-content:center;gap:8px;margin:10px 0"></div>
   </div>
@@ -751,9 +843,9 @@
           <label>Budget</label>
           <select id="taskFundType">
             <option value="">— General —</option>
-            <option value="quest">Quest Budget</option>
-            <option value="events">Events Budget</option>
-            <option value="island">Island Budget</option>
+            <option value="quest">Market Commission</option>
+            <option value="events">Ministry of Events</option>
+            <option value="island">Ministry of Island Affairs</option>
           </select>
         </div>
       </div>
@@ -791,6 +883,15 @@
       </div>
     </div>
 
+    <!-- Laxi Rate Chart -->
+    <div class="add-form" style="margin-bottom:28px">
+      <div class="section-eyebrow" style="margin:0 0 12px">Laxi Rate — Last 10 Days</div>
+      <div style="position:relative">
+        <svg id="rateChart" viewBox="0 0 520 120" style="width:100%;display:block;overflow:visible;cursor:crosshair"></svg>
+        <div id="rateChartTooltip" style="display:none;position:absolute;background:rgba(28,42,64,.92);color:#f1e4c4;font-family:Georgia,serif;font-size:11px;padding:6px 10px;border-radius:3px;pointer-events:none;white-space:nowrap;z-index:10"></div>
+      </div>
+    </div>
+
     <!-- Certificates Management -->
     <div id="certManagementWrapper" style="display:none">
       <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -810,6 +911,13 @@
       </div>
     </div>
     <div id="certificatesList" style="margin-bottom:32px"></div>
+    </div>
+
+    <!-- Laxi Rate Change Log -->
+    <div class="add-form" style="margin-bottom:28px">
+      <div class="section-eyebrow" style="margin:0 0 12px">Laxi Rate Change Log</div>
+      <div id="rateHistoryList" style="font-size:12px;color:var(--ink-soft);font-style:italic">Loading…</div>
+      <div id="rateHistoryPagination" style="display:flex;justify-content:center;gap:8px;margin-top:10px"></div>
     </div>
 
     <!-- Crisis History -->
@@ -896,7 +1004,7 @@ const RANKS={serf:{w:1},commoner:{w:2},knight:{w:3},lord:{w:4},councillor:{w:5},
 
 const GUILD_ROLES = {
   'manage_treasury': {label: 'Treasury Manager', color: '#7a5a10'},
-  'manage_quest_budget': {label: 'Quest Budget Manager', color: '#7a5a10'},
+  'manage_quest_budget': {label: 'Market Budget Manager', color: '#7a5a10'},
   'manage_events_budget': {label: 'Events Budget Manager', color: '#7a5a10'},
   'manage_island_budget': {label: 'Island Budget Manager', color: '#7a5a10'},
   'manage_recruitment_budget': {label: 'Recruitment Manager', color: '#7a5a10'},
@@ -1179,8 +1287,8 @@ window.switchTab=function(tab){
   // Dropdown state
   const isBudget=BUDGET_TABS.has(tab);
   const btn=document.getElementById('budgetDropdownBtn');
-  const labels={quest:'Quest Budget',events:'Events Budget',island:'Island Budget',recruitment:'Recruitment'};
-  if(btn){btn.classList.toggle('active',isBudget);btn.firstChild.textContent=isBudget?labels[tab]:'Budgets';}
+  const labels={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
+  if(btn){btn.classList.toggle('active',isBudget);btn.firstChild.textContent=isBudget?labels[tab]:'Ministries';}
   document.querySelectorAll('.tab-dropdown-item').forEach(it=>it.classList.toggle('active',it.id==='bdItem-'+tab));
 };
 // Restore tab from URL hash on load
@@ -1341,9 +1449,9 @@ function renderBudgetPie(qBal,eBal,iBal,rBal,free){
   if(!svg)return;
   const tooltip=document.getElementById('pieTooltip');
   const slices=[
-    {label:'Quest Budget',val:qBal,color:'#4a7c59'},
-    {label:'Events Budget',val:eBal,color:'#7c6a2f'},
-    {label:'Island Budget',val:iBal,color:'#2f5c7c'},
+    {label:'Market Commission',val:qBal,color:'#4a7c59'},
+    {label:'Ministry of Events',val:eBal,color:'#7c6a2f'},
+    {label:'Ministry of Island Affairs',val:iBal,color:'#2f5c7c'},
     {label:'Recruitment',val:rBal,color:'#7c3f2f'},
     {label:'Free Treasury',val:Math.max(0,free),color:'rgba(180,160,110,.5)'},
   ].filter(s=>s.val>0);
@@ -1444,7 +1552,7 @@ function renderOverview(){
   });
 
   // Treasury entry log
-  const FUND_LABELS={quest:'Quest Budget',events:'Events Budget',island:'Island Budget'};
+  const FUND_LABELS={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs'};
   const sorted=Object.entries(treasuryEntries).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
   renderEntryPage(sorted,'adjList','adjPagination','treasury',
     ([eid,e])=>`<div class="adj-row">
@@ -1463,7 +1571,7 @@ window.deleteTreasuryEntry=async function(eid){
 
 // ── TREASURY ACTIONS ──
 let _activeAction=null;
-const FUND_LABELS_MAP={quest:'Quest Budget',events:'Events Budget',island:'Island Budget',recruitment:'Recruitment Budget'};
+const FUND_LABELS_MAP={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
 
 window.openAction=function(sign,fund){
   _activeAction={sign,fund};
@@ -2519,9 +2627,9 @@ function renderTasks(){
 }
 
 function fundLabel(ft){
-  if(ft==='quest')return'<span class="fund-tag">Quest Budget</span>';
-  if(ft==='events')return'<span class="fund-tag">Events Budget</span>';
-  if(ft==='island')return'<span class="fund-tag">Island Budget</span>';
+  if(ft==='quest')return'<span class="fund-tag">Market Commission</span>';
+  if(ft==='events')return'<span class="fund-tag">Ministry of Events</span>';
+  if(ft==='island')return'<span class="fund-tag">Ministry of Island Affairs</span>';
   return'';
 }
 
@@ -2552,7 +2660,7 @@ function taskCardHtml(id,t){
   const isPrestigeTask=isPrestigeBuy||isPrestigeSell||isPrestigeQuest;
   const partyStr=isPrestigeQuest&&t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)).join(', '):'';
   const isPrestigeEvent=t.type==='prestige_event';
-  const prestigePtsLine=isPrestigeTask&&(t.prestigePoints||t.prestigeTotal)?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints||t.prestigeTotal} pts</strong> Laxi ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}${isPrestigeEvent&&t.guildIncome?' · <strong>'+fmtS(t.guildIncome)+'</strong> income → Events Budget'+(t.estimated?' <em>(estimated)</em>':''):''}</div>`:'';
+  const prestigePtsLine=isPrestigeTask&&(t.prestigePoints||t.prestigeTotal)?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints||t.prestigeTotal} pts</strong> Laxi ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}${isPrestigeEvent&&t.guildIncome?' · <strong>'+fmtS(t.guildIncome)+'</strong> income → Ministry of Events'+(t.estimated?' <em>(estimated)</em>':''):''}</div>`:'';
   const actions=isPending?`<div class="task-actions" style="margin-top:8px">
     ${!isPrestigeTask&&target>0?`<button class="ghost-btn" style="font-size:11px" onclick="document.getElementById('pf-${id}').style.display=document.getElementById('pf-${id}').style.display==='none'?'flex':'none'">+ Payment</button>`:''}
     <button class="gold-btn" onclick="completeTask('${id}')">${isPrestigeTask?'✓ Approve':'✓ Complete'}</button>
@@ -2746,7 +2854,7 @@ window.completeTask=async function(id){
         await remove(ref(db,'questParties/'+t.questId+'/'+partyKey(t.holder||'')));
       }
     }
-    // Deduct from Quest Budget prestige + deduct silver from budget (or record deficit)
+    // Deduct from Market Budget prestige + deduct silver from budget (or record deficit)
     const totalPts=t.prestigePoints||0;
     if(totalPts>0){
       const qSilver=totalPts*silverRate;
@@ -2831,7 +2939,7 @@ window.cancelTask=async function(id){
 let _paCurrentKey=null;
 window.openPrestigeAlloc=function(key){
   _paCurrentKey=key;
-  const labels={quest:'Quest Budget',events:'Events Budget',island:'Island Budget',recruitment:'Recruitment'};
+  const labels={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
   document.getElementById('paModalLabel').textContent=labels[key]||key;
   document.getElementById('paAmount').value='';
   document.getElementById('paReason').value='';
@@ -2857,13 +2965,90 @@ window.submitPrestigeAlloc=async function(){
 
 // ── SETTINGS ──
 
+
+
 window.saveRate=async function(){
   const v=parseAmt(document.getElementById('silverRateInput').value)||10000;
+  const prev=silverRate;
   await set(ref(db,'treasury/settings/silverPerLaxi'),v);
+  await push(ref(db,'treasury/settings/rateHistory'),{value:v,prevValue:prev,changedAt:Date.now(),changedBy:currentUserData?.name||'Council',source:'manual'});
   silverRate=v;
   document.getElementById('rateHint').textContent=`1 Laxi = ${v.toLocaleString()} Silver`;
   toast(`Rate saved: ${v.toLocaleString()} S`);
 };
+
+// ── Ministry Quests ──────────────────────────────────────────────────────
+const MINISTRY_NAMES={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
+
+window.toggleMinistryForm=function(key){
+  const el=document.getElementById('ministryForm-'+key);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+};
+
+window.submitMinistryQuest=async function(key){
+  const name=(document.getElementById('mq-name-'+key)?.value||'').trim();
+  const level=(document.getElementById('mq-level-'+key)?.value||'').trim();
+  const slots=parseInt(document.getElementById('mq-slots-'+key)?.value)||1;
+  const desc=(document.getElementById('mq-desc-'+key)?.value||'').trim();
+  const laxi=parseInt(document.getElementById('mq-laxi-'+key)?.value)||0;
+  const ministry=MINISTRY_NAMES[key]||key;
+  if(!name||!desc||!laxi){toast('Fill in name, description and Laxi reward.');return;}
+  const by=currentUserData?.name||'Council';
+  const order=Date.now();
+  const def={
+    name,level:level||'Guild Quest',slots,order,active:true,
+    issuer:ministry,
+    description:desc,
+    guildGain:`Contributes to ${ministry} objectives`,
+    rewards:[{icon:'£',text:`${laxi} Laxi`}],
+    ministry:key,
+    createdBy:by,createdAt:Date.now(),
+  };
+  const newRef=await push(ref(db,'questDefs'),def);
+  document.getElementById('mq-name-'+key).value='';
+  document.getElementById('mq-level-'+key).value='';
+  document.getElementById('mq-slots-'+key).value='1';
+  document.getElementById('mq-desc-'+key).value='';
+  document.getElementById('mq-laxi-'+key).value='';
+  toggleMinistryForm(key);
+  toast(`Quest posted to quest board as "${ministry}".`);
+};
+
+function renderMinistryQuests(key,defs){
+  const el=document.getElementById('ministryQuestList-'+key);
+  if(!el)return;
+  const ministry=MINISTRY_NAMES[key]||key;
+  const quests=Object.entries(defs).filter(([,d])=>d.ministry===key&&d.active!==false);
+  if(!quests.length){el.innerHTML='<div class="empty">No active quests.</div>';return;}
+  el.innerHTML=quests.map(([id,d])=>{
+    const laxi=Array.isArray(d.rewards)?d.rewards.find(r=>r.icon==='£')?.text:Object.values(d.rewards||{}).find(r=>r.icon==='£')?.text;
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-bottom:6px;background:rgba(255,255,255,.5);border:1px solid rgba(120,90,50,.2);border-radius:3px">
+      <div>
+        <span style="font-family:Georgia,serif;font-size:13px;font-weight:bold;color:var(--navy)">${d.name}</span>
+        <span style="font-size:11px;color:var(--ink-soft);margin-left:10px">${d.level||''}</span>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${d.description?.replace(/<[^>]+>/g,' ')?.substring(0,80)||''}</div>
+      </div>
+      <div style="text-align:right;min-width:80px">
+        <div style="font-size:12px;color:#4a7c59;font-weight:bold">${laxi||'—'}</div>
+        <div style="font-size:11px;color:var(--ink-soft)">${d.slots||1} slot(s)</div>
+        <button onclick="removeMinistryQuest('${id}')" style="font-size:10px;color:#8c2424;background:none;border:none;cursor:pointer;padding:2px 0;font-family:Georgia,serif">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.removeMinistryQuest=async function(id){
+  if(!confirm('Remove this quest from the board?'))return;
+  await remove(ref(db,'questDefs/'+id));
+  await remove(ref(db,'quests/'+id));
+  toast('Quest removed.');
+};
+
+// Listen to questDefs and re-render all ministry panels
+onValue(ref(db,'questDefs'),snap=>{
+  const defs=snap.val()||{};
+  ['quest','events','island','recruitment'].forEach(key=>renderMinistryQuests(key,defs));
+});
 
 // ── DEV: Fake crisis log — remove after test ──
 window.runFakeCrisisLog=async function(){
@@ -2921,7 +3106,7 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('questDefs',snap=>{_questDefs=snap.val()||{};renderQuestCommitments();});
   safeOnValue('quests',snap=>{_activeQuests=snap.val()||{};renderQuestCommitments();});
   onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
-    if(snap.exists()){silverRate=snap.val();document.getElementById('silverRateInput').value=silverRate;}
+    if(snap.exists()){silverRate=snap.val();document.getElementById('silverRateInput').value=silverRate.toLocaleString('tr-TR');}
     document.getElementById('rateHint').textContent=`1 Laxi = ${silverRate.toLocaleString()} Silver`;
     window._silverPerPrestige=silverRate;
     renderPrestigeValue();
@@ -2969,6 +3154,145 @@ onAuthStateChanged(auth,async user=>{
       Sell margin: <strong style="color:#8c2424">−${totalMargin}%</strong> (base 10% + ${penalty}% crisis penalty)<br>
       <span style="color:#8c2424">Margin increases every 2h while sell pressure persists. Correction triggers at −50%.</span>`;
   });
+  // ── Laxi Rate History ──
+  onValue(query(ref(db,'treasury/settings/rateHistory'),orderByChild('changedAt'),limitToLast(50)),snap=>{
+    const el=document.getElementById('rateHistoryList');
+    const svg=document.getElementById('rateChart');
+    if(!el)return;
+    if(!snap.exists()){
+      el.innerHTML='<span style="font-style:italic">No rate changes recorded yet.</span>';
+      if(svg)svg.innerHTML='';
+      return;
+    }
+    const all=Object.values(snap.val()).sort((a,b)=>(a.changedAt||0)-(b.changedAt||0));
+
+    // ── Mini line chart (last 10 days) ──
+    if(svg){
+      const W=520,H=100,PAD={t:14,r:12,b:28,l:54};
+      const now=Date.now(), cutoff=now-10*86400000;
+      // Build daily close: for each day, last entry's value
+      const dayMap={};
+      all.forEach(e=>{
+        const d=new Date(e.changedAt||0).toLocaleDateString('en-GB');
+        dayMap[d]={value:e.value,ts:e.changedAt};
+      });
+      // Fill last 10 days
+      const points=[];
+      for(let i=9;i>=0;i--){
+        const d=new Date(now-i*86400000);
+        const key=d.toLocaleDateString('en-GB');
+        const label=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        // find last known value on or before this day
+        const candidates=all.filter(e=>e.changedAt<=d.setHours(23,59,59,999));
+        if(candidates.length) points.push({label,value:candidates[candidates.length-1].value});
+        else if(points.length) points.push({label,value:points[points.length-1].value});
+      }
+      if(points.length<2){svg.innerHTML='';return;}
+      const vals=points.map(p=>p.value);
+      const minV=Math.min(...vals), maxV=Math.max(...vals);
+      const vRange=maxV-minV||1;
+      const xScale=(W-PAD.l-PAD.r)/(points.length-1);
+      const yScale=(H-PAD.t-PAD.b)/vRange;
+      const px=i=>PAD.l+i*xScale;
+      const py=v=>PAD.t+(maxV-v)*yScale;
+      const pathD=points.map((p,i)=>`${i===0?'M':'L'}${px(i).toFixed(1)},${py(p.value).toFixed(1)}`).join(' ');
+      const areaD=pathD+` L${px(points.length-1).toFixed(1)},${(H-PAD.b).toFixed(1)} L${px(0).toFixed(1)},${(H-PAD.b).toFixed(1)} Z`;
+      // Y axis labels
+      const yLabels=[minV,Math.round((minV+maxV)/2),maxV].map(v=>`<text x="${PAD.l-6}" y="${py(v)+4}" text-anchor="end" font-size="9" fill="#8a7560" font-family="Georgia,serif">${v.toLocaleString()}</text>`).join('');
+      // X axis labels (every other day to avoid clutter)
+      const xLabels=points.map((p,i)=>i%2===0?`<text x="${px(i)}" y="${H-PAD.b+14}" text-anchor="middle" font-size="9" fill="#8a7560" font-family="Georgia,serif">${p.label}</text>`:'').join('');
+      // Dots
+      const dots=points.map((p,i)=>`<circle class="rate-dot" cx="${px(i).toFixed(1)}" cy="${py(p.value).toFixed(1)}" r="4" fill="#4a6a3a" stroke="white" stroke-width="1.5" data-label="${p.label}" data-value="${p.value}" style="cursor:pointer"/>`).join('');
+      // Invisible wider hit areas for easier hover
+      const hitAreas=points.map((p,i)=>`<rect x="${(px(i)-xScale/2).toFixed(1)}" y="${PAD.t}" width="${xScale.toFixed(1)}" height="${H-PAD.t-PAD.b}" fill="transparent" data-idx="${i}" class="rate-hit"/>`).join('');
+      svg.innerHTML=`
+        <defs><linearGradient id="rateGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a6a3a" stop-opacity="0.18"/><stop offset="100%" stop-color="#4a6a3a" stop-opacity="0"/></linearGradient></defs>
+        <line x1="${PAD.l}" y1="${PAD.t}" x2="${PAD.l}" y2="${H-PAD.b}" stroke="rgba(120,90,50,.2)" stroke-width="1"/>
+        <line x1="${PAD.l}" y1="${H-PAD.b}" x2="${W-PAD.r}" y2="${H-PAD.b}" stroke="rgba(120,90,50,.2)" stroke-width="1"/>
+        <line id="rateHoverLine" x1="0" y1="${PAD.t}" x2="0" y2="${H-PAD.b}" stroke="rgba(74,106,58,.4)" stroke-width="1" stroke-dasharray="3,2" style="display:none"/>
+        ${yLabels}${xLabels}
+        <path d="${areaD}" fill="url(#rateGrad)"/>
+        <path d="${pathD}" fill="none" stroke="#4a6a3a" stroke-width="2" stroke-linejoin="round"/>
+        ${dots}${hitAreas}`;
+
+      // Hover interactivity
+      const tip=document.getElementById('rateChartTooltip');
+      const svgEl=svg;
+      svg.querySelectorAll('.rate-hit').forEach(rect=>{
+        rect.addEventListener('mouseenter',e=>{
+          const idx=parseInt(rect.dataset.idx);
+          const p=points[idx];
+          if(!p)return;
+          const prev=idx>0?points[idx-1]:null;
+          const diff=prev?p.value-prev.value:null;
+          const diffStr=diff===null?'':(diff>0?` ▲ +${diff.toLocaleString()}`:(diff<0?` ▼ ${diff.toLocaleString()}`:''));
+          const diffColor=diff>0?'#6aaa6a':diff<0?'#e06060':'inherit';
+          tip.innerHTML=`<strong>${p.label}</strong><br><span style="font-size:13px;font-weight:bold">${p.value.toLocaleString()} S</span>${diff!==null?`<br><span style="color:${diffColor}">${diffStr} S</span>`:''}`;
+          const svgRect=svgEl.getBoundingClientRect();
+          const cx=px(idx)/W*svgRect.width;
+          tip.style.display='block';
+          tip.style.left=(cx+8)+'px';
+          tip.style.top=(py(p.value)/120*svgRect.height-10)+'px';
+          const hline=svg.getElementById('rateHoverLine');
+          if(hline){hline.setAttribute('x1',px(idx).toFixed(1));hline.setAttribute('x2',px(idx).toFixed(1));hline.style.display='';}
+          svg.querySelectorAll('.rate-dot').forEach((d,di)=>{d.setAttribute('r',di===idx?'5':'3.5');d.setAttribute('fill',di===idx?'#2a5a2a':'#4a6a3a');});
+        });
+        rect.addEventListener('mouseleave',()=>{
+          tip.style.display='none';
+          const hline=svg.getElementById('rateHoverLine');
+          if(hline)hline.style.display='none';
+          svg.querySelectorAll('.rate-dot').forEach(d=>{d.setAttribute('r','4');d.setAttribute('fill','#4a6a3a');});
+        });
+      });
+    }
+
+    // ── Log list with pagination ──
+    const _rateEntries=[...all].reverse();
+    const _ratePageSize=15;
+    let _ratePage=0;
+    const sourceLabel={manual:'✏️ Manual',auto_adjust:'⚙️ Auto',crisis_correction:'🔴 Crisis Correction'};
+    function renderRateLog(){
+      const logEl=document.getElementById('rateHistoryList');
+      const pagEl=document.getElementById('rateHistoryPagination');
+      if(!logEl)return;
+      const total=_rateEntries.length;
+      const totalPages=Math.ceil(total/_ratePageSize);
+      const page=_rateEntries.slice(_ratePage*_ratePageSize,(_ratePage+1)*_ratePageSize);
+      logEl.innerHTML=page.map(e=>{
+        const d=new Date(e.changedAt||0);
+        const dateStr=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+        const timeStr=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        const diff=e.value-(e.prevValue||e.value);
+        const diffStr=diff===0?'':(diff>0?`<span style="color:#2a5a2a">▲ +${diff.toLocaleString()} S</span>`:`<span style="color:#8c2424">▼ ${diff.toLocaleString()} S</span>`);
+        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(120,90,50,.1)">
+          <div>
+            <span style="font-size:11px;color:var(--ink-soft)">${dateStr} ${timeStr}</span>
+            <span style="margin-left:10px;font-size:11px;color:var(--ink-soft)">${sourceLabel[e.source]||e.source||''}</span>
+            ${e.changedBy&&e.changedBy!=='system'?`<span style="margin-left:8px;font-size:11px;color:var(--ink-soft)">by ${e.changedBy}</span>`:''}
+          </div>
+          <div style="text-align:right">
+            <span style="font-family:Georgia,serif;font-weight:bold;color:var(--navy)">${(e.value||0).toLocaleString()} S</span>
+            <span style="margin-left:8px;font-size:11px">${diffStr}</span>
+          </div>
+        </div>`;
+      }).join('');
+      if(pagEl){
+        if(totalPages<=1){pagEl.innerHTML='';return;}
+        const btnStyle='font-family:Georgia,serif;font-size:11px;padding:3px 10px;border-radius:2px;cursor:pointer;border:1px solid rgba(46,32,20,.3);background:rgba(255,255,255,.5);color:var(--ink)';
+        const activeSt='background:rgba(200,160,74,.25);border-color:rgba(200,160,74,.6);font-weight:bold';
+        const pages=Array.from({length:totalPages},(_,i)=>
+          `<button style="${btnStyle};${i===_ratePage?activeSt:''}" onclick="_ratePage=${i};renderRateLog()">${i+1}</button>`
+        ).join('');
+        pagEl.innerHTML=
+          `<button style="${btnStyle}" onclick="if(_ratePage>0){_ratePage--;renderRateLog()}" ${_ratePage===0?'disabled':''}>‹</button>`
+          +pages+
+          `<button style="${btnStyle}" onclick="if(_ratePage<${totalPages-1}){_ratePage++;renderRateLog()}" ${_ratePage===totalPages-1?'disabled':''}>›</button>`;
+      }
+    }
+    window.renderRateLog=renderRateLog;
+    renderRateLog();
+  });
+
   onValue(query(ref(db,'treasury/settings/crisis_log'),orderByChild('detectedAt'),limitToLast(10)),snap=>{
     const el=document.getElementById('crisisLogList');
     if(!el)return;
