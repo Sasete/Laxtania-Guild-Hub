@@ -379,14 +379,15 @@
     appId:"1:636241022279:web:42d7af06401d9cdda89062"
   };
   import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({getApps,initializeApp})=>{
-    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({getAuth,onAuthStateChanged})=>{
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({getAuth,onAuthStateChanged,signOut})=>{
       import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({getDatabase,ref,onValue,get,update,push,query,orderByChild,limitToLast})=>{
         const app=getApps().length?getApps()[0]:initializeApp(NAVBAR_FB_CONFIG);
         const auth=getAuth(app);
         const db=getDatabase(app);
         let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
         let _navPendingBuyTaskId=null,_navPendingBuyPts=0,_navPendingSellTaskId=null,_navPendingSellPts=0;
-        let _navCrisisPenalty=0; // extra sell margin penalty from crisis (0.0–0.50)
+        let _navCrisisPenalty=0;
+        window.doSignOut=function(){signOut(auth).then(()=>location.reload()).catch(e=>console.error('Sign out failed',e));};
         onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
           _navSilverRate=snap.exists()?snap.val():10000;
         });

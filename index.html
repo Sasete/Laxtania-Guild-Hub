@@ -1197,13 +1197,16 @@ window.rejectUser=async function(uid,name){
 
 // ── LIVE STATS ──
 function loadLiveStats(){
-  let _statMemberPts=0,_statFamilyBonus=0,_statPrestigePrev=0;
+  let _statMemberPts=0,_statFamilyBonus=0,_statPrestigePrev=0,_statLockedPts=0,_statQuestPts=0;
   function _fmtNum(n){return n>=1000000?parseFloat((Math.round(n/10000)/100).toFixed(2))+'M':n>=1000?parseFloat((Math.round(n/100)/10).toFixed(1))+'K':n.toLocaleString();}
   function _updateStatPrestige(){
-    const total=_statMemberPts+_statFamilyBonus;
+    const total=_statMemberPts+_statFamilyBonus+_statLockedPts+_statQuestPts;
     const el = document.getElementById('statPrestige');
     el.textContent=_fmtNum(total);
-    el.title = total.toLocaleString() + ' Laxi';
+    const breakdown=[];
+    if(_statLockedPts>0) breakdown.push(_statLockedPts.toLocaleString()+' in trades');
+    if(_statQuestPts>0) breakdown.push(_statQuestPts.toLocaleString()+' pending quests');
+    el.title = total.toLocaleString()+' Laxi'+(breakdown.length?' ('+breakdown.join(', ')+')':'');
   }
   onValue(ref(db,'prestige/snapshot/lastTotal'),snap=>{
     _statPrestigePrev=snap.exists()?snap.val():0;
@@ -1218,6 +1221,23 @@ function loadLiveStats(){
   onValue(ref(db,'prestige/families'),snap=>{
     const d=snap.val()||{};
     _statFamilyBonus=Object.values(d).reduce((s,f)=>s+(f.bonusPoints||0),0);
+    _updateStatPrestige();
+  });
+  let _statLockedListings=0,_statLockedOrders=0;
+  function _updateLocked(){_statLockedPts=_statLockedListings+_statLockedOrders;_updateStatPrestige();}
+  onValue(ref(db,'market/listings'),snap=>{
+    const d=snap.val()||{};
+    _statLockedListings=Object.values(d).filter(l=>['pending','awaiting_confirmation','disputed'].includes(l.status)).reduce((s,l)=>s+(l.reservedPts||0),0);
+    _updateLocked();
+  });
+  onValue(ref(db,'market/buyOrders'),snap=>{
+    const d=snap.val()||{};
+    _statLockedOrders=Object.values(d).filter(o=>['open','fulfilling'].includes(o.status)).reduce((s,o)=>s+(o.reservedPts||0),0);
+    _updateLocked();
+  });
+  onValue(ref(db,'tasks'),snap=>{
+    const d=snap.val()||{};
+    _statQuestPts=Object.values(d).filter(t=>t.status==='pending'&&t.type==='prestige_quest').reduce((s,t)=>s+(t.prestigePoints||0),0);
     _updateStatPrestige();
   });
   onValue(ref(db,'questDefs'),snap=>{

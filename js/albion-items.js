@@ -1,45 +1,179 @@
-// Albion Online common tradeable items — generated from known ID patterns.
+// Albion Online item database — generic + unique/faction items.
 // Render API: https://render.albiononline.com/v1/item/{id}@{enc}.png?quality={q}
 
+// ── Generic weapons (tiered T4-T8) ──
 const _WEAPONS = [
-  ['MAIN_SWORD',          'Sword',              'Sword'],
-  ['2H_CLAYMORE',         'Claymore',           'Sword'],
-  ['2H_DUALSWORD',        'Dual Blades',        'Sword'],
-  ['MAIN_AXE',            'Axe',                'Axe'],
-  ['2H_AXE',              'Great Axe',          'Axe'],
-  ['2H_HALBERD',          'Halberd',            'Axe'],
-  ['MAIN_MACE',           'Mace',               'Mace'],
-  ['2H_MACE',             'Heavy Mace',         'Mace'],
-  ['2H_HAMMER',           'Great Hammer',       'Mace'],
-  ['MAIN_HAMMER',         'Battle Hammer',      'Mace'],
-  ['MAIN_DAGGER',         'Dagger',             'Dagger'],
-  ['2H_DAGGERPAIR',       'Dual Daggers',       'Dagger'],
-  ['2H_CLAWS',            'Claws',              'Dagger'],
-  ['MAIN_QUARTERSTAFF',   'Quarterstaff',       'Staff'],
-  ['2H_QUARTERSTAFF',     'Iron-Clad Staff',    'Staff'],
-  ['MAIN_BOW',            'Bow',                'Bow'],
-  ['2H_BOW',              'Warbow',             'Bow'],
-  ['2H_CROSSBOW',         'Heavy Crossbow',     'Bow'],
-  ['MAIN_CROSSBOW',       'Crossbow',           'Bow'],
-  ['MAIN_SPEAR',          'Spear',              'Spear'],
-  ['2H_SPEAR',            'Pike',               'Spear'],
-  ['2H_GLAIVE',           'Glaive',             'Spear'],
-  ['MAIN_FIRESTAFF',      'Fire Staff',         'Magic'],
-  ['2H_FIRESTAFF',        'Great Fire Staff',   'Magic'],
-  ['MAIN_FROSTSTAFF',     'Frost Staff',        'Magic'],
-  ['2H_FROSTSTAFF',       'Great Frost Staff',  'Magic'],
-  ['MAIN_ARCANESTAFF',    'Arcane Staff',       'Magic'],
-  ['2H_ARCANESTAFF',      'Great Arcane Staff', 'Magic'],
-  ['MAIN_HOLYSTAFF',      'Holy Staff',         'Magic'],
-  ['2H_HOLYSTAFF',        'Great Holy Staff',   'Magic'],
-  ['MAIN_NATURESTAFF',    'Nature Staff',       'Magic'],
-  ['2H_NATURESTAFF',      'Great Nature Staff', 'Magic'],
-  ['MAIN_CURSEDSTAFF',    'Cursed Staff',       'Magic'],
-  ['2H_CURSEDSTAFF',      'Great Cursed Staff', 'Magic'],
-  ['TORCH',               'Torch',              'Offhand'],
-  ['OFF_BOOK',            'Tome of Spells',     'Offhand'],
-  ['OFF_SHIELD',          'Shield',             'Offhand'],
-  ['2H_POLEHAMMER',       'Polehammer',         'Mace'],
+  // Swords
+  ['MAIN_SWORD',            'Sword'],
+  ['2H_CLAYMORE',           'Claymore'],
+  ['2H_DUALSWORD',          'Dual Blades'],
+  ['2H_DUALSWORD_UNDEAD',   'Cursed Blade'],
+  // Axes
+  ['MAIN_AXE',              'Axe'],
+  ['2H_AXE',                'Great Axe'],
+  ['2H_HALBERD',            'Halberd'],
+  ['2H_HALBERD_UNDEAD',     'Scything Blade'],
+  ['2H_SCYTHE',             'Scythe'],
+  // Maces
+  ['MAIN_MACE',             'Mace'],
+  ['2H_MACE',               'Heavy Mace'],
+  ['2H_HAMMER',             'Great Hammer'],
+  ['MAIN_HAMMER',           'Battle Hammer'],
+  ['2H_POLEHAMMER',         'Polehammer'],
+  ['2H_RAM',                'Siegebow'],
+  // Daggers
+  ['MAIN_DAGGER',           'Dagger'],
+  ['2H_DAGGERPAIR',         'Dual Daggers'],
+  ['2H_CLAWS',              'Claws'],
+  ['2H_KNUCKLES',           'Knuckles'],
+  // Quarterstaves
+  ['MAIN_QUARTERSTAFF',     'Quarterstaff'],
+  ['2H_QUARTERSTAFF',       'Iron-Clad Staff'],
+  ['2H_QUARTERSTAFF_HELL',  'Blazing Staff'],
+  // Spears
+  ['MAIN_SPEAR',            'Spear'],
+  ['2H_SPEAR',              'Pike'],
+  ['2H_GLAIVE',             'Glaive'],
+  ['2H_LANCE',              'Spirithunter'],
+  // Bows
+  ['MAIN_BOW',              'Bow'],
+  ['2H_BOW',                'Warbow'],
+  ['2H_CROSSBOW',           'Heavy Crossbow'],
+  ['MAIN_CROSSBOW',         'Crossbow'],
+  ['2H_LONGBOW',            'Longbow'],
+  // Fire staves
+  ['MAIN_FIRESTAFF',        'Fire Staff'],
+  ['2H_FIRESTAFF',          'Great Fire Staff'],
+  ['2H_INFERNOSTAFF',       'Infernal Staff'],
+  // Frost staves
+  ['MAIN_FROSTSTAFF',       'Frost Staff'],
+  ['2H_FROSTSTAFF',         'Great Frost Staff'],
+  ['2H_ICEGAUNTLETS',       'Glacial Staff'],
+  // Arcane staves
+  ['MAIN_ARCANESTAFF',      'Arcane Staff'],
+  ['2H_ARCANESTAFF',        'Great Arcane Staff'],
+  ['2H_ENIGMATICSTAFF',     'Enigmatic Staff'],
+  // Holy staves
+  ['MAIN_HOLYSTAFF',        'Holy Staff'],
+  ['2H_HOLYSTAFF',          'Great Holy Staff'],
+  ['2H_DIVINESTAFF',        'Divine Staff'],
+  // Nature staves
+  ['MAIN_NATURESTAFF',      'Nature Staff'],
+  ['2H_NATURESTAFF',        'Great Nature Staff'],
+  ['2H_WILDSTAFF',          'Wild Staff'],
+  // Cursed staves
+  ['MAIN_CURSEDSTAFF',      'Cursed Staff'],
+  ['2H_CURSEDSTAFF',        'Great Cursed Staff'],
+  ['2H_DEMONICSTAFF',       'Demonic Staff'],
+  // Shapeshifter
+  ['2H_SHAPESHIFTER_SET1',  'Druidic Staff'],
+  ['2H_SHAPESHIFTER_SET2',  'Shapeshifter Staff'],
+  // Offhand
+  ['TORCH',                 'Torch'],
+  ['OFF_BOOK',              'Tome of Spells'],
+  ['OFF_SHIELD',            'Shield'],
+  ['OFF_JESTERCANE',        'Jester Wand'],
+  // Rapier
+  ['MAIN_RAPIER',           'Rapier'],
+  // Flail
+  ['2H_FLAIL',              'Flail'],
+];
+
+// ── Unique / Faction items ──
+// Pattern: { id (full, no T prefix), name, tier[] or null=4-8 }
+const _UNIQUES = [
+  // ── Swords ──
+  { id:'2H_CLAYMORE_AVALON',        name:'Carving Sword',         tiers:[4,6,8] },
+  { id:'MAIN_SWORD_MORGANA',        name:'Black Monk Staff',      tiers:[4,6,8] },
+
+  // ── Axes ──
+  { id:'2H_AXE_HELL',               name:'Infernal Scythe',       tiers:[4,6,8] },
+  { id:'2H_AXE_AVALON',             name:'Avalonian Halberd',     tiers:[4,6,8] },
+  { id:'2H_HALBERD_KEEPER',         name:'Soulscythe',            tiers:[4,6,8] },
+
+  // ── Maces ──
+  { id:'2H_MACE_HELL',              name:'Grovekeeper',           tiers:[4,6,8] },
+  { id:'2H_MACE_KEEPER',            name:'Great Nature Staff',    tiers:[4,6,8] },
+  { id:'2H_HAMMER_UNDEAD',          name:'Tombhammer',            tiers:[4,6,8] },
+  { id:'MAIN_HAMMER_UNDEAD',        name:'Ursine Maulers',        tiers:[4,6,8] },
+  { id:'2H_POLEHAMMER_AVALON',      name:'Hammer of Avalon',      tiers:[4,6,8] },
+
+  // ── Daggers ──
+  { id:'MAIN_DAGGER_HELL',          name:'Bloodletter',           tiers:[4,6,8] },
+  { id:'2H_DAGGERPAIR_HELL',        name:'Deathgivers',           tiers:[4,6,8] },
+  { id:'2H_CLAWS_KEEPER',           name:'Bear Paws',             tiers:[4,6,8] },
+  { id:'2H_KNUCKLES_HELL',          name:'Facebreaker',           tiers:[4,6,8] },
+  { id:'2H_KNUCKLES_MORGANA',       name:'Rift Gauntlet',         tiers:[4,6,8] },
+  { id:'2H_KNUCKLES_KEEPER',        name:'Druid Gauntlet',        tiers:[4,6,8] },
+
+  // ── Quarterstaves ──
+  { id:'2H_QUARTERSTAFF_UNDEAD',    name:'Bone Scythe',           tiers:[4,6,8] },
+  { id:'MAIN_QUARTERSTAFF_KEEPER',  name:'Iron-Clad Staff',       tiers:[4,6,8] },
+
+  // ── Spears ──
+  { id:'2H_GLAIVE_KEEPER',          name:'Heron Spear',           tiers:[4,6,8] },
+  { id:'2H_LANCE_UNDEAD',           name:'Spirithunter',          tiers:[4,6,8] },
+  { id:'MAIN_SPEAR_HELL',           name:'Brimstone Staff',       tiers:[4,6,8] },
+
+  // ── Bows ──
+  { id:'2H_BOW_HELL',               name:'Whispering Bow',        tiers:[4,6,8] },
+  { id:'2H_BOW_UNDEAD',             name:'Wailing Bow',           tiers:[4,6,8] },
+  { id:'2H_CROSSBOW_MORGANA',       name:'Siegebow',              tiers:[4,6,8] },
+  { id:'MAIN_CROSSBOW_UNDEAD',      name:'Weeping Repeater',      tiers:[4,6,8] },
+  { id:'2H_LONGBOW_KEEPER',         name:'Longbow',               tiers:[4,6,8] },
+
+  // ── Fire staves ──
+  { id:'2H_FIRESTAFF_HELL',         name:'Wildfire Staff',        tiers:[4,6,8] },
+  { id:'2H_FIRESTAFF_KEEPER',       name:'Infernal Staff',        tiers:[4,6,8] },
+  { id:'MAIN_FIRESTAFF_MORGANA',    name:'Brimstone Staff',       tiers:[4,6,8] },
+
+  // ── Frost staves ──
+  { id:'2H_FROSTSTAFF_UNDEAD',      name:'Permafrost Prism',      tiers:[4,6,8] },
+  { id:'2H_ICEGAUNTLETS_HELL',      name:'Glacial Staff',         tiers:[4,6,8] },
+  { id:'MAIN_FROSTSTAFF_KEEPER',    name:'Icicle Staff',          tiers:[4,6,8] },
+
+  // ── Arcane staves ──
+  { id:'2H_ARCANESTAFF_UNDEAD',     name:'Occult Staff',          tiers:[4,6,8] },
+  { id:'MAIN_ARCANESTAFF_KEEPER',   name:'Mage\'s Wand',          tiers:[4,6,8] },
+  { id:'2H_ENIGMATICSTAFF_HELL',    name:'Soulscribe',            tiers:[4,6,8] },
+
+  // ── Holy staves ──
+  { id:'2H_HOLYSTAFF_HELL',         name:'Fallen Staff',          tiers:[4,6,8] },
+  { id:'2H_HOLYSTAFF_MORGANA',      name:'Redemption Staff',      tiers:[4,6,8] },
+  { id:'MAIN_HOLYSTAFF_KEEPER',     name:'Lifetouch Staff',       tiers:[4,6,8] },
+  { id:'2H_DIVINESTAFF_UNDEAD',     name:'Divine Staff',          tiers:[4,6,8] },
+
+  // ── Nature staves ──
+  { id:'2H_NATURESTAFF_KEEPER',     name:'Druidic Staff',         tiers:[4,6,8] },
+  { id:'2H_WILDSTAFF_UNDEAD',       name:'Wild Staff',            tiers:[4,6,8] },
+  { id:'MAIN_NATURESTAFF_HELL',     name:'Blight Staff',          tiers:[4,6,8] },
+
+  // ── Cursed staves ──
+  { id:'2H_CURSEDSTAFF_HELL',       name:'Shadowcaller',          tiers:[4,6,8] },
+  { id:'2H_CURSEDSTAFF_UNDEAD',     name:'Curse Staff',           tiers:[4,6,8] },
+  { id:'2H_DEMONICSTAFF_HELL',      name:'Demonic Staff',         tiers:[4,6,8] },
+  { id:'MAIN_CURSEDSTAFF_MORGANA',  name:'Desolate Staff',        tiers:[4,6,8] },
+
+  // ── Offhand ──
+  { id:'OFF_SPIKEDSHIELD_MORGANA',  name:'Spiked Shield',         tiers:[4,6,8] },
+  { id:'OFF_SHIELD_UNDEAD',         name:'Cryptcandle',           tiers:[4,6,8] },
+  { id:'OFF_TORCH_HELL',            name:'Taproot',               tiers:[4,6,8] },
+  { id:'OFF_BOOK_UNDEAD',           name:'Muisak',                tiers:[4,6,8] },
+  { id:'OFF_BOOK_KEEPER',           name:'Mistcaller',            tiers:[4,6,8] },
+  { id:'OFF_BOOK_HELL',             name:'Eye of Secrets',        tiers:[4,6,8] },
+  { id:'OFF_JESTERCANE_HELL',       name:'Jester\'s Staff',       tiers:[4,6,8] },
+  { id:'OFF_HORN_HELL',             name:'Lymhurst Cape Offhand', tiers:[4,6,8] },
+
+  // ── Shapeshifter ──
+  { id:'2H_SHAPESHIFTER_SET1',      name:'Druidic Staff',         tiers:[4,6,8] },
+
+  // ── Rapier ──
+  { id:'MAIN_RAPIER_AVALON',        name:'Carving Sword',         tiers:[4,6,8] },
+
+  // ── Totem (special staff type) ──
+  { id:'2H_TOTEM_HELL',             name:'Mistcaller',            tiers:[4,6,8] },
+  { id:'2H_TOTEM_KEEPER',           name:'Muisak',                tiers:[4,6,8] },
+  { id:'2H_TOTEM_UNDEAD',           name:'Cryptcandle',           tiers:[4,6,8] },
 ];
 
 const _ARMOR = [
@@ -73,58 +207,63 @@ const _ARMOR = [
 ];
 
 const _CAPES = [
-  ['CAPE',               'Cape'],
-  ['CAPE_BALANCED',      'Balanced Cape'],
-  ['CAPE_OFFENSIVE',     'Offensive Cape'],
-  ['CAPE_DEFENSIVE',     'Defensive Cape'],
+  ['CAPE',            'Cape'],
+  ['CAPE_BALANCED',   'Balanced Cape'],
+  ['CAPE_OFFENSIVE',  'Offensive Cape'],
+  ['CAPE_DEFENSIVE',  'Defensive Cape'],
+  ['CAPEITEM_FW_FORTSTERLING', 'Fort Sterling Cape'],
+  ['CAPEITEM_FW_LYMHURST',     'Lymhurst Cape'],
+  ['CAPEITEM_FW_BRIDGEWATCH',  'Bridgewatch Cape'],
+  ['CAPEITEM_FW_MARTLOCK',     'Martlock Cape'],
+  ['CAPEITEM_FW_THETFORD',     'Thetford Cape'],
 ];
 
 const _BAGS = [
-  ['BAG',                'Bag'],
-  ['BAG_GATHERER',       'Gathering Bag'],
+  ['BAG',          'Bag'],
+  ['BAG_GATHERER', 'Gathering Bag'],
 ];
 
 const _FOOD = [
-  ['FOOD_BREAD',                    'Bread',               'T1'],
-  ['FOOD_FISH_ROASTED',             'Roasted Fish',        'T2'],
-  ['FOOD_SALAD',                    'Salad',               'T2'],
-  ['FOOD_PORK_OMELETTE',            'Pork Omelette',       'T3'],
-  ['FOOD_PORK_PIE',                 'Pork Pie',            'T3'],
-  ['FOOD_SEAWEED_SALAD',            'Seaweed Salad',       'T4'],
-  ['FOOD_GOOSE_PIE',                'Goose Pie',           'T4'],
-  ['FOOD_ROAST',                    'Beef Roast',          'T4'],
-  ['FOOD_HIDE_PIE',                 'Venison Pie',         'T5'],
-  ['FOOD_MANDARIN_FISH',            'Mandarin Fish',       'T5'],
-  ['FOOD_POTATO_SOUP',              'Potato Soup',         'T5'],
-  ['FOOD_CHICKEN_PIE',              'Chicken Pie',         'T6'],
-  ['FOOD_TURNIP_SOUP',              'Turnip Soup',         'T6'],
-  ['FOOD_WILD_HONEY_PIE',           'Wild Honey Pie',      'T7'],
-  ['FOOD_STEAK_AND_KIDNEY_PIE',     'Steak Pie',           'T7'],
-  ['FOOD_ROAST_RABBIT',             'Roast Rabbit',        'T7'],
-  ['FOOD_AVALON_MEALS',             'Crest of Valor',      'T8'],
+  ['FOOD_BREAD',               'Bread'],
+  ['FOOD_FISH_ROASTED',        'Roasted Fish'],
+  ['FOOD_SALAD',               'Salad'],
+  ['FOOD_PORK_OMELETTE',       'Pork Omelette'],
+  ['FOOD_PORK_PIE',            'Pork Pie'],
+  ['FOOD_SEAWEED_SALAD',       'Seaweed Salad'],
+  ['FOOD_GOOSE_PIE',           'Goose Pie'],
+  ['FOOD_ROAST',               'Beef Roast'],
+  ['FOOD_HIDE_PIE',            'Venison Pie'],
+  ['FOOD_MANDARIN_FISH',       'Mandarin Fish'],
+  ['FOOD_POTATO_SOUP',         'Potato Soup'],
+  ['FOOD_CHICKEN_PIE',         'Chicken Pie'],
+  ['FOOD_TURNIP_SOUP',         'Turnip Soup'],
+  ['FOOD_WILD_HONEY_PIE',      'Wild Honey Pie'],
+  ['FOOD_STEAK_AND_KIDNEY_PIE','Steak Pie'],
+  ['FOOD_ROAST_RABBIT',        'Roast Rabbit'],
+  ['FOOD_AVALON_MEALS',        'Crest of Valor'],
 ];
 
 const _POTIONS = [
-  ['POTION_HEAL',           'Healing Potion'],
-  ['POTION_ENERGY',         'Energy Potion'],
-  ['POTION_STONESKIN',      'Stone Skin Potion'],
-  ['POTION_RESISTANCE',     'Resistance Potion'],
-  ['POTION_REVIVE',         'Revive Potion'],
-  ['POTION_BERSERK',        'Berserk Potion'],
-  ['POTION_CLEANSE',        'Cleanse Potion'],
+  ['POTION_HEAL',       'Healing Potion'],
+  ['POTION_ENERGY',     'Energy Potion'],
+  ['POTION_STONESKIN',  'Stone Skin Potion'],
+  ['POTION_RESISTANCE', 'Resistance Potion'],
+  ['POTION_REVIVE',     'Revive Potion'],
+  ['POTION_BERSERK',    'Berserk Potion'],
+  ['POTION_CLEANSE',    'Cleanse Potion'],
 ];
 
 const _RESOURCES = [
-  ['ORE',             'Ore',           'Resource'],
-  ['WOOD',            'Wood',          'Resource'],
-  ['HIDE',            'Hide',          'Resource'],
-  ['FIBER',           'Fiber',         'Resource'],
-  ['ROCK',            'Stone',         'Resource'],
-  ['METALBAR',        'Metal Bar',     'Resource'],
-  ['PLANKS',          'Plank',         'Resource'],
-  ['LEATHER',         'Leather',       'Resource'],
-  ['CLOTH',           'Cloth',         'Resource'],
-  ['STONEBLOCK',      'Stone Block',   'Resource'],
+  ['ORE',        'Ore'],
+  ['WOOD',       'Wood'],
+  ['HIDE',       'Hide'],
+  ['FIBER',      'Fiber'],
+  ['ROCK',       'Stone'],
+  ['METALBAR',   'Metal Bar'],
+  ['PLANKS',     'Plank'],
+  ['LEATHER',    'Leather'],
+  ['CLOTH',      'Cloth'],
+  ['STONEBLOCK', 'Stone Block'],
 ];
 
 const _MOUNTS = [
@@ -139,21 +278,33 @@ const _MOUNTS = [
   ['MOUNT_SWIFTCLAW',         'Swiftclaw'],
   ['MOUNT_WOLF',              'Wolf'],
   ['MOUNT_PANTHER',           'Panther'],
+  ['MOUNT_COUGAR_COLT',       'Cougar'],
+  ['MOUNT_MOOSE',             'Moose'],
+  ['MOUNT_TERRORBIRD',        'Terrorbird'],
+  ['MOUNT_BONEDRAKEMOUNT',    'Spectral Direwolf'],
 ];
 
 // ── Build the item list ──
 const ALBION_COMMON_ITEMS = [];
 
-// Weapons T4-T8
+// Generic weapons T4-T8
 for (let t = 4; t <= 8; t++) {
   for (const [suffix, name] of _WEAPONS) {
     ALBION_COMMON_ITEMS.push({ id:`T${t}_${suffix}`, name:`T${t} ${name}`, category:'Weapon', tier:t });
   }
 }
 
+// Unique/faction weapons
+for (const u of _UNIQUES) {
+  const tiers = u.tiers || [4,6,8];
+  for (const t of tiers) {
+    ALBION_COMMON_ITEMS.push({ id:`T${t}_${u.id}`, name:`T${t} ${u.name}`, category:'Weapon', tier:t, unique:true });
+  }
+}
+
 // Armor T4-T8
 for (let t = 4; t <= 8; t++) {
-  for (const [suffix, name, sub] of _ARMOR) {
+  for (const [suffix, name] of _ARMOR) {
     ALBION_COMMON_ITEMS.push({ id:`T${t}_${suffix}`, name:`T${t} ${name}`, category:'Armor', tier:t });
   }
 }
@@ -172,9 +323,8 @@ for (let t = 4; t <= 8; t++) {
   }
 }
 
-// Food (fixed tiers based on game data)
-for (const [suffix, name, tierHint] of _FOOD) {
-  // Include T3-T8 food items
+// Food T3-T8
+for (const [suffix, name] of _FOOD) {
   for (let t = 3; t <= 8; t++) {
     ALBION_COMMON_ITEMS.push({ id:`T${t}_${suffix}`, name:`T${t} ${name}`, category:'Food', tier:t });
   }
@@ -194,12 +344,14 @@ for (let t = 2; t <= 8; t++) {
   }
 }
 
-// Mounts (various tiers)
+// Mounts
 const mountTiers = {
   'MOUNT_HORSE': [3,4,5], 'MOUNT_ARMORED_HORSE': [5,6,7], 'MOUNT_GIANT_HORSE': [6,7,8],
   'MOUNT_OX': [3,4,5,6,7,8], 'MOUNT_TRANSPORT_MAMMOTH': [7,8],
   'MOUNT_DIREWOLF': [6,7,8], 'MOUNT_DIREBOAR': [5,6], 'MOUNT_DIREBEAR': [6,7,8],
   'MOUNT_SWIFTCLAW': [4,5,6], 'MOUNT_WOLF': [5,6,7], 'MOUNT_PANTHER': [6,7,8],
+  'MOUNT_COUGAR_COLT': [5,6,7], 'MOUNT_MOOSE': [6,7], 'MOUNT_TERRORBIRD': [5,6,7],
+  'MOUNT_BONEDRAKEMOUNT': [5,6,7,8],
 };
 for (const [suffix, name] of _MOUNTS) {
   const tiers = mountTiers[suffix] || [4,5,6,7,8];
@@ -217,6 +369,12 @@ window.searchAlbionItems = function(query, limit = 15) {
     item.id.toLowerCase().includes(q) ||
     item.category.toLowerCase().includes(q)
   );
+  // Prioritise: exact ID prefix match > unique items > generic
+  results.sort((a, b) => {
+    const aExact = a.id.toLowerCase().startsWith(q) ? 0 : 1;
+    const bExact = b.id.toLowerCase().startsWith(q) ? 0 : 1;
+    return aExact - bExact;
+  });
   return results.slice(0, limit);
 };
 

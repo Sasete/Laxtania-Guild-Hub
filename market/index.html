@@ -177,6 +177,7 @@
     <span class="market-topbar-title">Market</span>
     <input class="market-search" id="tableSearch" placeholder="Search listings…" oninput="applyFilters()">
     <button class="mk-btn primary" onclick="openListForm()">+ List Item</button>
+    <button class="mk-btn" onclick="openBuyOrderModal()" style="border-color:rgba(74,143,239,0.5);color:#6ab0f5;">+ Buy Order</button>
   </div>
 
   <!-- Tabs -->
@@ -184,6 +185,7 @@
     <button class="mk-tab active" id="tab-browse" onclick="switchTab('browse',this)">Browse</button>
     <button class="mk-tab" id="tab-mine" onclick="switchTab('mine',this)">My Listings</button>
     <button class="mk-tab" id="tab-purchases" onclick="switchTab('purchases',this)">My Purchases</button>
+    <button class="mk-tab" id="tab-buyorders" onclick="switchTab('buyorders',this)">Buy Orders</button>
     <button class="mk-tab" id="tab-sold" onclick="switchTab('sold',this)">Sold History</button>
   </div>
 
@@ -308,6 +310,61 @@
   </div>
 </div>
 
+<!-- Post Buy Order Modal -->
+<div class="modal-bg" id="buyOrderModal">
+  <div class="mk-modal">
+    <div class="mk-modal-header">
+      <h3>Post Buy Order</h3>
+      <button class="mk-modal-close" onclick="closeBuyOrderModal()">×</button>
+    </div>
+    <div class="mk-modal-body">
+      <div class="mk-form-group" style="margin-bottom:12px;">
+        <label class="mk-label">Item Name</label>
+        <div class="item-search-wrap">
+          <input class="mk-input" id="boItemSearch" placeholder="Search Albion items…" autocomplete="off" oninput="onBOItemSearch(this.value)">
+          <div class="item-search-results" id="boItemResults"></div>
+        </div>
+        <div class="item-selected-preview" id="boItemPreview">
+          <img id="boItemPreviewImg" src="" alt="">
+          <span class="item-selected-name" id="boItemPreviewName"></span>
+          <button onclick="clearBOItem()" style="background:none;border:none;color:var(--mk-text-dim);cursor:pointer;font-size:16px;">×</button>
+        </div>
+        <input type="hidden" id="boSelItemId">
+        <input type="hidden" id="boSelItemName">
+      </div>
+      <div class="mk-form-row">
+        <div class="mk-form-group">
+          <label class="mk-label">Quality</label>
+          <select class="mk-select" id="boQuality">
+            <option value="0">Any</option>
+            <option value="1">Normal</option>
+            <option value="2">Good</option>
+            <option value="3">Outstanding</option>
+            <option value="4">Excellent</option>
+            <option value="5">Masterpiece</option>
+          </select>
+        </div>
+        <div class="mk-form-group" style="min-width:80px;flex:0 0 80px;">
+          <label class="mk-label">Qty</label>
+          <input class="mk-input" type="number" id="boQty" value="1" min="1">
+        </div>
+        <div class="mk-form-group">
+          <label class="mk-label">Price per unit (Laxi)</label>
+          <input class="mk-input" type="number" id="boPrice" placeholder="50" min="1">
+        </div>
+      </div>
+      <div class="mk-form-group">
+        <label class="mk-label">Note (optional)</label>
+        <input class="mk-input" id="boNote" placeholder="Enchant preference, condition, etc…">
+      </div>
+    </div>
+    <div class="mk-modal-footer">
+      <button class="mk-btn" onclick="closeBuyOrderModal()">Cancel</button>
+      <button class="mk-btn primary" onclick="submitBuyOrder()">Post Buy Order</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm Buy Modal -->
 <div class="modal-bg" id="buyModal">
   <div class="confirm-modal">
@@ -331,7 +388,7 @@
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getDatabase, ref, push, update, onValue, get }
+import { getDatabase, ref, push, update, onValue, get, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const _fbConfig = {
@@ -348,8 +405,8 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 
 // ── State ──
-let currentUser = null, currentUserData = null;
-let allListings  = {};
+let currentUser = null, currentUserData = null, isAdmin = false;
+let allListings  = {}, allBuyOrders = {};
 let activeTab    = 'browse';
 let activeCat    = 'all';
 let tableSearch  = '';
@@ -384,6 +441,7 @@ onAuthStateChanged(auth, async user => {
     }
     const isCouncil = (ud?.ranks||[]).some(r=>['councillor','hand','sovereign'].includes(r))
       || (ud?.roles && (ud.roles.council||ud.roles.admin||ud.roles.sovereign||ud.roles.hand));
+    isAdmin = isCouncil;
     if (isCouncil) {
       const ag = document.getElementById('adminNavGroup'); if (ag) ag.style.display = 'flex';
       const ad = document.getElementById('adminNavDivider'); if (ad) ad.style.display = 'block';
@@ -398,9 +456,15 @@ onValue(ref(db,'market/listings'), snap => {
   allListings = snap.val() || {};
   render();
 });
+onValue(ref(db,'market/buyOrders'), snap => {
+  allBuyOrders = snap.val() || {};
+  render();
+});
 
 // ── Render ──
 function render() {
+  if (activeTab === 'buyorders') { renderBuyOrders(); return; }
+
   const tbody   = document.getElementById('marketTbody');
   const countEl = document.getElementById('marketCount');
   const pagEl   = document.getElementById('pageBtns');
@@ -412,11 +476,11 @@ function render() {
     entries = entries.filter(([,l]) => l.status === 'active' || l.status === 'pending' || l.status === 'awaiting_confirmation');
   } else if (activeTab === 'mine') {
     entries = currentUser
-      ? entries.filter(([,l]) => l.sellerId === currentUser.uid && l.status !== 'cancelled')
+      ? entries.filter(([,l]) => l.sellerId === currentUser.uid && l.status !== 'cancelled' && l.status !== 'removed')
       : [];
   } else if (activeTab === 'purchases') {
     entries = currentUser
-      ? entries.filter(([,l]) => l.buyerId === currentUser.uid && (l.status === 'pending' || l.status === 'awaiting_confirmation'))
+      ? entries.filter(([,l]) => l.buyerId === currentUser.uid && (l.status === 'pending' || l.status === 'awaiting_confirmation' || l.status === 'disputed'))
       : [];
   } else if (activeTab === 'sold') {
     entries = currentUser
@@ -466,8 +530,9 @@ function render() {
     const isMine    = currentUser && l.sellerId===currentUser.uid;
     const isMyBuy   = currentUser && l.buyerId===currentUser.uid;
     const isSold    = l.status === 'sold';
-    const isPending = l.status === 'pending';
-    const isAwaiting= l.status === 'awaiting_confirmation';
+    const isPending  = l.status === 'pending';
+    const isAwaiting = l.status === 'awaiting_confirmation';
+    const isDisputed = l.status === 'disputed';
     const tier   = l.tier||0;
     const enc    = l.enchant||0;
     const tierLabel = tier ? `T${tier}${enc?'.'+enc:''}` : '';
@@ -479,26 +544,35 @@ function render() {
       actionHtml = `<div class="action-cell"><span class="sold-tag">Sold${l.buyerName?' → '+escHtml(l.buyerName):''}</span></div>`;
     } else if (isPending) {
       if (isMine) {
-        // Seller: confirm delivery
         actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved by ${escHtml(l.buyerName||'?')}</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmDelivery('${id}')">Confirm Delivery</button><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
       } else if (isMyBuy) {
-        actionHtml = `<div class="action-cell"><span class="pending-tag">Waiting for seller…</span></div>`;
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Waiting for seller…</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelBuyerOrder('${id}')">Cancel Order</button></div>`;
       } else {
         actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved</span></div>`;
       }
     } else if (isAwaiting) {
       if (isMyBuy) {
-        // Buyer: confirm receipt
-        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Item delivered?</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmReceipt('${id}')">Confirm Receipt</button></div>`;
+        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Item delivered?</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmReceipt('${id}')">Confirm Receipt</button><button class="mk-btn" style="padding:4px 10px;font-size:10px;border-color:rgba(200,60,60,0.4);color:#e07070;" onclick="disputeOrder('${id}')">Dispute</button></div>`;
       } else if (isMine) {
-        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Awaiting buyer…</span></div>`;
+        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Awaiting ${escHtml(l.buyerName||'buyer')}…</span></div>`;
       } else {
         actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved</span></div>`;
+      }
+    } else if (isDisputed) {
+      if (isMyBuy) {
+        actionHtml = `<div class="action-cell"><span style="font-size:10px;font-variant:small-caps;color:#e07070;background:rgba(200,60,60,0.1);border:1px solid rgba(200,60,60,0.3);padding:3px 8px;">Disputed — Council reviewing</span></div>`;
+      } else if (isMine) {
+        actionHtml = `<div class="action-cell"><span style="font-size:10px;font-variant:small-caps;color:#e07070;background:rgba(200,60,60,0.1);border:1px solid rgba(200,60,60,0.3);padding:3px 8px;">Disputed by ${escHtml(l.disputedBy||'buyer')}</span></div>`;
+      } else if (isAdmin) {
+        actionHtml = `<div class="action-cell"><span style="font-size:10px;color:#e07070;">⚠ Disputed</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="resolveDispute('${id}','buyer')">Refund Buyer</button><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="resolveDispute('${id}','seller')">Pay Seller</button></div>`;
+      } else {
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Disputed</span></div>`;
       }
     } else if (isMine) {
       actionHtml = `<div class="action-cell"><span class="mine-tag">Your listing</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
     } else {
-      actionHtml = `<div class="action-cell"><button class="mk-btn primary" style="padding:5px 14px;" onclick="openBuyModal('${id}')" ${!currentUser?'disabled title="Sign in first"':''}>Buy</button></div>`;
+      const adminBtn = isAdmin ? `<button class="mk-btn" style="padding:4px 10px;font-size:10px;border-color:rgba(200,60,60,0.5);color:#e07070;" onclick="adminRemoveListing('${id}')">Remove</button>` : '';
+      actionHtml = `<div class="action-cell"><button class="mk-btn primary" style="padding:5px 14px;" onclick="openBuyModal('${id}')" ${!currentUser?'disabled title="Sign in first"':''}>Buy</button>${adminBtn}</div>`;
     }
 
     const noteHtml = l.description ? `<div class="item-note">${escHtml(l.description)}</div>` : '';
@@ -546,8 +620,14 @@ window.onItemSearch = function(query) {
   if (query.length < 2) { resultsEl.classList.remove('open'); return; }
   searchTimer = setTimeout(() => {
     const items = window.searchAlbionItems ? window.searchAlbionItems(query, 15) : [];
+    const looksLikeId = /^T\d_|_/.test(query.toUpperCase());
+    const rawOption = looksLikeId
+      ? `<div class="item-result" style="border-top:1px solid var(--mk-border);opacity:0.8;" onclick="selectItem('${escHtml(query.toUpperCase())}','${escHtml(query.toUpperCase())}')">
+           <img src="${window.albionItemImg(query.toUpperCase())}" onerror="this.style.opacity='0.2'" width="28" height="28">
+           <span class="item-result-name" style="color:var(--mk-text-dim);">Use "<strong style="color:var(--mk-text)">${escHtml(query.toUpperCase())}</strong>" as item ID</span>
+         </div>` : '';
     if (!items.length) {
-      resultsEl.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results — try item name or ID (e.g. "T5_MAIN_SWORD")</div>`;
+      resultsEl.innerHTML = rawOption || `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results — try item name or ID (e.g. "T5_MAIN_SWORD")</div>`;
       resultsEl.classList.add('open');
       return;
     }
@@ -556,7 +636,7 @@ window.onItemSearch = function(query) {
         <img src="${window.albionItemImg(item.id)}" onerror="this.style.opacity='0.3'" width="28" height="28">
         <span class="item-result-name">${escHtml(item.name)}</span>
       </div>`
-    ).join('');
+    ).join('') + rawOption;
     resultsEl.classList.add('open');
   }, 150);
 };
@@ -709,6 +789,100 @@ window.confirmReceipt = async function(id) {
   alert(`Done! ${pts.toLocaleString()} Laxi sent to ${l.sellerName}.`);
 };
 
+// ── Buyer cancel (pending only — before seller confirms delivery) ──
+window.cancelBuyerOrder = async function(id) {
+  const l = allListings[id];
+  if (!l || l.status !== 'pending' || l.buyerId !== currentUser?.uid) return;
+  if (!confirm('Cancel your order? Your Laxi will be refunded and the listing will go back on sale.')) return;
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+  const buyerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.buyerName||'').toLowerCase());
+  if (buyerEntry) {
+    const [bk,bd] = buyerEntry;
+    await update(ref(db,'prestige/members'),{[`${bk}/points`]: (bd.points||0)+(l.reservedPts||0)});
+  }
+  await update(ref(db,`market/listings/${id}`),{
+    status:'active', buyerId:null, buyerName:null, reservedAt:null, reservedPts:null
+  });
+  alert('Order cancelled. Your Laxi has been refunded.');
+};
+
+// ── Dispute (awaiting_confirmation — buyer says item not received) ──
+window.disputeOrder = async function(id) {
+  const l = allListings[id];
+  if (!l || l.status !== 'awaiting_confirmation' || l.buyerId !== currentUser?.uid) return;
+  if (!confirm(`Dispute this transaction?\n\nThis will flag the order for Council review. Your Laxi remains held until a Council member resolves it.\n\nItem: ${l.itemName}\nSeller: ${l.sellerName}`)) return;
+  const now = Date.now();
+  const byName = currentUserData?.name || currentUser.email;
+  const pts = l.reservedPts || (l.price||0)*(l.quantity||1);
+  // Create a Council task so it appears in the Tasks tab
+  const taskRef = await push(ref(db,'tasks'), {
+    type:        'market_dispute',
+    status:      'pending',
+    listingId:   id,
+    itemName:    l.itemName,
+    buyer:       byName,
+    seller:      l.sellerName,
+    amount:      pts,
+    notes:       `Market dispute — ${byName} claims "${l.itemName}" was not received from ${l.sellerName}.`,
+    createdAt:   now,
+    by:          byName,
+  });
+  await update(ref(db,`market/listings/${id}`),{
+    status:'disputed', disputedAt:now, disputedBy:byName, disputeTaskId:taskRef.key
+  });
+  alert('Order flagged as disputed. A Council member will review and resolve it.');
+};
+
+// ── Admin dispute resolution ──
+window.resolveDispute = async function(id, verdict) {
+  const l = allListings[id];
+  if (!l || l.status !== 'disputed' || !isAdmin) return;
+  const pts = l.reservedPts || (l.price||0)*(l.quantity||1);
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+
+  if (verdict === 'buyer') {
+    if (!confirm(`Refund ${pts.toLocaleString()} Laxi to buyer (${l.buyerName})?`)) return;
+    const buyerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.buyerName||'').toLowerCase());
+    if (buyerEntry) {
+      const [bk,bd] = buyerEntry;
+      await update(ref(db,'prestige/members'),{[`${bk}/points`]: (bd.points||0)+pts});
+    }
+    const resolution = 'refunded_buyer';
+    await update(ref(db,`market/listings/${id}`),{status:'cancelled', resolvedAt:Date.now(), resolvedBy:currentUserData?.name||currentUser.email, resolution});
+    if (l.disputeTaskId) await update(ref(db,`tasks/${l.disputeTaskId}`),{status:'completed', completedAt:Date.now(), resolution});
+  } else {
+    if (!confirm(`Pay ${pts.toLocaleString()} Laxi to seller (${l.sellerName})?`)) return;
+    const sellerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.sellerName||'').toLowerCase());
+    if (sellerEntry) {
+      const [sk,sd] = sellerEntry;
+      await update(ref(db,'prestige/members'),{[`${sk}/points`]: (sd.points||0)+pts});
+    }
+    const resolution = 'paid_seller';
+    await update(ref(db,`market/listings/${id}`),{status:'sold', soldAt:Date.now(), resolvedBy:currentUserData?.name||currentUser.email, resolution});
+    if (l.disputeTaskId) await update(ref(db,`tasks/${l.disputeTaskId}`),{status:'completed', completedAt:Date.now(), resolution});
+  }
+};
+
+// ── Admin remove ──
+window.adminRemoveListing = async function(id) {
+  const l = allListings[id];
+  if (!l || !isAdmin) return;
+  if (!confirm(`Remove "${l.itemName}" listed by ${l.sellerName}?`)) return;
+  // If Laxi was reserved (pending), refund buyer first
+  if (l.status === 'pending' && l.buyerId && l.reservedPts) {
+    const membersSnap = await get(ref(db,'prestige/members'));
+    const members = membersSnap.val()||{};
+    const buyerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.buyerName||'').toLowerCase());
+    if (buyerEntry) {
+      const [bk,bd] = buyerEntry;
+      await update(ref(db,'prestige/members'),{[`${bk}/points`]: (bd.points||0)+l.reservedPts});
+    }
+  }
+  await update(ref(db,`market/listings/${id}`),{status:'removed',removedAt:Date.now(),removedBy:currentUserData?.name||currentUser.email});
+};
+
 // ── Cancel ──
 window.cancelListing = async function(id) {
   if (!currentUser) return;
@@ -765,6 +939,222 @@ window.closeListForm = function() {
 };
 
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Buy Orders render ──
+function renderBuyOrders() {
+  const tbody   = document.getElementById('marketTbody');
+  const countEl = document.getElementById('marketCount');
+  document.getElementById('pageBtns').innerHTML = '';
+
+  const entries = Object.entries(allBuyOrders)
+    .filter(([,o]) => o.status === 'open' || o.status === 'fulfilling')
+    .sort((a,b) => (b[1].createdAt||0)-(a[1].createdAt||0));
+
+  countEl.textContent = `${entries.length} buy order${entries.length!==1?'s':''}`;
+
+  if (!entries.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-market">No open buy orders.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = entries.map(([id,o]) => {
+    const isMine   = currentUser && o.buyerId === currentUser.uid;
+    const enc      = o.enchant || 0;
+    const imgUrl   = o.itemId ? window.albionItemImg(o.itemId, enc, o.quality||1) : 'https://render.albiononline.com/v1/item/T4_BAG.png';
+    const tierLabel = o.tier ? `T${o.tier}${enc?'.'+enc:''}` : '';
+    const total    = (o.price||0)*(o.quantity||1);
+    const qualLabel = o.quality > 0 ? `<span class="quality-dot ${QUALITY_DOTS[o.quality||1]}"></span><span class="q-label ${QUALITY_LABEL_CLS[o.quality||1]}">${QUALITY_LABELS[o.quality||1]}</span>` : '<span style="color:var(--mk-text-dim)">Any</span>';
+    const noteHtml  = o.note ? `<div class="item-note">${escHtml(o.note)}</div>` : '';
+    const isFulfilling = o.status === 'fulfilling';
+
+    let actionHtml;
+    if (isMine) {
+      actionHtml = isFulfilling
+        ? `<div class="action-cell"><span class="awaiting-tag">Being fulfilled by ${escHtml(o.fulfillerName||'?')}…</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmBOReceipt('${id}')">Confirm Receipt</button></div>`
+        : `<div class="action-cell"><span class="mine-tag">Your order</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelBuyOrder('${id}')">Cancel</button></div>`;
+    } else if (isFulfilling) {
+      const isMyFulfill = currentUser && o.fulfillerId === currentUser.uid;
+      actionHtml = isMyFulfill
+        ? `<div class="action-cell"><span class="pending-tag">Delivering to ${escHtml(o.buyerName||'?')}…</span></div>`
+        : `<div class="action-cell"><span class="pending-tag">Claimed</span></div>`;
+    } else {
+      actionHtml = `<div class="action-cell"><button class="mk-btn confirm" style="padding:5px 14px;" onclick="fulfillBuyOrder('${id}')" ${!currentUser?'disabled':''}>Fulfill</button></div>`;
+    }
+
+    return `<tr class="${isMine?'mine-row':''}">
+      <td><div class="item-cell">
+        <div class="item-icon-wrap">
+          <img src="${imgUrl}" alt="" onerror="this.src='https://render.albiononline.com/v1/item/T4_BAG.png'">
+          ${tierLabel?`<span class="item-tier">${tierLabel}</span>`:''}
+        </div>
+        <div>
+          <div class="item-name">${escHtml(o.itemName||'Unknown')}</div>
+          <div class="item-cat-badge" style="color:#6ab0f5;font-size:9px;letter-spacing:1px;">WANT TO BUY</div>
+          ${noteHtml}
+        </div>
+      </div></td>
+      <td><span style="font-size:12px;color:var(--mk-gold);">${tierLabel||'—'}</span></td>
+      <td>${qualLabel}</td>
+      <td><span style="color:var(--mk-text);">${o.quantity||1}</span></td>
+      <td><div class="price-val">${(o.price||0).toLocaleString()}</div><div class="price-label">Laxi</div></td>
+      <td><div class="price-val">${total.toLocaleString()}</div><div class="price-label">total</div></td>
+      <td><span class="seller-name${isMine?' mine':''}">${isMine?'You':escHtml(o.buyerName||'?')}</span></td>
+      <td>${actionHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Buy Order modal ──
+window.openBuyOrderModal = function() {
+  if (!currentUser) return alert('Sign in first.');
+  document.getElementById('buyOrderModal').classList.add('show');
+};
+window.closeBuyOrderModal = function() {
+  document.getElementById('buyOrderModal').classList.remove('show');
+  ['boSelItemId','boSelItemName','boItemSearch','boPrice','boNote'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('boQty').value=1;
+  document.getElementById('boItemPreview').classList.remove('show');
+};
+
+let boSearchTimer = null, boSelectedEnc = 0;
+
+window.onBOItemSearch = function(query) {
+  clearTimeout(boSearchTimer);
+  const resultsEl = document.getElementById('boItemResults');
+  if (query.length < 2) { resultsEl.classList.remove('open'); return; }
+  boSearchTimer = setTimeout(() => {
+    const items = window.searchAlbionItems ? window.searchAlbionItems(query, 15) : [];
+    const looksLikeId = /^T\d_|_/.test(query.toUpperCase());
+    const rawOption = looksLikeId
+      ? `<div class="item-result" style="border-top:1px solid var(--mk-border);opacity:0.8;" onclick="selectBOItem('${escHtml(query.toUpperCase())}','${escHtml(query.toUpperCase())}')">
+           <img src="${window.albionItemImg(query.toUpperCase())}" onerror="this.style.opacity='0.2'" width="28" height="28">
+           <span class="item-result-name" style="color:var(--mk-text-dim);">Use "<strong style="color:var(--mk-text)">${escHtml(query.toUpperCase())}</strong>" as item ID</span>
+         </div>` : '';
+    if (!items.length) {
+      resultsEl.innerHTML = rawOption || `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results</div>`;
+    } else {
+      resultsEl.innerHTML = items.map(item =>
+        `<div class="item-result" onclick="selectBOItem('${escHtml(item.id)}','${escHtml(item.name).replace(/'/g,"\\'")}')">
+          <img src="${window.albionItemImg(item.id)}" onerror="this.style.opacity='0.3'" width="28" height="28">
+          <span class="item-result-name">${escHtml(item.name)}</span>
+        </div>`
+      ).join('') + rawOption;
+    }
+    resultsEl.classList.add('open');
+  }, 150);
+};
+window.selectBOItem = function(id, name) {
+  document.getElementById('boSelItemId').value = id;
+  document.getElementById('boSelItemName').value = name;
+  document.getElementById('boItemSearch').value = name;
+  document.getElementById('boItemResults').classList.remove('open');
+  const prev = document.getElementById('boItemPreview');
+  document.getElementById('boItemPreviewImg').src = window.albionItemImg(id);
+  document.getElementById('boItemPreviewName').textContent = name;
+  prev.classList.add('show');
+};
+window.clearBOItem = function() {
+  ['boSelItemId','boSelItemName','boItemSearch'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('boItemPreview').classList.remove('show');
+};
+
+window.submitBuyOrder = async function() {
+  const user = currentUser || auth.currentUser;
+  if (!user) return alert('Sign in first.');
+  if (!currentUserData) {
+    const snap = await get(ref(db,'users/'+user.uid));
+    currentUserData = snap.val();
+  }
+  const itemId   = document.getElementById('boSelItemId').value;
+  const itemName = document.getElementById('boSelItemName').value || document.getElementById('boItemSearch').value.trim();
+  if (!itemName) return alert('Please select or name an item.');
+  const price = parseInt(document.getElementById('boPrice').value);
+  if (!price||price<1) return alert('Enter a valid price.');
+  const qty   = parseInt(document.getElementById('boQty').value)||1;
+  const total = price * qty;
+
+  // Reserve Laxi from buyer upfront
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+  const myEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(currentUserData?.name||'').toLowerCase());
+  if (!myEntry) return alert("Couldn't find your Laxi balance.");
+  const [mk,md] = myEntry;
+  if ((md.points||0) < total) return alert(`Not enough Laxi. You have ${(md.points||0).toLocaleString()}, need ${total.toLocaleString()}.`);
+
+  await update(ref(db,'prestige/members'),{[`${mk}/points`]: (md.points||0)-total});
+  const autoTier = itemId ? (parseInt(itemId.match(/^T(\d)/)?.[1])||0) : 0;
+  await push(ref(db,'market/buyOrders'),{
+    itemId:    itemId||null,
+    itemName,
+    tier:      autoTier,
+    quality:   parseInt(document.getElementById('boQuality').value)||0,
+    quantity:  qty,
+    price,
+    reservedPts: total,
+    note:      document.getElementById('boNote').value.trim()||null,
+    buyerId:   user.uid,
+    buyerName: currentUserData?.name||user.email,
+    status:    'open',
+    createdAt: Date.now(),
+  });
+  closeBuyOrderModal();
+  // Switch to buy orders tab
+  const btn = document.getElementById('tab-buyorders');
+  if (btn) switchTab('buyorders', btn);
+  alert(`Buy order posted! ${total.toLocaleString()} Laxi reserved.`);
+};
+
+// Seller claims they can fulfill the order
+window.fulfillBuyOrder = async function(id) {
+  if (!currentUser) return;
+  const o = allBuyOrders[id];
+  if (!o || o.status !== 'open') return alert('Order no longer available.');
+  if (o.buyerId === currentUser.uid) return alert("Can't fulfill your own order.");
+  if (!confirm(`Fulfill this buy order?\n\nItem: ${o.itemName}\nBuyer: ${o.buyerName}\nPrice: ${(o.reservedPts||0).toLocaleString()} Laxi total\n\nDelivery must happen in-game. Laxi transfers after buyer confirms receipt.`)) return;
+  await update(ref(db,`market/buyOrders/${id}`),{
+    status:       'fulfilling',
+    fulfillerId:  currentUser.uid,
+    fulfillerName: currentUserData?.name||currentUser.email,
+    claimedAt:    Date.now(),
+  });
+  alert(`Order claimed! Deliver "${o.itemName}" to ${o.buyerName} in-game, then they'll confirm receipt.`);
+};
+
+// Buyer confirms they received the item → pay seller
+window.confirmBOReceipt = async function(id) {
+  if (!currentUser) return;
+  const o = allBuyOrders[id];
+  if (!o || o.status !== 'fulfilling') return;
+  if (o.buyerId !== currentUser.uid) return alert('Only the buyer can confirm receipt.');
+  if (!confirm(`Confirm you received "${o.itemName}" from ${o.fulfillerName}? ${(o.reservedPts||0).toLocaleString()} Laxi will be paid to them.`)) return;
+
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+  const sellerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(o.fulfillerName||'').toLowerCase());
+  if (!sellerEntry) return alert("Couldn't find fulfiller's Laxi balance.");
+  const [sk,sd] = sellerEntry;
+  await update(ref(db,'prestige/members'),{[`${sk}/points`]: (sd.points||0)+(o.reservedPts||0)});
+  await update(ref(db,`market/buyOrders/${id}`),{status:'completed', completedAt:Date.now()});
+  alert(`Done! ${(o.reservedPts||0).toLocaleString()} Laxi sent to ${o.fulfillerName}.`);
+};
+
+// Buyer cancels open order → refund
+window.cancelBuyOrder = async function(id) {
+  if (!currentUser) return;
+  const o = allBuyOrders[id];
+  if (!o || o.buyerId !== currentUser.uid) return;
+  if (o.status === 'fulfilling') return alert(`${o.fulfillerName} has already claimed this order. Wait for delivery or contact them in-game.`);
+  if (!confirm('Cancel buy order? Your Laxi will be refunded.')) return;
+
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+  const myEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(o.buyerName||'').toLowerCase());
+  if (myEntry) {
+    const [mk,md] = myEntry;
+    await update(ref(db,'prestige/members'),{[`${mk}/points`]: (md.points||0)+(o.reservedPts||0)});
+  }
+  await update(ref(db,`market/buyOrders/${id}`),{status:'cancelled', cancelledAt:Date.now()});
+};
 </script>
 </body>
 </html>

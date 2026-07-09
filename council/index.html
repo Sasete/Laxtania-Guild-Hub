@@ -2637,7 +2637,8 @@ function taskCardHtml(id,t){
   const isPending=t.status==='pending';
   const badgeClass=t.status==='completed'?'badge-completed':t.status==='cancelled'?'badge-cancelled':'badge-pending';
   const isPrestigeBuy=t.type==='prestige_buy';const isPrestigeSell=t.type==='prestige_sell';const isPrestigeQuest=t.type==='prestige_quest';
-  const typeIcon=t.type==='payment_out'?'💸':t.type==='payment_in'?'💰':isPrestigeBuy?'⬆':isPrestigeSell?'⬇':isPrestigeQuest?'£':'📋';
+  const isMarketDispute=t.type==='market_dispute';
+  const typeIcon=t.type==='payment_out'?'💸':t.type==='payment_in'?'💰':isPrestigeBuy?'⬆':isPrestigeSell?'⬇':isPrestigeQuest?'£':isMarketDispute?'⚠':'📋';
   const paid=t.paidAmount||0;
   const target=t.amount||0;
   const pct=target>0?Math.min(100,Math.round(paid/target*100)):0;
@@ -2661,16 +2662,22 @@ function taskCardHtml(id,t){
   const partyStr=isPrestigeQuest&&t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)).join(', '):'';
   const isPrestigeEvent=t.type==='prestige_event';
   const prestigePtsLine=isPrestigeTask&&(t.prestigePoints||t.prestigeTotal)?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints||t.prestigeTotal} pts</strong> Laxi ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}${isPrestigeEvent&&t.guildIncome?' · <strong>'+fmtS(t.guildIncome)+'</strong> income → Ministry of Events'+(t.estimated?' <em>(estimated)</em>':''):''}</div>`:'';
+  const disputeLine=isMarketDispute?`<div style="margin-top:6px;padding:8px 10px;background:rgba(180,50,50,0.08);border:1px solid rgba(180,50,50,0.2);border-radius:3px;font-size:11px;line-height:1.6;">
+    <strong style="color:#8c2424;">Market Dispute</strong><br>
+    Item: <strong>${t.itemName||'?'}</strong> · <strong>${target} Laxi</strong> held<br>
+    Buyer: ${t.buyer||'?'} &nbsp;|&nbsp; Seller: ${t.seller||'?'}<br>
+    <a href="../market/" style="font-size:11px;color:var(--gold);text-decoration:none;">→ Resolve in Market page</a>
+  </div>`:'';
   const actions=isPending?`<div class="task-actions" style="margin-top:8px">
-    ${!isPrestigeTask&&target>0?`<button class="ghost-btn" style="font-size:11px" onclick="document.getElementById('pf-${id}').style.display=document.getElementById('pf-${id}').style.display==='none'?'flex':'none'">+ Payment</button>`:''}
-    <button class="gold-btn" onclick="completeTask('${id}')">${isPrestigeTask?'✓ Approve':'✓ Complete'}</button>
-    ${!isBondRepayment?`<button class="red-btn" onclick="cancelTask('${id}')">✕ Cancel</button>`:''}
-  </div>${!isPrestigeTask&&target>0?partialForm:''}`:`<div class="task-meta" style="margin-top:6px">${t.status==='completed'?(t.completedBy?`Completed by ${t.completedBy}`:'Completed'):(t.cancelledBy?`Cancelled by ${t.cancelledBy}`:'Cancelled')}${t.completedAt||t.cancelledAt?' · '+fmtDate(t.completedAt||t.cancelledAt):''}</div>`;
+    ${!isPrestigeTask&&!isMarketDispute&&target>0?`<button class="ghost-btn" style="font-size:11px" onclick="document.getElementById('pf-${id}').style.display=document.getElementById('pf-${id}').style.display==='none'?'flex':'none'">+ Payment</button>`:''}
+    ${!isMarketDispute?`<button class="gold-btn" onclick="completeTask('${id}')">${isPrestigeTask?'✓ Approve':'✓ Complete'}</button>`:''}
+    ${!isBondRepayment&&!isMarketDispute?`<button class="red-btn" onclick="cancelTask('${id}')">✕ Cancel</button>`:''}
+  </div>${!isPrestigeTask&&!isMarketDispute&&target>0?partialForm:''}`:`<div class="task-meta" style="margin-top:6px">${t.status==='completed'?(t.completedBy?`Completed by ${t.completedBy}`:'Completed'):(t.cancelledBy?`Cancelled by ${t.cancelledBy}`:'Cancelled')}${t.resolution?' · '+t.resolution.replace('_',' '):''}${t.completedAt||t.cancelledAt?' · '+fmtDate(t.completedAt||t.cancelledAt):''}</div>`;
   return`<div class="task-card ${t.status!=='pending'?t.status:''}">
     <span class="task-status-badge ${badgeClass}">${t.status||'pending'}</span>
-    <div class="task-title">${t.title||'Task'}</div>
-    <div class="task-meta">Created by ${t.createdBy||'?'} · ${t.createdAt?fmtDate(t.createdAt):''}</div>
-    ${amtLine}${prestigePtsLine}${progressHtml}${paymentsHtml}${actions}
+    <div class="task-title">${isMarketDispute?'⚠ Market Dispute':(t.title||'Task')}</div>
+    <div class="task-meta">Raised by ${t.by||t.createdBy||'?'} · ${t.createdAt?fmtDate(t.createdAt):''}</div>
+    ${isMarketDispute?disputeLine:amtLine}${prestigePtsLine}${progressHtml}${paymentsHtml}${actions}
   </div>`;
 }
 
