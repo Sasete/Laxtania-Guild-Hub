@@ -1,23 +1,30 @@
 (function() {
   // Inject CSS
   const css = `
+  .guild-nav-sticky-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    padding: 10px 20px 0;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  }
   .guild-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     max-width: 980px;
-    margin: 0 auto 24px;
-    background: rgba(28, 42, 64, 0.95);
+    margin: 0 auto 12px;
+    background: rgba(22, 34, 52, 0.97);
     border: 1px solid var(--gold);
-    padding: 8px 16px;
+    padding: 7px 14px;
     border-radius: 4px;
-    flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
   }
   .nav-links {
     display: flex;
-    gap: 8px;
-    align-items: center;
+    gap: 4px;
+    align-items: stretch;
     overflow-x: auto;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
@@ -27,21 +34,54 @@
     flex: 1;
   }
   .nav-links::-webkit-scrollbar { display: none; }
+  .nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .nav-grp-label {
+    font-size: 8px;
+    font-variant: small-caps;
+    letter-spacing: 2px;
+    color: rgba(200,160,74,0.38);
+    line-height: 1;
+    padding-left: 3px;
+    white-space: nowrap;
+  }
+  .nav-group-items {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    border: 1px solid rgba(200,160,74,0.12);
+    border-radius: 3px;
+    padding: 2px 3px;
+    background: rgba(0,0,0,0.12);
+  }
+  .nav-grp-divider {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(200,160,74,0.15);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+  @media(max-width:600px) { .nav-grp-label { display: none; } .nav-group-items { border: none; background: none; padding: 0; } }
   .nav-item {
     font-family: Georgia, serif;
     font-variant: small-caps;
-    font-size: 12px;
-    letter-spacing: 1.2px;
+    font-size: 11px;
+    letter-spacing: 0.8px;
     color: rgba(230, 200, 120, 0.75);
     text-decoration: none;
-    padding: 5px 11px;
+    padding: 5px 8px;
     border: 1px solid rgba(200, 160, 74, 0.4);
     border-radius: 2px;
     transition: all 0.15s;
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    white-space: nowrap;
   }
   .nav-item span.nav-icon {
     font-size: 14px;
@@ -72,21 +112,15 @@
     height: 24px;
     background: rgba(200, 160, 74, 0.4);
   }
-  @media(max-width: 600px) {
-    .nav-sep {
-      display: none;
-    }
-    .nav-user-container {
-      margin-left: 0;
-      width: 100%;
-      border-top: 1px solid rgba(200, 160, 74, 0.2);
-      padding-top: 8px;
-    }
+  @media(max-width: 700px) {
+    .guild-nav { flex-wrap: wrap; overflow: visible; }
+    .nav-sep { display: none; }
+    .nav-user-container { margin-left: 0; flex-shrink: 0; }
   }
   .nav-user {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .nav-user-info {
@@ -125,11 +159,14 @@
     transition: all 0.15s; text-decoration: none; display: inline-block;
   }
   .user-bar-btn:hover { border-color: var(--gold); color: var(--gold-bright); }
-  .admin-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 12px;border:1px solid rgba(140,36,36,0.5);background:rgba(140,36,36,0.1);transition:all 0.15s;user-select:none;font-variant:small-caps;font-size:12px;letter-spacing:1.5px;color:var(--seal-red);}
-  .admin-toggle:hover{background:rgba(140,36,36,0.2);}
-  .admin-toggle.active{background:rgba(140,36,36,0.22);border-color:var(--seal-red);}
-  .admin-toggle-dot{width:7px;height:7px;border-radius:50%;background:rgba(140,36,36,0.35);transition:background 0.2s;}
-  .admin-toggle.active .admin-toggle-dot{background:var(--seal-red);box-shadow:0 0 5px rgba(140,36,36,0.6);}
+  .admin-toggle{display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;border:1px solid rgba(140,36,36,0.4);background:rgba(140,36,36,0.08);border-radius:3px;transition:all 0.15s;user-select:none;position:relative;}
+  .admin-toggle:hover{background:rgba(140,36,36,0.18);}
+  .admin-toggle.active{background:rgba(140,36,36,0.2);border-color:var(--seal-red);}
+  .admin-toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(140,36,36,0.35);transition:all 0.2s;}
+  .admin-toggle.active .admin-toggle-dot{background:var(--seal-red);box-shadow:0 0 6px rgba(140,36,36,0.7);}
+  .nav-icon-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;border:1px solid rgba(200,160,74,0.3);background:transparent;border-radius:3px;color:rgba(230,200,120,0.65);font-size:14px;transition:all 0.15s;text-decoration:none;}
+  .nav-icon-btn:hover{border-color:var(--gold);color:var(--gold-bright);background:rgba(200,160,74,0.08);}
+  .nav-action-group{display:flex;gap:5px;align-items:center;}
   #councilNavLink{display:none !important;}
   #councilNavLink.council-visible{display:flex !important;}
   `;
@@ -144,23 +181,53 @@
   const prefix = placeholder.getAttribute('data-path-prefix') || './';
   
   const navHtml = `
+<div class="guild-nav-sticky-wrap">
 <nav id="guildNav" class="guild-nav" style="display:none">
   <div class="nav-links">
-    <a href="${prefix}" class="nav-item ${page === 'hall' ? 'active' : ''}">
-      <span class="nav-icon">🏰</span><span class="nav-text">Hall</span>
-    </a>
-    <a href="${prefix}prestige/" class="nav-item ${page === 'members' ? 'active' : ''}">
-      <span class="nav-icon">👥</span><span class="nav-text">Members</span>
-    </a>
-    <a href="${prefix}quest-board/" class="nav-item ${page === 'quests' ? 'active' : ''}">
-      <span class="nav-icon">📜</span><span class="nav-text">Quests</span>
-    </a>
-    <a href="${prefix}events/" class="nav-item ${page === 'events' ? 'active' : ''}">
-      <span class="nav-icon">🗡️</span><span class="nav-text">Events</span>
-    </a>
-    <a href="${prefix}council/" id="councilNavLink" class="nav-item ${page === 'council' ? 'active' : ''}">
-      <span class="nav-icon">⚜</span><span class="nav-text">Council <span id="councilTaskBadge" style="display:none;background:#8c2424;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span><span id="councilFundBadge" style="display:none;background:#2e7d32;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span></span>
-    </a>
+    <div class="nav-group" id="adminNavGroup" style="display:none">
+      <span class="nav-grp-label">Admin</span>
+      <div class="nav-group-items">
+        <a href="${prefix}council/" id="councilNavLink" class="nav-item ${page === 'council' ? 'active' : ''}">
+          <span class="nav-icon">⚜</span><span class="nav-text">Council <span id="councilTaskBadge" style="display:none;background:#8c2424;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span><span id="councilFundBadge" style="display:none;background:#2e7d32;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:2px;vertical-align:middle"></span></span>
+        </a>
+      </div>
+    </div>
+    <div class="nav-grp-divider" id="adminNavDivider" style="display:none"></div>
+    <div class="nav-group">
+      <span class="nav-grp-label">Guild</span>
+      <div class="nav-group-items">
+        <a href="${prefix}" class="nav-item ${page === 'hall' ? 'active' : ''}">
+          <span class="nav-icon">🏰</span><span class="nav-text">Hall</span>
+        </a>
+        <a href="${prefix}prestige/" class="nav-item ${page === 'members' ? 'active' : ''}">
+          <span class="nav-icon">👥</span><span class="nav-text">Members</span>
+        </a>
+        <a href="${prefix}events/" class="nav-item ${page === 'events' ? 'active' : ''}">
+          <span class="nav-icon">🗡️</span><span class="nav-text">Events</span>
+        </a>
+      </div>
+    </div>
+    <div class="nav-grp-divider"></div>
+    <div class="nav-group">
+      <span class="nav-grp-label">Economy</span>
+      <div class="nav-group-items">
+        <a href="${prefix}quest-board/" class="nav-item ${page === 'quests' ? 'active' : ''}">
+          <span class="nav-icon">📜</span><span class="nav-text">Quests</span>
+        </a>
+        <a href="${prefix}market/" class="nav-item ${page === 'market' ? 'active' : ''}">
+          <span class="nav-icon">🏪</span><span class="nav-text">Market</span>
+        </a>
+      </div>
+    </div>
+    <div class="nav-grp-divider"></div>
+    <div class="nav-group">
+      <span class="nav-grp-label">Knowledge</span>
+      <div class="nav-group-items">
+        <a href="${prefix}builds/" class="nav-item ${page === 'builds' ? 'active' : ''}">
+          <span class="nav-icon">⚔️</span><span class="nav-text">Loadouts</span>
+        </a>
+      </div>
+    </div>
   </div>
   <div class="nav-user-container">
     <div class="nav-sep"></div>
@@ -177,20 +244,70 @@
         </span>
         <span style="font-size:9px;color:rgba(200,160,74,0.5);letter-spacing:0.5px">⇄ transfer</span>
       </button>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-        <div class="admin-toggle" id="adminToggle" style="display:none" onclick="if(window.toggleAdminMode) window.toggleAdminMode(); else this.classList.toggle('active');">
+      <div class="nav-action-group">
+        <div class="admin-toggle" id="adminToggle" style="display:none" title="Admin Mode" onclick="if(window.toggleAdminMode) window.toggleAdminMode(); else this.classList.toggle('active');">
           <div class="admin-toggle-dot"></div>
-          Admin Mode
         </div>
-        <button class="user-bar-btn" onclick="doSignOut()">Sign Out</button>
+        <button class="nav-icon-btn" title="Sign Out" onclick="doSignOut()">⏻</button>
       </div>
     </div>
   </div>
 </nav>
+</div>
   `;
-  
+
   placeholder.outerHTML = navHtml;
 
+  // Show nav links immediately — user section reveals after auth
+  const _navEl = document.getElementById('guildNav');
+  if (_navEl) _navEl.style.display = 'flex';
+
+  // ── Footer ──
+  const footerStyle = document.createElement('style');
+  footerStyle.textContent = `
+  .guild-footer{background:rgba(22,34,52,0.97);border-top:1px solid rgba(200,160,74,0.35);margin-top:60px;padding:32px 20px 20px;font-family:Georgia,'Times New Roman',serif;}
+  .guild-footer-inner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;}
+  .guild-footer-brand{display:flex;flex-direction:column;gap:6px;}
+  .guild-footer-name{font-size:18px;font-variant:small-caps;letter-spacing:3px;color:var(--gold-bright,#e6c878);font-weight:bold;}
+  .guild-footer-tagline{font-size:11px;font-style:italic;color:rgba(241,228,196,0.45);letter-spacing:1px;}
+  .guild-footer-col h4{font-size:10px;font-variant:small-caps;letter-spacing:2.5px;color:rgba(200,160,74,0.5);margin-bottom:10px;border-bottom:1px solid rgba(200,160,74,0.15);padding-bottom:6px;}
+  .guild-footer-col a{display:block;font-size:12px;color:rgba(241,228,196,0.55);text-decoration:none;margin-bottom:6px;transition:color 0.15s;letter-spacing:0.5px;}
+  .guild-footer-col a:hover{color:var(--gold-bright,#e6c878);}
+  .guild-footer-col p{font-size:12px;color:rgba(241,228,196,0.45);line-height:1.7;margin-bottom:4px;}
+  .guild-footer-bottom{max-width:980px;margin:24px auto 0;padding-top:12px;border-top:1px solid rgba(200,160,74,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .guild-footer-bottom span{font-size:10px;color:rgba(241,228,196,0.3);letter-spacing:0.5px;font-variant:small-caps;}
+  @media(max-width:600px){.guild-footer-inner{grid-template-columns:1fr;gap:20px;}.guild-footer-bottom{flex-direction:column;text-align:center;}}
+  `;
+  document.head.appendChild(footerStyle);
+
+  const footerEl = document.createElement('footer');
+  footerEl.className = 'guild-footer';
+  footerEl.innerHTML = `
+  <div class="guild-footer-inner">
+    <div class="guild-footer-brand">
+      <span class="guild-footer-name">Laxtania</span>
+      <span class="guild-footer-tagline">Albion Online — EU Server</span>
+    </div>
+    <div class="guild-footer-col">
+      <h4>Pages</h4>
+      <a href="${prefix}">Hall</a>
+      <a href="${prefix}prestige/">Members</a>
+      <a href="${prefix}events/">Events</a>
+      <a href="${prefix}quest-board/">Quests</a>
+      <a href="${prefix}market/">Market</a>
+      <a href="${prefix}builds/">Builds</a>
+    </div>
+    <div class="guild-footer-col">
+      <h4>Info</h4>
+      <p>Guild market operates on Laxi — the internal prestige currency.</p>
+      <p>Builds are curated by Council members.</p>
+    </div>
+  </div>
+  <div class="guild-footer-bottom">
+    <span>Laxtania Guild Hub</span>
+    <span>For guild members only</span>
+  </div>
+  `;
   // Prestige Modal (Transfer / Buy / Sell)
   const transferModalHtml = `
 <div id="prestigeTransferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center">
@@ -294,13 +411,26 @@
 </div>`;
   document.body.insertAdjacentHTML('beforeend', transferModalHtml);
 
+  // Footer — deferred so it lands at the end of body after full parse
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(footerEl));
+
   // ── Firebase: prestige, badge, user bar ──
-  // Uses the page's already-initialized modular Firebase app.
-  // Quest-board uses compat SDK and handles its own prestige via its own auth callback.
-  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({getApps})=>{
+  // If the page already has a Firebase app (modular SDK), reuse it.
+  // If not (market/builds init in ESM module which runs after this sync script),
+  // initialize our own app instance.
+  const NAVBAR_FB_CONFIG = {
+    apiKey:"AIzaSyDtfHGjWMtCYOxU8VfqTGaqxiV0LGf4a40",
+    authDomain:"laxtania-albion-quest-board.firebaseapp.com",
+    databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:"laxtania-albion-quest-board",
+    storageBucket:"laxtania-albion-quest-board.appspot.com",
+    messagingSenderId:"688820431424",
+    appId:"1:688820431424:web:c2462dd96ed6e7c4c0a7cd"
+  };
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({getApps,initializeApp})=>{
     import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({getAuth,onAuthStateChanged})=>{
       import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({getDatabase,ref,onValue,get,update,push,query,orderByChild,limitToLast})=>{
-        const app=getApps()[0]; if(!app)return;
+        const app=getApps().length?getApps()[0]:initializeApp(NAVBAR_FB_CONFIG);
         const auth=getAuth(app);
         const db=getDatabase(app);
         let _navMyMid=null,_navAllMembers={},_navAllFamilies={},_navMyPoints=0,_navMyFid=null,_navIsAdmin=false,_navSilverRate=10000,_navUserName='';
@@ -417,9 +547,13 @@
               }).join('');
             }
 
-            // Council link
-            if((ud?.ranks||[]).some(r=>['councillor','hand','sovereign'].includes(r))){
+            // Council link + Admin group — visible to councillor/hand/sovereign
+            const _isCouncil=(ud?.ranks||[]).some(r=>['councillor','hand','sovereign'].includes(r))
+              ||(ud?.roles&&(ud.roles.council||ud.roles.admin||ud.roles.sovereign||ud.roles.hand));
+            if(_isCouncil){
               const cl=document.getElementById('councilNavLink');if(cl)cl.classList.add('council-visible');
+              const ag=document.getElementById('adminNavGroup');if(ag)ag.style.display='flex';
+              const ad=document.getElementById('adminNavDivider');if(ad)ad.style.display='block';
             }
 
             // Google Analytics: tag the signed-in user (UID is anonymous, GDPR-safe)

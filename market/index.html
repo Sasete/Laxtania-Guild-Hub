@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-72QH8KN6M5"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-72QH8KN6M5');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laxtania — Guild Market</title>
+<style>
+  :root{
+    --wood-dark:#3a2718;--wood-mid:#4f3622;--wood-light:#6b4a30;
+    --parchment:#f1e4c4;--ink:#2e2014;--ink-soft:#5a4632;
+    --gold:#c8a04a;--gold-bright:#e6c878;
+    --navy:#1c2a40;--seal-red:#8c2424;
+    /* Market theme */
+    --mk-bg:#0e1520;
+    --mk-panel:#141e2e;
+    --mk-border:#2a3a50;
+    --mk-border-gold:rgba(200,160,74,0.35);
+    --mk-text:#c8d4e0;
+    --mk-text-dim:#6a7d8e;
+    --mk-gold:#e6c878;
+    --mk-red:#e05555;
+    --mk-green:#55b055;
+    --mk-row-hover:rgba(200,160,74,0.06);
+    --mk-row-alt:rgba(255,255,255,0.02);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif;background-color:var(--wood-dark);background-image:repeating-linear-gradient(90deg,var(--wood-dark) 0px,var(--wood-mid) 18px,var(--wood-dark) 36px,var(--wood-light) 54px);color:var(--ink);min-height:100vh;padding:40px 20px 0;}
+
+  /* Banner */
+  .board-header{max-width:1100px;margin:0 auto 20px;text-align:center;}
+  .banner{background:linear-gradient(180deg,#233754 0%,var(--navy) 100%);border:2px solid var(--gold);border-radius:4px;padding:18px 30px 20px;box-shadow:0 0 0 5px rgba(0,0,0,0.25),0 12px 30px rgba(0,0,0,0.5);position:relative;}
+  .banner::before,.banner::after{content:"";position:absolute;top:50%;width:50px;height:1px;background:var(--gold);opacity:0.6;transform:translateY(-50%);}
+  .banner::before{left:14px;}.banner::after{right:14px;}
+  .banner-eyebrow{display:block;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold-bright);font-variant:small-caps;margin-bottom:6px;}
+  .banner h1{font-size:30px;font-weight:400;letter-spacing:3px;color:var(--parchment);text-shadow:0 2px 4px rgba(0,0,0,0.6);}
+  .banner-sub{display:block;margin-top:6px;font-size:12px;letter-spacing:2px;color:rgba(241,228,196,0.55);font-style:italic;}
+
+  /* ── Market Window ── */
+  .market-window{max-width:1100px;margin:0 auto;background:var(--mk-bg);border:1px solid var(--mk-border-gold);border-radius:4px;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,0.7);}
+
+  /* Top bar */
+  .market-topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--mk-panel);border-bottom:1px solid var(--mk-border);flex-wrap:wrap;}
+  .market-topbar-title{font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--mk-gold);flex-shrink:0;}
+  .market-search{flex:1;min-width:160px;max-width:300px;font-family:Georgia,serif;font-size:12px;background:rgba(0,0,0,0.4);border:1px solid var(--mk-border);color:var(--mk-text);padding:6px 10px;outline:none;}
+  .market-search:focus{border-color:rgba(200,160,74,0.5);}
+  .market-search::placeholder{color:var(--mk-text-dim);}
+  .mk-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:linear-gradient(180deg,rgba(200,160,74,0.3),rgba(200,160,74,0.15));border:1px solid var(--mk-border-gold);color:var(--mk-gold);padding:6px 14px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+  .mk-btn:hover{background:rgba(200,160,74,0.25);border-color:var(--mk-gold);}
+  .mk-btn.primary{background:linear-gradient(180deg,rgba(200,160,74,0.55),rgba(200,160,74,0.35));color:#1a1200;}
+  .mk-btn.primary:hover{background:linear-gradient(180deg,rgba(200,160,74,0.7),rgba(200,160,74,0.5));}
+  .mk-tab-bar{display:flex;gap:0;border-bottom:1px solid var(--mk-border);}
+  .mk-tab{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:none;border:none;border-bottom:2px solid transparent;color:var(--mk-text-dim);padding:8px 18px 9px;cursor:pointer;transition:all 0.15s;margin-bottom:-1px;}
+  .mk-tab.active,.mk-tab:hover{color:var(--mk-gold);}
+  .mk-tab.active{border-bottom-color:var(--mk-gold);}
+
+  /* Body layout */
+  .market-body{display:flex;min-height:520px;}
+
+  /* Left: categories */
+  .market-cat{width:160px;flex-shrink:0;background:rgba(0,0,0,0.2);border-right:1px solid var(--mk-border);padding:8px 0;}
+  .cat-header{font-size:9px;font-variant:small-caps;letter-spacing:2px;color:var(--mk-text-dim);padding:6px 12px 4px;border-bottom:1px solid var(--mk-border);margin-bottom:4px;}
+  .cat-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:var(--mk-text-dim);transition:all 0.12s;border-left:2px solid transparent;}
+  .cat-item:hover{background:rgba(200,160,74,0.06);color:var(--mk-text);}
+  .cat-item.active{background:rgba(200,160,74,0.1);color:var(--mk-gold);border-left-color:var(--mk-gold);}
+  .cat-icon{width:20px;text-align:center;font-size:14px;}
+
+  /* Center: listing table */
+  .market-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .market-table-wrap{flex:1;overflow-x:auto;}
+  .market-table{width:100%;border-collapse:collapse;}
+  .market-table th{font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--mk-text-dim);background:rgba(0,0,0,0.3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--mk-border);white-space:nowrap;cursor:pointer;user-select:none;}
+  .market-table th:hover{color:var(--mk-text);}
+  .market-table th.sorted{color:var(--mk-gold);}
+  .market-table td{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;color:var(--mk-text);vertical-align:middle;}
+  .market-table tr:nth-child(even) td{background:var(--mk-row-alt);}
+  .market-table tr:hover td{background:var(--mk-row-hover);}
+  .market-table tr.mine-row td{background:rgba(200,160,74,0.04);}
+  .market-table tr.sold-row td{opacity:0.45;}
+
+  .item-cell{display:flex;align-items:center;gap:10px;}
+  .item-icon-wrap{position:relative;flex-shrink:0;width:36px;height:36px;}
+  .item-icon-wrap img{width:36px;height:36px;object-fit:contain;border:1px solid var(--mk-border);}
+  .item-tier{position:absolute;bottom:0;right:0;font-size:8px;font-weight:bold;background:rgba(14,21,32,0.9);color:var(--mk-gold);padding:0 3px;line-height:1.4;}
+  .item-name{font-size:12px;color:var(--mk-text);line-height:1.3;}
+  .item-cat-badge{font-size:9px;color:var(--mk-text-dim);margin-top:1px;}
+
+  .quality-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+  .q1{background:#666;} .q2{background:#1a7f1a;} .q3{background:#1a5fbf;} .q4{background:#8c2eb8;} .q5{background:#c07a00;}
+  .q-label{font-size:11px;}
+  .q1-l{color:#999;} .q2-l{color:#3da53d;} .q3-l{color:#4a8fef;} .q4-l{color:#b060e0;} .q5-l{color:#e09a00;}
+
+  .price-val{font-size:13px;color:var(--mk-gold);font-weight:bold;}
+  .price-label{font-size:10px;color:var(--mk-text-dim);}
+  .seller-name{font-size:11px;color:var(--mk-text-dim);}
+  .seller-name.mine{color:var(--mk-green);}
+
+  .action-cell{white-space:nowrap;display:flex;gap:6px;align-items:center;}
+  .sold-tag{font-size:10px;font-variant:small-caps;color:var(--mk-text-dim);background:rgba(255,255,255,0.06);padding:3px 8px;}
+  .mine-tag{font-size:10px;font-variant:small-caps;color:var(--mk-green);padding:3px 0;}
+
+  .market-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(0,0,0,0.2);border-top:1px solid var(--mk-border);flex-wrap:wrap;gap:8px;}
+  .market-count{font-size:11px;color:var(--mk-text-dim);}
+  .page-btns{display:flex;gap:4px;}
+  .page-btn{font-family:Georgia,serif;font-size:11px;background:none;border:1px solid var(--mk-border);color:var(--mk-text-dim);padding:4px 10px;cursor:pointer;transition:all 0.12s;}
+  .page-btn:hover,.page-btn.active{border-color:var(--mk-border-gold);color:var(--mk-gold);}
+
+  .empty-market{padding:60px 20px;text-align:center;color:var(--mk-text-dim);font-style:italic;font-size:13px;}
+
+  /* ── List form modal ── */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;}
+  .modal-bg.show{display:flex;}
+  .mk-modal{background:var(--mk-panel);border:1px solid var(--mk-border-gold);min-width:340px;max-width:540px;width:95%;font-family:Georgia,serif;box-shadow:0 16px 48px rgba(0,0,0,.6);}
+  .mk-modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--mk-border);}
+  .mk-modal-header h3{font-size:13px;font-variant:small-caps;letter-spacing:2px;color:var(--mk-gold);}
+  .mk-modal-close{background:none;border:none;color:var(--mk-text-dim);font-size:18px;cursor:pointer;padding:0 4px;}
+  .mk-modal-close:hover{color:var(--mk-text);}
+  .mk-modal-body{padding:16px;}
+  .mk-form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+  .mk-form-group{display:flex;flex-direction:column;flex:1;min-width:120px;gap:4px;}
+  .mk-label{font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--mk-text-dim);}
+  .mk-input{font-family:Georgia,serif;font-size:12px;background:rgba(0,0,0,0.4);border:1px solid var(--mk-border);color:var(--mk-text);padding:7px 9px;width:100%;outline:none;}
+  .mk-input:focus{border-color:rgba(200,160,74,0.5);}
+  .mk-input::placeholder{color:var(--mk-text-dim);}
+  .mk-select{font-family:Georgia,serif;font-size:12px;background:rgba(0,0,0,0.6);border:1px solid var(--mk-border);color:var(--mk-text);padding:7px 9px;width:100%;outline:none;}
+  .mk-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--mk-border);}
+
+  /* Item search */
+  .item-search-wrap{position:relative;}
+  .item-search-results{position:absolute;top:100%;left:0;right:0;background:var(--mk-panel);border:1px solid var(--mk-border-gold);z-index:10;max-height:200px;overflow-y:auto;display:none;}
+  .item-search-results.open{display:block;}
+  .item-result{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--mk-border);}
+  .item-result:hover{background:rgba(200,160,74,0.08);}
+  .item-result img{width:28px;height:28px;object-fit:contain;}
+  .item-result-name{font-size:11px;color:var(--mk-text);}
+
+  .item-selected-preview{display:none;align-items:center;gap:8px;padding:6px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--mk-border);margin-top:4px;}
+  .item-selected-preview.show{display:flex;}
+  .item-selected-preview img{width:32px;height:32px;object-fit:contain;}
+  .item-selected-name{font-size:11px;color:var(--mk-text);flex:1;}
+
+  /* Tier / enchant pill rows */
+  .pill-row{display:flex;gap:4px;flex-wrap:wrap;}
+  .pill{font-family:Georgia,serif;font-size:10px;font-variant:small-caps;background:rgba(0,0,0,0.4);border:1px solid var(--mk-border);color:var(--mk-text-dim);padding:3px 8px;cursor:pointer;transition:all 0.12s;}
+  .pill:hover{border-color:rgba(200,160,74,0.4);color:var(--mk-text);}
+  .pill.sel{border-color:var(--mk-gold);color:var(--mk-gold);background:rgba(200,160,74,0.12);}
+  .enc-pill.sel{border-color:#9060e0;color:#b080f0;background:rgba(140,80,220,0.12);}
+
+  /* Confirm modal */
+  .confirm-modal{background:var(--mk-panel);border:1px solid var(--mk-border-gold);min-width:300px;max-width:400px;width:95%;font-family:Georgia,serif;box-shadow:0 16px 48px rgba(0,0,0,.6);}
+  .confirm-modal p{font-size:13px;color:var(--mk-text);padding:20px 18px;line-height:1.7;}
+  .confirm-modal strong{color:var(--mk-gold);}
+</style>
+</head>
+<body>
+<div id="navbar-placeholder" data-page="market" data-path-prefix="../"></div>
+<script src="../navbar.js"></script>
+<script src="../js/albion-items.js"></script>
+
+<div class="board-header">
+  <div class="banner">
+    <span class="banner-eyebrow">Laxtania</span>
+    <h1>Guild Market</h1>
+    <span class="banner-sub">Buy &amp; sell items within the guild — Laxi only</span>
+  </div>
+</div>
+
+<div class="market-window">
+  <!-- Top bar -->
+  <div class="market-topbar">
+    <span class="market-topbar-title">Market</span>
+    <input class="market-search" id="tableSearch" placeholder="Search listings…" oninput="applyFilters()">
+    <button class="mk-btn primary" onclick="openListForm()">+ List Item</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="mk-tab-bar">
+    <button class="mk-tab active" id="tab-browse" onclick="switchTab('browse',this)">Browse</button>
+    <button class="mk-tab" id="tab-mine" onclick="switchTab('mine',this)">My Listings</button>
+    <button class="mk-tab" id="tab-sold" onclick="switchTab('sold',this)">Sold History</button>
+  </div>
+
+  <!-- Body -->
+  <div class="market-body">
+    <!-- Category sidebar -->
+    <div class="market-cat">
+      <div class="cat-header">Categories</div>
+      <div class="cat-item active" onclick="setCat('all',this)"><span class="cat-icon">🗂</span>All</div>
+      <div class="cat-item" onclick="setCat('Weapon',this)"><span class="cat-icon">⚔️</span>Weapons</div>
+      <div class="cat-item" onclick="setCat('Armor',this)"><span class="cat-icon">🛡</span>Armor</div>
+      <div class="cat-item" onclick="setCat('Resource',this)"><span class="cat-icon">🪨</span>Resources</div>
+      <div class="cat-item" onclick="setCat('Food',this)"><span class="cat-icon">🍗</span>Food &amp; Potions</div>
+      <div class="cat-item" onclick="setCat('Mount',this)"><span class="cat-icon">🐴</span>Mounts</div>
+      <div class="cat-item" onclick="setCat('Other',this)"><span class="cat-icon">📦</span>Other</div>
+    </div>
+
+    <!-- Table -->
+    <div class="market-main">
+      <div class="market-table-wrap">
+        <table class="market-table" id="marketTable">
+          <thead>
+            <tr>
+              <th onclick="sortBy('itemName')" class="sorted" id="th-itemName">Item ↑</th>
+              <th onclick="sortBy('tier')" id="th-tier">Tier</th>
+              <th onclick="sortBy('quality')" id="th-quality">Quality</th>
+              <th onclick="sortBy('quantity')" id="th-quantity">Qty</th>
+              <th onclick="sortBy('price')" id="th-price">Price / ea</th>
+              <th onclick="sortBy('total')" id="th-total">Total</th>
+              <th id="th-seller">Seller</th>
+              <th id="th-action"></th>
+            </tr>
+          </thead>
+          <tbody id="marketTbody">
+            <tr><td colspan="8" class="empty-market">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="market-footer">
+        <span class="market-count" id="marketCount"></span>
+        <div class="page-btns" id="pageBtns"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- List Item Modal -->
+<div class="modal-bg" id="listModal">
+  <div class="mk-modal">
+    <div class="mk-modal-header">
+      <h3>List an Item</h3>
+      <button class="mk-modal-close" onclick="closeListForm()">×</button>
+    </div>
+    <div class="mk-modal-body">
+      <!-- Item search -->
+      <div class="mk-form-group" style="margin-bottom:12px;">
+        <label class="mk-label">Item Name</label>
+        <div class="item-search-wrap">
+          <input class="mk-input" id="itemSearch" placeholder="Search Albion items…" autocomplete="off" oninput="onItemSearch(this.value)">
+          <div class="item-search-results" id="itemResults"></div>
+        </div>
+        <div class="item-selected-preview" id="itemPreview">
+          <img id="itemPreviewImg" src="" alt="">
+          <span class="item-selected-name" id="itemPreviewName"></span>
+          <button onclick="clearItem()" style="background:none;border:none;color:var(--mk-text-dim);cursor:pointer;font-size:16px;">×</button>
+        </div>
+        <input type="hidden" id="selItemId">
+        <input type="hidden" id="selItemName">
+      </div>
+
+      <div class="mk-form-row">
+        <div class="mk-form-group">
+          <label class="mk-label">Category</label>
+          <select class="mk-select" id="listCat">
+            <option value="Weapon">Weapon</option>
+            <option value="Armor">Armor</option>
+            <option value="Resource">Resource</option>
+            <option value="Food">Food &amp; Potion</option>
+            <option value="Mount">Mount</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="mk-form-group">
+          <label class="mk-label">Quality</label>
+          <select class="mk-select" id="listQuality">
+            <option value="1">Normal</option>
+            <option value="2">Good</option>
+            <option value="3">Outstanding</option>
+            <option value="4">Excellent</option>
+            <option value="5">Masterpiece</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mk-form-group" style="margin-bottom:10px;">
+        <label class="mk-label">Tier</label>
+        <div class="pill-row" id="tierPills">
+          <button class="pill" onclick="selTier(1)">T1</button><button class="pill" onclick="selTier(2)">T2</button><button class="pill" onclick="selTier(3)">T3</button><button class="pill sel" onclick="selTier(4)">T4</button><button class="pill" onclick="selTier(5)">T5</button><button class="pill" onclick="selTier(6)">T6</button><button class="pill" onclick="selTier(7)">T7</button><button class="pill" onclick="selTier(8)">T8</button>
+        </div>
+      </div>
+      <div class="mk-form-group" style="margin-bottom:12px;">
+        <label class="mk-label">Enchantment</label>
+        <div class="pill-row" id="encPills">
+          <button class="pill enc-pill sel" onclick="selEnc(0)">.0</button><button class="pill enc-pill" onclick="selEnc(1)">.1</button><button class="pill enc-pill" onclick="selEnc(2)">.2</button><button class="pill enc-pill" onclick="selEnc(3)">.3</button><button class="pill enc-pill" onclick="selEnc(4)">.4</button>
+        </div>
+      </div>
+
+      <div class="mk-form-row">
+        <div class="mk-form-group" style="min-width:80px;flex:0 0 80px;">
+          <label class="mk-label">Qty</label>
+          <input class="mk-input" type="number" id="listQty" value="1" min="1">
+        </div>
+        <div class="mk-form-group">
+          <label class="mk-label">Price per unit (Laxi)</label>
+          <input class="mk-input" type="number" id="listPrice" placeholder="50" min="1">
+        </div>
+      </div>
+
+      <div class="mk-form-group">
+        <label class="mk-label">Note (optional)</label>
+        <input class="mk-input" id="listNote" placeholder="Condition, trade note…">
+      </div>
+    </div>
+    <div class="mk-modal-footer">
+      <button class="mk-btn" onclick="closeListForm()">Cancel</button>
+      <button class="mk-btn primary" onclick="submitListing()">Post Listing</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Buy Modal -->
+<div class="modal-bg" id="buyModal">
+  <div class="confirm-modal">
+    <div class="mk-modal-header">
+      <h3>Confirm Purchase</h3>
+      <button class="mk-modal-close" onclick="closeBuyModal()">×</button>
+    </div>
+    <p id="buyModalText"></p>
+    <div class="mk-modal-footer">
+      <button class="mk-btn" onclick="closeBuyModal()">Cancel</button>
+      <button class="mk-btn primary" onclick="confirmBuy()">Confirm — Spend Laxi</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, push, update, onValue, get }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const _fbConfig = {
+  apiKey:"AIzaSyDtfHGjWMtCYOxU8VfqTGaqxiV0LGf4a40",
+  authDomain:"laxtania-albion-quest-board.firebaseapp.com",
+  databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"laxtania-albion-quest-board",
+  storageBucket:"laxtania-albion-quest-board.appspot.com",
+  messagingSenderId:"688820431424",
+  appId:"1:688820431424:web:c2462dd96ed6e7c4c0a7cd"
+};
+const app  = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+// ── State ──
+let currentUser = null, currentUserData = null;
+let allListings  = {};
+let activeTab    = 'browse';
+let activeCat    = 'all';
+let tableSearch  = '';
+let sortKey      = 'itemName', sortDir = 1;
+let currentPage  = 1;
+const PAGE_SIZE  = 20;
+let selectedTier = 4, selectedEnc = 0;
+let pendingBuyId = null;
+let searchTimer  = null;
+
+const QUALITY_LABELS = ['','Normal','Good','Outstanding','Excellent','Masterpiece'];
+const QUALITY_DOTS   = ['','q1','q2','q3','q4','q5'];
+const QUALITY_LABEL_CLS = ['','q1-l','q2-l','q3-l','q4-l','q5-l'];
+
+// ── Auth ──
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  if (user) {
+    const snap = await get(ref(db,'users/'+user.uid));
+    currentUserData = snap.val();
+    // Show navbar user bar (navbar.js may not have done it yet on this page)
+    const ud = currentUserData;
+    const userBarEl = document.getElementById('userBar');
+    if (userBarEl && userBarEl.style.display === 'none') userBarEl.style.display = 'flex';
+    const nameEl = document.getElementById('userBarName');
+    if (nameEl && nameEl.textContent === '—') nameEl.textContent = ud?.name || user.email;
+    const rolesEl = document.getElementById('userBarRoles');
+    if (rolesEl && !rolesEl.children.length) {
+      rolesEl.innerHTML = (ud?.ranks || ['serf']).map(r =>
+        `<span class="role-tag">${r.charAt(0).toUpperCase()+r.slice(1)}</span>`
+      ).join('');
+    }
+    const isCouncil = (ud?.ranks||[]).some(r=>['councillor','hand','sovereign'].includes(r))
+      || (ud?.roles && (ud.roles.council||ud.roles.admin||ud.roles.sovereign||ud.roles.hand));
+    if (isCouncil) {
+      const ag = document.getElementById('adminNavGroup'); if (ag) ag.style.display = 'flex';
+      const ad = document.getElementById('adminNavDivider'); if (ad) ad.style.display = 'block';
+      const cl = document.getElementById('councilNavLink'); if (cl) cl.classList.add('council-visible');
+    }
+  }
+  render();
+});
+
+// ── Live ──
+onValue(ref(db,'market/listings'), snap => {
+  allListings = snap.val() || {};
+  render();
+});
+
+// ── Render ──
+function render() {
+  const tbody   = document.getElementById('marketTbody');
+  const countEl = document.getElementById('marketCount');
+  const pagEl   = document.getElementById('pageBtns');
+
+  let entries = Object.entries(allListings);
+
+  // Tab filter
+  if (activeTab === 'browse') {
+    entries = entries.filter(([,l]) => l.status === 'active');
+  } else if (activeTab === 'mine') {
+    entries = currentUser
+      ? entries.filter(([,l]) => l.sellerId === currentUser.uid)
+      : [];
+  } else if (activeTab === 'sold') {
+    entries = currentUser
+      ? entries.filter(([,l]) => l.status === 'sold' && (l.sellerId===currentUser.uid||l.buyerId===currentUser.uid))
+      : [];
+  }
+
+  // Category filter
+  if (activeCat !== 'all') entries = entries.filter(([,l]) => l.category === activeCat);
+
+  // Search filter
+  if (tableSearch) {
+    const q = tableSearch.toLowerCase();
+    entries = entries.filter(([,l]) => (l.itemName||'').toLowerCase().includes(q));
+  }
+
+  // Sort
+  entries.sort((a,b) => {
+    let av = a[1][sortKey], bv = b[1][sortKey];
+    if (sortKey==='total') { av=(a[1].price||0)*(a[1].quantity||1); bv=(b[1].price||0)*(b[1].quantity||1); }
+    if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+    return sortDir * ((av||0) - (bv||0));
+  });
+
+  // Pagination
+  const total = entries.length;
+  const pages = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  if (currentPage > pages) currentPage = pages;
+  const slice = entries.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+
+  countEl.textContent = `${total} listing${total!==1?'s':''}`;
+
+  // Page buttons
+  pagEl.innerHTML = pages>1 ? Array.from({length:pages},(_,i)=>
+    `<button class="page-btn${i+1===currentPage?' active':''}" onclick="gotoPage(${i+1})">${i+1}</button>`
+  ).join('') : '';
+
+  if (slice.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-market">${activeTab==='mine'&&!currentUser?'Sign in to see your listings.':'No listings found.'}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = slice.map(([id,l]) => {
+    const isMine = currentUser && l.sellerId===currentUser.uid;
+    const isSold = l.status === 'sold';
+    const tier   = l.tier||0;
+    const enc    = l.enchant||0;
+    const tierLabel = tier ? `T${tier}${enc?'.'+enc:''}` : '';
+    const imgUrl = itemImgUrl(l.itemId, enc, l.quality||1);
+    const total  = (l.price||0)*(l.quantity||1);
+
+    let actionHtml = '';
+    if (isSold) {
+      actionHtml = `<div class="action-cell"><span class="sold-tag">Sold${l.buyerName?' → '+escHtml(l.buyerName):''}</span></div>`;
+    } else if (isMine) {
+      actionHtml = `<div class="action-cell"><span class="mine-tag">Your listing</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
+    } else {
+      actionHtml = `<div class="action-cell"><button class="mk-btn primary" style="padding:5px 14px;" onclick="openBuyModal('${id}')" ${!currentUser?'disabled title="Sign in first"':''}>Buy</button></div>`;
+    }
+
+    return `<tr class="${isMine?'mine-row':''} ${isSold?'sold-row':''}">
+      <td><div class="item-cell">
+        <div class="item-icon-wrap">
+          <img src="${imgUrl}" alt="" onerror="this.src='https://render.albiononline.com/v1/item/T4_BAG.png'">
+          ${tierLabel?`<span class="item-tier">${tierLabel}</span>`:''}
+        </div>
+        <div>
+          <div class="item-name">${escHtml(l.itemName||'Unknown')}</div>
+          <div class="item-cat-badge">${escHtml(l.category||'')}</div>
+        </div>
+      </div></td>
+      <td><span style="font-size:12px;color:var(--mk-gold);">${tierLabel||'—'}</span></td>
+      <td>${l.quality>0?`<span class="quality-dot ${QUALITY_DOTS[l.quality||1]}"></span><span class="q-label ${QUALITY_LABEL_CLS[l.quality||1]}">${QUALITY_LABELS[l.quality||1]}</span>`:'—'}</td>
+      <td><span style="color:var(--mk-text);">${l.quantity||1}</span></td>
+      <td><div class="price-val">${(l.price||0).toLocaleString()}</div><div class="price-label">Laxi</div></td>
+      <td><div class="price-val">${total.toLocaleString()}</div><div class="price-label">total</div></td>
+      <td><span class="seller-name${isMine?' mine':''}">${isMine?'You':escHtml(l.sellerName||'?')}</span></td>
+      <td>${actionHtml}</td>
+    </tr>`;
+  }).join('');
+
+  // Update sort headers
+  document.querySelectorAll('.market-table th[id^="th-"]').forEach(th => {
+    const k = th.id.replace('th-','');
+    th.classList.toggle('sorted', k===sortKey);
+    if (k===sortKey) th.textContent = th.textContent.replace(/ [↑↓]/,'') + (sortDir===1?' ↑':' ↓');
+    else th.textContent = th.textContent.replace(/ [↑↓]/,'');
+  });
+}
+
+function itemImgUrl(id, enc, quality) {
+  if (!id) return 'https://render.albiononline.com/v1/item/T4_BAG.png';
+  return `https://render.albiononline.com/v1/item/${id}${enc>0?'@'+enc:''}.png?quality=${quality||1}`;
+}
+
+// ── Item search (local database) ──
+window.onItemSearch = function(query) {
+  clearTimeout(searchTimer);
+  const resultsEl = document.getElementById('itemResults');
+  if (query.length < 2) { resultsEl.classList.remove('open'); return; }
+  searchTimer = setTimeout(() => {
+    const items = window.searchAlbionItems ? window.searchAlbionItems(query, 15) : [];
+    if (!items.length) {
+      resultsEl.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:var(--mk-text-dim);">No results — try item name or ID (e.g. "T5_MAIN_SWORD")</div>`;
+      resultsEl.classList.add('open');
+      return;
+    }
+    resultsEl.innerHTML = items.map(item =>
+      `<div class="item-result" onclick="selectItem('${escHtml(item.id)}','${escHtml(item.name).replace(/'/g,"\\'")}')">
+        <img src="${window.albionItemImg(item.id)}" onerror="this.style.opacity='0.3'" width="28" height="28">
+        <span class="item-result-name">${escHtml(item.name)}</span>
+      </div>`
+    ).join('');
+    resultsEl.classList.add('open');
+  }, 150);
+};
+window.selectItem = function(id, name) {
+  document.getElementById('selItemId').value = id;
+  document.getElementById('selItemName').value = name;
+  document.getElementById('itemSearch').value = name;
+  document.getElementById('itemResults').classList.remove('open');
+  const q = parseInt(document.getElementById('listQuality').value)||1;
+  document.getElementById('itemPreviewImg').src = itemImgUrl(id, selectedEnc, q);
+  document.getElementById('itemPreviewName').textContent = name;
+  document.getElementById('itemPreview').classList.add('show');
+};
+window.clearItem = function() {
+  ['selItemId','selItemName','itemSearch'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('itemPreview').classList.remove('show');
+};
+document.addEventListener('click', e => {
+  if (!e.target.closest('.item-search-wrap')) document.getElementById('itemResults')?.classList.remove('open');
+});
+document.getElementById('listQuality')?.addEventListener('change', () => {
+  const id = document.getElementById('selItemId').value;
+  if (id) document.getElementById('itemPreviewImg').src = itemImgUrl(id, selectedEnc, parseInt(document.getElementById('listQuality').value)||1);
+});
+
+// ── Tier / Enchant ──
+window.selTier = function(t) {
+  selectedTier = t;
+  document.querySelectorAll('#tierPills .pill').forEach((b,i)=>b.classList.toggle('sel',i+1===t));
+  refreshPreviewImg();
+};
+window.selEnc = function(e) {
+  selectedEnc = e;
+  document.querySelectorAll('#encPills .enc-pill').forEach((b,i)=>b.classList.toggle('sel',i===e));
+  refreshPreviewImg();
+};
+function refreshPreviewImg() {
+  const id = document.getElementById('selItemId').value;
+  if (id) document.getElementById('itemPreviewImg').src = itemImgUrl(id, selectedEnc, parseInt(document.getElementById('listQuality').value)||1);
+}
+
+// ── Submit listing ──
+window.submitListing = async function() {
+  const user = currentUser || auth.currentUser;
+  if (!user) return alert('Sign in first.');
+  // Fetch user data on-demand if not yet loaded
+  if (!currentUserData) {
+    const snap = await get(ref(db,'users/'+user.uid));
+    currentUserData = snap.val();
+  }
+  const itemId   = document.getElementById('selItemId').value;
+  const itemName = document.getElementById('selItemName').value||document.getElementById('itemSearch').value.trim();
+  if (!itemName) return alert('Please select or name an item.');
+  const price = parseInt(document.getElementById('listPrice').value);
+  if (!price||price<1) return alert('Enter a valid price.');
+  const qty = parseInt(document.getElementById('listQty').value)||1;
+
+  await push(ref(db,'market/listings'),{
+    itemId:   itemId||null,
+    itemName, category: document.getElementById('listCat').value,
+    tier:     selectedTier, enchant: selectedEnc,
+    quality:  parseInt(document.getElementById('listQuality').value)||1,
+    quantity: qty, price,
+    description: document.getElementById('listNote').value.trim()||null,
+    sellerId:   user.uid,
+    sellerName: currentUserData?.name||user.email,
+    status:     'active',
+    createdAt:  Date.now(),
+  });
+  closeListForm();
+};
+
+// ── Buy ──
+window.openBuyModal = function(id) {
+  if (!currentUser) return alert('Sign in first.');
+  const l = allListings[id];
+  if (!l||l.status!=='active') return alert('Listing no longer available.');
+  pendingBuyId = id;
+  const total = (l.price||0)*(l.quantity||1);
+  document.getElementById('buyModalText').innerHTML =
+    `Buy <strong>${escHtml(l.itemName)}</strong>${l.quantity>1?' ×'+l.quantity:''} from <strong>${escHtml(l.sellerName)}</strong> for <strong>${total.toLocaleString()} Laxi</strong>.<br><br>Laxi will transfer immediately.`;
+  document.getElementById('buyModal').classList.add('show');
+};
+window.closeBuyModal = function() {
+  document.getElementById('buyModal').classList.remove('show');
+  pendingBuyId = null;
+};
+window.confirmBuy = async function() {
+  if (!pendingBuyId||!currentUser) return;
+  const id = pendingBuyId;
+  closeBuyModal();
+  const l = allListings[id];
+  if (!l||l.status!=='active') return alert('Listing no longer available.');
+  if (l.sellerId===currentUser.uid) return alert("Can't buy your own listing.");
+  const total = (l.price||0)*(l.quantity||1);
+
+  const membersSnap = await get(ref(db,'prestige/members'));
+  const members = membersSnap.val()||{};
+  const buyerEntry  = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(currentUserData?.name||'').toLowerCase());
+  const sellerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.sellerName||'').toLowerCase());
+
+  if (!buyerEntry)  return alert("Couldn't find your Laxi balance.");
+  if (!sellerEntry) return alert("Couldn't find seller's Laxi balance.");
+  const [bk,bd] = buyerEntry;
+  const [sk,sd] = sellerEntry;
+  if ((bd.points||0)<total) return alert(`Not enough Laxi. You have ${(bd.points||0).toLocaleString()}, need ${total.toLocaleString()}.`);
+
+  await update(ref(db,'prestige/members'),{
+    [`${bk}/points`]: (bd.points||0)-total,
+    [`${sk}/points`]: (sd.points||0)+total,
+  });
+  await update(ref(db,`market/listings/${id}`),{
+    status:'sold', buyerId:currentUser.uid,
+    buyerName:currentUserData?.name||currentUser.email, soldAt:Date.now()
+  });
+  alert(`Done! ${total.toLocaleString()} Laxi paid to ${l.sellerName}.`);
+};
+
+// ── Cancel ──
+window.cancelListing = async function(id) {
+  if (!confirm('Cancel this listing?')) return;
+  await update(ref(db,`market/listings/${id}`),{status:'cancelled',cancelledAt:Date.now()});
+};
+
+// ── UI helpers ──
+window.switchTab = function(tab, btn) {
+  activeTab = tab;
+  currentPage = 1;
+  document.querySelectorAll('.mk-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+};
+window.setCat = function(cat, el) {
+  activeCat = cat;
+  currentPage = 1;
+  document.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  render();
+};
+window.applyFilters = function() {
+  tableSearch = document.getElementById('tableSearch').value;
+  currentPage = 1;
+  render();
+};
+window.sortBy = function(key) {
+  if (sortKey===key) sortDir *= -1;
+  else { sortKey=key; sortDir=1; }
+  render();
+};
+window.gotoPage = function(p) { currentPage=p; render(); };
+
+window.openListForm  = function() { document.getElementById('listModal').classList.add('show'); };
+window.closeListForm = function() {
+  document.getElementById('listModal').classList.remove('show');
+  ['selItemId','selItemName','itemSearch','listPrice','listNote'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('listQty').value=1;
+  document.getElementById('itemPreview').classList.remove('show');
+};
+
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

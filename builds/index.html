@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-72QH8KN6M5"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-72QH8KN6M5');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laxtania — Loadouts</title>
+<style>
+  :root{
+    --wood-dark:#3a2718;--wood-mid:#4f3622;--wood-light:#6b4a30;
+    --parchment:#f1e4c4;--parchment-shadow:#ddc69a;
+    --ink:#2e2014;--ink-soft:#5a4632;
+    --gold:#c8a04a;--gold-bright:#e6c878;
+    --navy:#1c2a40;--seal-red:#8c2424;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,'Times New Roman',serif;background-color:var(--wood-dark);background-image:repeating-linear-gradient(90deg,var(--wood-dark) 0px,var(--wood-mid) 18px,var(--wood-dark) 36px,var(--wood-light) 54px),radial-gradient(ellipse at center,rgba(0,0,0,0) 0%,rgba(0,0,0,0.45) 100%);color:var(--ink);min-height:100vh;padding:40px 20px 60px;}
+  .board-header{max-width:980px;margin:0 auto 28px;text-align:center;}
+  .banner{background:linear-gradient(180deg,#233754 0%,var(--navy) 100%);border:2px solid var(--gold);border-radius:4px;padding:22px 30px 26px;box-shadow:0 0 0 5px rgba(0,0,0,0.25),0 12px 30px rgba(0,0,0,0.5);position:relative;}
+  .banner::before,.banner::after{content:"";position:absolute;top:50%;width:60px;height:1px;background:var(--gold);opacity:0.6;transform:translateY(-50%);}
+  .banner::before{left:18px;}.banner::after{right:18px;}
+  .banner-eyebrow{display:block;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--gold-bright);font-variant:small-caps;margin-bottom:8px;}
+  .banner h1{font-size:36px;font-weight:400;letter-spacing:3px;color:var(--parchment);text-shadow:0 2px 4px rgba(0,0,0,0.6);}
+  .banner-sub{display:block;margin-top:8px;font-size:13px;letter-spacing:2px;color:rgba(241,228,196,0.65);font-style:italic;}
+  .parchment-wrap{max-width:980px;margin:0 auto;background-color:var(--parchment);background-image:radial-gradient(ellipse at 25% 20%,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0) 50%);border-radius:3px 9px 4px 10px/9px 4px 10px 3px;padding:32px 36px 36px;box-shadow:inset 0 0 0 1px rgba(120,90,50,0.25),inset 0 0 40px rgba(120,90,50,0.18),0 14px 28px rgba(0,0,0,0.45);position:relative;}
+  .pin{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--gold-bright),var(--gold) 55%,#8a6a28 100%);box-shadow:0 3px 5px rgba(0,0,0,0.5),inset 0 0 2px rgba(255,255,255,0.6);}
+  .divider{border:none;height:1px;background:linear-gradient(to right,transparent,var(--gold) 15%,var(--gold) 85%,transparent);margin:20px 0;opacity:0.7;}
+
+  /* toolbar */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+  .create-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;padding:8px 20px;cursor:pointer;transition:transform 0.08s;}
+  .create-btn:hover{transform:translateY(-1px);}
+  .filter-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .filter-btn{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:none;border:1px solid rgba(46,32,20,0.3);color:var(--ink-soft);padding:5px 12px;cursor:pointer;transition:all 0.15s;}
+  .filter-btn.active,.filter-btn:hover{border-color:var(--gold);color:var(--ink);background:rgba(200,160,74,0.1);}
+
+  /* Form */
+  .build-form{display:none;background:rgba(28,42,64,0.05);border:1px solid rgba(28,42,64,0.18);padding:24px;margin-bottom:24px;}
+  .build-form.open{display:block;}
+  .build-form h3{font-size:11px;font-variant:small-caps;letter-spacing:2.5px;color:var(--navy);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(28,42,64,0.12);}
+  .form-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .form-group{display:flex;flex-direction:column;flex:1;min-width:140px;}
+  .form-group label{font-size:11px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .form-group input,.form-group textarea,.form-group select{font-family:Georgia,serif;font-size:13px;color:var(--ink);background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);padding:7px 9px;}
+  .form-group textarea{resize:vertical;min-height:80px;}
+  .form-actions{display:flex;gap:10px;margin-top:6px;}
+  .btn-primary{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1.5px;font-size:13px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--ink);border:1px solid #8a6a28;padding:9px 22px;cursor:pointer;}
+  .btn-cancel{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:12px;background:none;border:1px solid rgba(46,32,20,0.3);color:var(--ink-soft);padding:9px 18px;cursor:pointer;}
+  .btn-danger{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;background:none;border:1px solid rgba(140,36,36,0.4);color:var(--seal-red);padding:6px 14px;cursor:pointer;}
+
+  /* Equipment grid */
+  .equip-section-title{font-size:11px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:10px;margin-top:4px;}
+  .equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px;}
+  .slot-picker{display:flex;flex-direction:column;gap:4px;}
+  .slot-label{font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);}
+  .slot-search-wrap{position:relative;}
+  .slot-search{font-family:Georgia,serif;font-size:12px;color:var(--ink);background:rgba(255,255,255,0.7);border:1px solid rgba(46,32,20,0.3);padding:5px 7px;width:100%;}
+  .slot-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid rgba(46,32,20,0.3);z-index:50;max-height:180px;overflow-y:auto;display:none;}
+  .slot-results.open{display:block;}
+  .slot-result{display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,0.05);}
+  .slot-result:hover{background:rgba(200,160,74,0.12);}
+  .slot-result img{width:28px;height:28px;object-fit:contain;}
+  .slot-result-name{font-size:11px;color:var(--ink);}
+  .slot-preview{display:flex;align-items:center;gap:6px;padding:4px 6px;background:rgba(28,42,64,0.06);border:1px solid rgba(28,42,64,0.12);min-height:36px;}
+  .slot-preview img{width:28px;height:28px;object-fit:contain;}
+  .slot-preview-name{font-size:11px;color:var(--ink);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .slot-clear{background:none;border:none;color:#999;cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0;}
+  .slot-enc-row{display:flex;gap:3px;margin-top:3px;}
+  .slot-enc-btn{font-size:10px;font-variant:small-caps;background:rgba(255,255,255,0.5);border:1px solid rgba(46,32,20,0.2);color:var(--ink-soft);padding:2px 5px;cursor:pointer;}
+  .slot-enc-btn.sel{border-color:#7b3fe4;color:#5b1fb8;background:rgba(123,63,228,0.1);}
+
+  /* Build cards */
+  .builds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+  .build-card{background:rgba(255,255,255,0.35);border:1px solid rgba(120,90,50,0.3);border-radius:3px;padding:18px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:border-color 0.15s;}
+  .build-card:hover{border-color:rgba(200,160,74,0.7);}
+  .build-card-header{display:flex;flex-direction:column;gap:4px;}
+  .build-title{font-size:16px;font-variant:small-caps;letter-spacing:1.5px;color:var(--navy);}
+  .build-tags{display:flex;gap:5px;flex-wrap:wrap;}
+  .build-tag{font-size:10px;font-variant:small-caps;letter-spacing:1px;padding:2px 8px;border-radius:2px;}
+  .tag-role-Tank{background:rgba(28,42,64,0.15);color:var(--navy);}
+  .tag-role-Healer{background:rgba(46,125,50,0.15);color:#2e7d32;}
+  .tag-role-DPS{background:rgba(140,36,36,0.15);color:var(--seal-red);}
+  .tag-role-Support{background:rgba(123,63,228,0.12);color:#5b1fb8;}
+  .tag-content{background:rgba(0,0,0,0.07);color:var(--ink-soft);}
+  .build-slots-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .build-slot-icon{position:relative;width:40px;height:40px;flex-shrink:0;}
+  .build-slot-icon img{width:40px;height:40px;object-fit:contain;border:1px solid rgba(120,90,50,0.2);border-radius:2px;background:rgba(0,0,0,0.05);}
+  .build-slot-icon .slot-enc{position:absolute;bottom:0;right:0;font-size:8px;background:rgba(91,27,184,0.85);color:#fff;padding:0 3px;border-radius:1px;line-height:1.4;}
+  .build-slot-label{font-size:9px;text-align:center;color:var(--ink-soft);margin-top:2px;font-variant:small-caps;}
+  .build-slot-wrap{display:flex;flex-direction:column;align-items:center;}
+  .build-desc{font-size:12px;color:var(--ink-soft);font-style:italic;border-top:1px solid rgba(120,90,50,0.2);padding-top:8px;line-height:1.6;}
+  .build-footer{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-soft);}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--ink-soft);font-style:italic;font-size:14px;}
+
+  /* Detail modal */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 20px;}
+  .modal-bg.show{display:flex;}
+  .modal-box{background:var(--parchment);border-radius:4px;padding:28px 28px 24px;min-width:300px;max-width:640px;width:100%;font-family:Georgia,serif;box-shadow:0 8px 32px rgba(0,0,0,.4);position:relative;margin:auto;}
+  .modal-close{position:absolute;top:12px;right:14px;font-size:20px;background:none;border:none;cursor:pointer;color:var(--ink-soft);}
+  .modal-title{font-size:20px;font-variant:small-caps;letter-spacing:2px;color:var(--navy);margin-bottom:8px;}
+  .modal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .modal-equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;margin-bottom:16px;}
+  .modal-slot-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .modal-slot-img{width:64px;height:64px;object-fit:contain;border:1px solid rgba(120,90,50,0.25);border-radius:2px;background:rgba(0,0,0,0.04);}
+  .modal-slot-name{font-size:10px;color:var(--ink-soft);text-align:center;line-height:1.3;}
+  .modal-slot-label{font-size:9px;font-variant:small-caps;letter-spacing:1px;color:rgba(0,0,0,0.4);text-align:center;}
+  .modal-desc{font-size:13px;color:var(--ink-soft);line-height:1.7;border-top:1px solid rgba(120,90,50,0.25);padding-top:14px;margin-top:4px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+</style>
+</head>
+<body>
+<div id="navbar-placeholder" data-page="builds" data-path-prefix="../"></div>
+<script src="../navbar.js"></script>
+<script src="../js/albion-items.js"></script>
+
+<div class="board-header">
+  <div class="banner">
+    <span class="banner-eyebrow">Laxtania</span>
+    <h1>Loadouts</h1>
+    <span class="banner-sub">Recommended loadouts curated by the Council</span>
+  </div>
+</div>
+
+<div class="parchment-wrap">
+  <div class="pin"></div>
+
+  <div class="toolbar">
+    <div id="postBuildBtnWrap" style="display:none">
+      <button class="create-btn" onclick="toggleForm()">+ Post Build</button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('role:Tank',this)">Tank</button>
+      <button class="filter-btn" onclick="setFilter('role:Healer',this)">Healer</button>
+      <button class="filter-btn" onclick="setFilter('role:DPS',this)">DPS</button>
+      <button class="filter-btn" onclick="setFilter('role:Support',this)">Support</button>
+      <button class="filter-btn" onclick="setFilter('content:ZvZ',this)">ZvZ</button>
+      <button class="filter-btn" onclick="setFilter('content:GvG',this)">GvG</button>
+      <button class="filter-btn" onclick="setFilter('content:Corrupted',this)">Corrupted</button>
+      <button class="filter-btn" onclick="setFilter('content:Solo',this)">Solo</button>
+      <button class="filter-btn" onclick="setFilter('content:Ganking',this)">Ganking</button>
+    </div>
+  </div>
+
+  <!-- Post form (Council only) -->
+  <div class="build-form" id="buildForm">
+    <h3>New Build</h3>
+    <div class="form-row">
+      <div class="form-group" style="flex:2;">
+        <label>Build Title</label>
+        <input type="text" id="bTitle" placeholder="e.g. Frost Mage ZvZ Support">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="bRole">
+          <option>Tank</option><option>Healer</option><option>DPS</option><option>Support</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Content</label>
+        <select id="bContent">
+          <option>ZvZ</option><option>GvG</option><option>Corrupted</option><option>Solo</option><option>Ganking</option><option>Dungeon</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="equip-section-title">Equipment</div>
+    <div class="equip-grid" id="equipGrid">
+      <!-- slots injected by JS -->
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1;">
+        <label>Food</label>
+        <div class="slot-search-wrap" id="foodWrap" data-slot="food">
+          <input class="slot-search" placeholder="Search food…" oninput="slotSearch('food',this.value)" autocomplete="off">
+          <div class="slot-results" id="slotResults-food"></div>
+        </div>
+        <div class="slot-preview" id="slotPreview-food" style="display:none;">
+          <img id="slotImg-food" src="" alt="">
+          <span class="slot-preview-name" id="slotName-food"></span>
+          <button class="slot-clear" onclick="clearSlot('food')">×</button>
+        </div>
+        <input type="hidden" id="slotId-food"><input type="hidden" id="slotNameVal-food">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>Potion</label>
+        <div class="slot-search-wrap" id="potionWrap" data-slot="potion">
+          <input class="slot-search" placeholder="Search potion…" oninput="slotSearch('potion',this.value)" autocomplete="off">
+          <div class="slot-results" id="slotResults-potion"></div>
+        </div>
+        <div class="slot-preview" id="slotPreview-potion" style="display:none;">
+          <img id="slotImg-potion" src="" alt="">
+          <span class="slot-preview-name" id="slotName-potion"></span>
+          <button class="slot-clear" onclick="clearSlot('potion')">×</button>
+        </div>
+        <input type="hidden" id="slotId-potion"><input type="hidden" id="slotNameVal-potion">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>Mount</label>
+        <div class="slot-search-wrap" id="mountWrap" data-slot="mount">
+          <input class="slot-search" placeholder="Search mount…" oninput="slotSearch('mount',this.value)" autocomplete="off">
+          <div class="slot-results" id="slotResults-mount"></div>
+        </div>
+        <div class="slot-preview" id="slotPreview-mount" style="display:none;">
+          <img id="slotImg-mount" src="" alt="">
+          <span class="slot-preview-name" id="slotName-mount"></span>
+          <button class="slot-clear" onclick="clearSlot('mount')">×</button>
+        </div>
+        <input type="hidden" id="slotId-mount"><input type="hidden" id="slotNameVal-mount">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1;">
+        <label>Description / Notes</label>
+        <textarea id="bDesc" placeholder="Rotation, tips, playstyle notes…"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" onclick="submitBuild()">Post Build</button>
+      <button class="btn-cancel" onclick="toggleForm()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="builds-grid" id="buildsGrid">
+    <div class="empty-state">Loading builds…</div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-bg" id="buildModal" onclick="if(event.target===this)closeBuildModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeBuildModal()">×</button>
+    <div class="modal-title" id="mTitle"></div>
+    <div class="modal-tags" id="mTags"></div>
+    <div class="modal-equip-grid" id="mEquip"></div>
+    <div class="modal-desc" id="mDesc" style="display:none;"></div>
+    <div class="modal-actions" id="mActions"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, push, remove, onValue, get }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const _fbConfig = {
+  apiKey:"AIzaSyDtfHGjWMtCYOxU8VfqTGaqxiV0LGf4a40",
+  authDomain:"laxtania-albion-quest-board.firebaseapp.com",
+  databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"laxtania-albion-quest-board",
+  storageBucket:"laxtania-albion-quest-board.appspot.com",
+  messagingSenderId:"688820431424",
+  appId:"1:688820431424:web:c2462dd96ed6e7c4c0a7cd"
+};
+const app = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+// ── Slot definitions ──
+const SLOTS = [
+  { key:'mainhand',  label:'Main Hand' },
+  { key:'offhand',   label:'Off Hand' },
+  { key:'head',      label:'Helmet' },
+  { key:'chest',     label:'Chest' },
+  { key:'boots',     label:'Boots' },
+  { key:'gloves',    label:'Gloves' },
+  { key:'cape',      label:'Cape' },
+];
+const SUPPORT_SLOTS = ['food','potion','mount'];
+const ALL_SLOT_KEYS = [...SLOTS.map(s=>s.key), ...SUPPORT_SLOTS];
+
+const PLACEHOLDER_IMGS = {
+  mainhand:  'T4_MAIN_SWORD',
+  offhand:   'T4_OFF_SHIELD',
+  head:      'T4_HEAD_PLATE_SET1',
+  chest:     'T4_ARMOR_PLATE_SET1',
+  boots:     'T4_SHOES_PLATE_SET1',
+  gloves:    'T4_HEAD_CLOTH_SET1',
+  cape:      'T4_CAPE',
+  food:      'T1_FOOD_BREAD',
+  potion:    'T4_POTION_HEAL',
+  mount:     'T3_MOUNT_HORSE',
+};
+
+// ── State ──
+let currentUser = null, currentUserData = null, isCouncil = false;
+let allBuilds = {};
+let activeFilter = 'all';
+let slotData = {};      // { mainhand:{id,name,enc}, ... }
+let searchTimers = {};
+let openBuildId = null;
+
+// Init slot data
+ALL_SLOT_KEYS.forEach(k => { slotData[k] = { id: null, name: null, enc: 0 }; });
+
+// ── Auth ──
+onAuthStateChanged(auth, async user => {
+  console.log('[Builds] onAuthStateChanged fired, user:', user ? user.email : null);
+  currentUser = user;
+  if (user) {
+    console.log('[Builds] user UID:', user.uid);
+    let snap;
+    try { snap = await get(ref(db,'users/'+user.uid)); }
+    catch(e) { console.error('[Builds] users/ read error:', e); }
+    currentUserData = snap?.val();
+    console.log('[Builds] currentUserData:', currentUserData);
+    const ud = currentUserData;
+    isCouncil = !!(ud?.roles?.council || ud?.roles?.admin)
+      || (ud?.ranks||[]).some(r=>['councillor','hand','sovereign'].includes(r));
+    // Show navbar user bar
+    const userBarEl = document.getElementById('userBar');
+    if (userBarEl && userBarEl.style.display === 'none') userBarEl.style.display = 'flex';
+    const nameEl = document.getElementById('userBarName');
+    if (nameEl && nameEl.textContent === '—') nameEl.textContent = ud?.name || user.email;
+    const rolesEl = document.getElementById('userBarRoles');
+    if (rolesEl && !rolesEl.children.length) {
+      rolesEl.innerHTML = (ud?.ranks || ['serf']).map(r =>
+        `<span class="role-tag">${r.charAt(0).toUpperCase()+r.slice(1)}</span>`
+      ).join('');
+    }
+    if (isCouncil) {
+      const ag = document.getElementById('adminNavGroup'); if (ag) ag.style.display = 'flex';
+      const ad = document.getElementById('adminNavDivider'); if (ad) ad.style.display = 'block';
+      const cl = document.getElementById('councilNavLink'); if (cl) cl.classList.add('council-visible');
+    }
+  } else {
+    currentUserData = null; isCouncil = false;
+  }
+  document.getElementById('postBuildBtnWrap').style.display = isCouncil ? 'block' : 'none';
+  renderBuilds();
+});
+
+// ── Live data ──
+onValue(ref(db,'builds'), snap => {
+  allBuilds = snap.val() || {};
+  renderBuilds();
+});
+
+// ── Build equipment grid (form) ──
+function buildEquipGrid() {
+  const grid = document.getElementById('equipGrid');
+  grid.innerHTML = SLOTS.map(s => `
+    <div class="slot-picker" id="slotPicker-${s.key}">
+      <div class="slot-label">${s.label}</div>
+      <div class="slot-search-wrap">
+        <input class="slot-search" id="slotSearch-${s.key}" placeholder="Search…" oninput="slotSearch('${s.key}',this.value)" autocomplete="off">
+        <div class="slot-results" id="slotResults-${s.key}"></div>
+      </div>
+      <div class="slot-preview" id="slotPreview-${s.key}" style="display:none;">
+        <img id="slotImg-${s.key}" src="" alt="" width="28" height="28">
+        <span class="slot-preview-name" id="slotName-${s.key}"></span>
+        <button class="slot-clear" onclick="clearSlot('${s.key}')">×</button>
+      </div>
+      <div class="slot-enc-row" id="slotEncRow-${s.key}" style="display:none;">
+        ${[0,1,2,3,4].map(e=>`<button type="button" class="slot-enc-btn${e===0?' sel':''}" onclick="setSlotEnc('${s.key}',${e})">${e===0?'0':'.'+e}</button>`).join('')}
+      </div>
+      <input type="hidden" id="slotId-${s.key}">
+      <input type="hidden" id="slotNameVal-${s.key}">
+    </div>`).join('');
+}
+buildEquipGrid();
+
+// ── Slot search ──
+window.slotSearch = function(slotKey, query) {
+  clearTimeout(searchTimers[slotKey]);
+  const resultsEl = document.getElementById('slotResults-'+slotKey);
+  if (!resultsEl) return;
+  if (query.length < 2) { resultsEl.classList.remove('open'); return; }
+  searchTimers[slotKey] = setTimeout(() => {
+    const items = window.searchAlbionItems ? window.searchAlbionItems(query, 12) : [];
+    if (!items.length) {
+      resultsEl.innerHTML = '<div style="padding:8px;font-size:11px;color:var(--mk-text-dim,#888);">No results</div>';
+      resultsEl.classList.add('open');
+      return;
+    }
+    resultsEl.innerHTML = items.map(item =>
+      `<div class="slot-result" onclick="selectSlotItem('${slotKey}','${escHtml(item.id)}','${escHtml(item.name).replace(/'/g,"\\'")}')">
+        <img src="${window.albionItemImg ? window.albionItemImg(item.id) : 'https://render.albiononline.com/v1/item/'+item.id+'.png'}" onerror="this.style.opacity='0.3'" width="28" height="28">
+        <span class="slot-result-name">${escHtml(item.name)}</span>
+      </div>`
+    ).join('');
+    resultsEl.classList.add('open');
+  }, 150);
+};
+
+window.selectSlotItem = function(slotKey, id, name) {
+  slotData[slotKey].id   = id;
+  slotData[slotKey].name = name;
+  slotData[slotKey].enc  = 0;
+
+  const searchEl  = document.getElementById('slotSearch-'+slotKey) || document.querySelector(`#slotPicker-${slotKey} .slot-search`);
+  const resultsEl = document.getElementById('slotResults-'+slotKey);
+  const previewEl = document.getElementById('slotPreview-'+slotKey);
+  const imgEl     = document.getElementById('slotImg-'+slotKey);
+  const nameEl    = document.getElementById('slotName-'+slotKey);
+  const encRow    = document.getElementById('slotEncRow-'+slotKey);
+  const idInput   = document.getElementById('slotId-'+slotKey);
+  const nameInput = document.getElementById('slotNameVal-'+slotKey);
+
+  if (searchEl)  searchEl.value = '';
+  if (resultsEl) resultsEl.classList.remove('open');
+  if (previewEl) previewEl.style.display = 'flex';
+  if (imgEl)     imgEl.src = `https://render.albiononline.com/v1/item/${id}.png?quality=1`;
+  if (nameEl)    nameEl.textContent = name;
+  if (encRow && SLOTS.find(s=>s.key===slotKey))  encRow.style.display = 'flex';
+  if (idInput)   idInput.value = id;
+  if (nameInput) nameInput.value = name;
+
+  // reset enc buttons
+  document.querySelectorAll(`#slotEncRow-${slotKey} .slot-enc-btn`).forEach((b,i)=>b.classList.toggle('sel',i===0));
+};
+
+window.clearSlot = function(slotKey) {
+  slotData[slotKey] = { id:null, name:null, enc:0 };
+  const searchEl  = document.getElementById('slotSearch-'+slotKey) || document.querySelector(`[id^="slotPicker-${slotKey}"] .slot-search`);
+  const previewEl = document.getElementById('slotPreview-'+slotKey);
+  const encRow    = document.getElementById('slotEncRow-'+slotKey);
+  const idInput   = document.getElementById('slotId-'+slotKey);
+  const nameInput = document.getElementById('slotNameVal-'+slotKey);
+  if (searchEl)  searchEl.value = '';
+  if (previewEl) previewEl.style.display = 'none';
+  if (encRow)    encRow.style.display = 'none';
+  if (idInput)   idInput.value = '';
+  if (nameInput) nameInput.value = '';
+};
+
+window.setSlotEnc = function(slotKey, enc) {
+  slotData[slotKey].enc = enc;
+  document.querySelectorAll(`#slotEncRow-${slotKey} .slot-enc-btn`).forEach((b,i)=>b.classList.toggle('sel',i===enc));
+  const id = slotData[slotKey].id;
+  if (id) {
+    const imgEl = document.getElementById('slotImg-'+slotKey);
+    if (imgEl) imgEl.src = `https://render.albiononline.com/v1/item/${id}${enc>0?'@'+enc:''}.png?quality=1`;
+  }
+};
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.slot-search-wrap') && !e.target.closest('.item-picker-wrap')) {
+    document.querySelectorAll('.slot-results.open,.item-search-results.open').forEach(el=>el.classList.remove('open'));
+  }
+});
+
+// ── Submit build ──
+window.submitBuild = async function() {
+  if (!isCouncil) return alert('Council only.');
+  const title = document.getElementById('bTitle').value.trim();
+  if (!title) return alert('Enter a build title.');
+
+  const slots = {};
+  ALL_SLOT_KEYS.forEach(k => {
+    const id   = document.getElementById('slotId-'+k)?.value || slotData[k]?.id;
+    const name = document.getElementById('slotNameVal-'+k)?.value || slotData[k]?.name;
+    const enc  = slotData[k]?.enc || 0;
+    if (id) slots[k] = { id, name: name||id, enc };
+  });
+
+  await push(ref(db,'builds'), {
+    title,
+    role:      document.getElementById('bRole').value,
+    content:   document.getElementById('bContent').value,
+    slots,
+    description: document.getElementById('bDesc').value.trim() || null,
+    postedBy:  currentUserData?.name || currentUser.email,
+    postedAt:  Date.now(),
+  });
+
+  toggleForm(true);
+  alert('Build posted!');
+};
+
+// ── Render builds ──
+window.renderBuilds = function() {
+  const grid = document.getElementById('buildsGrid');
+  if (!grid) return;
+
+  let entries = Object.entries(allBuilds).sort((a,b)=>(b[1].postedAt||0)-(a[1].postedAt||0));
+
+  if (activeFilter !== 'all') {
+    const [filterType, filterVal] = activeFilter.split(':');
+    entries = entries.filter(([,b]) => b[filterType] === filterVal);
+  }
+
+  if (entries.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No builds found.</div>';
+    return;
+  }
+
+  grid.innerHTML = entries.map(([id,b]) => {
+    const mainSlot = b.slots?.mainhand;
+    const mainImg  = mainSlot ? `https://render.albiononline.com/v1/item/${mainSlot.id}${mainSlot.enc>0?'@'+mainSlot.enc:''}.png?quality=1` : null;
+
+    // Show up to 5 key slots in card preview
+    const previewSlots = SLOTS.slice(0,5).map(s => {
+      const sl = b.slots?.[s.key];
+      if (!sl) return `<div class="build-slot-wrap"><div class="build-slot-icon"><img src="https://render.albiononline.com/v1/item/${PLACEHOLDER_IMGS[s.key]}.png?quality=1" alt="" style="opacity:0.18"></div><div class="build-slot-label">${s.label}</div></div>`;
+      const img = `https://render.albiononline.com/v1/item/${sl.id}${sl.enc>0?'@'+sl.enc:''}.png?quality=1`;
+      return `<div class="build-slot-wrap"><div class="build-slot-icon"><img src="${img}" alt="" onerror="this.style.opacity='0.18'">${sl.enc>0?`<span class="slot-enc">.${sl.enc}</span>`:''}</div><div class="build-slot-label">${s.label}</div></div>`;
+    }).join('');
+
+    return `<div class="build-card" onclick="openBuild('${id}')">
+      <div class="build-card-header">
+        <div class="build-title">${escHtml(b.title||'Untitled')}</div>
+        <div class="build-tags">
+          ${b.role?`<span class="build-tag tag-role-${b.role}">${escHtml(b.role)}</span>`:''}
+          ${b.content?`<span class="build-tag tag-content">${escHtml(b.content)}</span>`:''}
+        </div>
+      </div>
+      <div class="build-slots-row">${previewSlots}</div>
+      ${b.description?`<div class="build-desc">${escHtml(b.description.substring(0,120))}${b.description.length>120?'…':''}</div>`:''}
+      <div class="build-footer">
+        <span>by ${escHtml(b.postedBy||'Council')}</span>
+        <span>${b.postedAt?new Date(b.postedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):''}</span>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+// ── Open build detail ──
+window.openBuild = function(id) {
+  const b = allBuilds[id];
+  if (!b) return;
+  openBuildId = id;
+
+  document.getElementById('mTitle').textContent = b.title || 'Untitled';
+
+  const tags = [];
+  if (b.role)    tags.push(`<span class="build-tag tag-role-${b.role}">${escHtml(b.role)}</span>`);
+  if (b.content) tags.push(`<span class="build-tag tag-content">${escHtml(b.content)}</span>`);
+  document.getElementById('mTags').innerHTML = tags.join('');
+
+  // All slots in modal
+  const allSlotsForModal = [
+    ...SLOTS,
+    {key:'food',label:'Food'},{key:'potion',label:'Potion'},{key:'mount',label:'Mount'}
+  ];
+  document.getElementById('mEquip').innerHTML = allSlotsForModal.map(s => {
+    const sl = b.slots?.[s.key];
+    if (!sl) return `<div class="modal-slot-wrap"><img class="modal-slot-img" src="https://render.albiononline.com/v1/item/${PLACEHOLDER_IMGS[s.key]||'T4_BAG'}.png?quality=1" style="opacity:0.15" alt=""><div class="modal-slot-label">${s.label}</div></div>`;
+    const img = `https://render.albiononline.com/v1/item/${sl.id}${sl.enc>0?'@'+sl.enc:''}.png?quality=1`;
+    return `<div class="modal-slot-wrap"><img class="modal-slot-img" src="${img}" alt="" onerror="this.style.opacity='0.15'"><div class="modal-slot-name">${escHtml(sl.name||sl.id)}${sl.enc>0?` <span style="color:#5b1fb8;font-size:9px;">.${sl.enc}</span>`:''}</div><div class="modal-slot-label">${s.label}</div></div>`;
+  }).join('');
+
+  const descEl = document.getElementById('mDesc');
+  if (b.description) { descEl.textContent = b.description; descEl.style.display='block'; }
+  else descEl.style.display = 'none';
+
+  const actionsEl = document.getElementById('mActions');
+  actionsEl.innerHTML = isCouncil
+    ? `<button class="btn-danger" onclick="deleteBuild('${id}')">Delete</button><button class="btn-cancel" onclick="closeBuildModal()">Close</button>`
+    : `<button class="btn-cancel" onclick="closeBuildModal()">Close</button>`;
+
+  document.getElementById('buildModal').classList.add('show');
+};
+window.closeBuildModal = function() {
+  document.getElementById('buildModal').classList.remove('show');
+  openBuildId = null;
+};
+window.deleteBuild = async function(id) {
+  if (!isCouncil) return;
+  if (!confirm('Delete this build?')) return;
+  await remove(ref(db,'builds/'+id));
+  closeBuildModal();
+};
+
+// ── UI helpers ──
+window.toggleForm = function(forceClose) {
+  const form = document.getElementById('buildForm');
+  const open = forceClose ? false : !form.classList.contains('open');
+  form.classList.toggle('open', open);
+  if (!open) {
+    document.getElementById('bTitle').value = '';
+    document.getElementById('bDesc').value = '';
+    ALL_SLOT_KEYS.forEach(k => clearSlot(k));
+  }
+};
+window.setFilter = function(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBuilds();
+};
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
