@@ -354,8 +354,8 @@
         <div id="ovButtons-recruitment" style="display:none">
           <div class="fund-action-grid" style="margin-top:10px">
             <button class="action-btn-in" onclick="openFundOverviewAction('recruitment',1,'income')">+ Income</button>
-            <button class="action-btn-in" style="background:rgba(28,42,64,.08);border-color:rgba(28,42,64,.3);color:var(--navy)" onclick="openFundOverviewAction('recruitment',1,'transfer-in')">← In</button>
             <button class="action-btn-out" onclick="openFundOverviewAction('recruitment',-1,'expense')">− Expense</button>
+            <button class="action-btn-in" style="background:rgba(28,42,64,.08);border-color:rgba(28,42,64,.3);color:var(--navy)" onclick="openFundOverviewAction('recruitment',1,'transfer-in')">← In</button>
             <button class="action-btn-out" style="background:rgba(28,42,64,.06);border-color:rgba(28,42,64,.25);color:var(--navy)" onclick="openFundOverviewAction('recruitment',-1,'transfer-out')">→ Out</button>
           </div>
         </div>
@@ -493,6 +493,7 @@
         <div class="fund-bal-label">Events Budget Balance</div>
         <div class="fund-bal-value" id="eventsBal">—</div>
         <div id="eventsPending" style="margin-top:2px;min-height:16px"></div>
+        <div id="ministryAvailableBudget-events"></div>
         <span id="eventsDeficitBadge" style="display:none;margin-left:0;margin-top:6px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px;display:inline-block"></span>
         <div id="eventsEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
@@ -629,6 +630,7 @@
         <div class="fund-bal-label">Island Budget Balance</div>
         <div class="fund-bal-value" id="islandBal">—</div>
         <div id="islandPending" style="margin-top:2px;min-height:16px"></div>
+        <div id="ministryAvailableBudget-island"></div>
         <span id="islandDeficitBadge" style="display:none;margin-top:6px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px"></span>
         <div id="islandEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
@@ -703,6 +705,7 @@
         <div class="fund-bal-label">Recruitment Budget Balance</div>
         <div class="fund-bal-value" id="recruitmentBal">—</div>
         <div id="recruitmentPending" style="margin-top:2px;min-height:16px"></div>
+        <div id="ministryAvailableBudget-recruitment"></div>
         <span id="recruitmentDeficitBadge" style="display:none;margin-top:6px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px"></span>
         <div id="recruitmentEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
       </div>
@@ -1845,6 +1848,7 @@ function renderQuestCommitments(){
   const el=document.getElementById('questCommitments');
   const committedEl=document.getElementById('questCommitted');
   const availEl=document.getElementById('questAvailable');
+  if(availEl&&!el){const b=calcQuestBal();availEl.textContent=fmtS(b)||'0 S';availEl.title=fmtSFull(b);availEl.style.color='';}
   if(!el)return;
 
   // Build list of active quests from questDefs (not archived/deleted)
@@ -2587,12 +2591,27 @@ let _taskPagePending=0,_taskPageDone=0;
 window._goTaskPage=function(key,p){if(key==='pending'){_taskPagePending=p;}else{_taskPageDone=p;}renderTasks();};
 const TASKS_PER_PAGE=10;
 
+function groupPendingTasks(list){
+  const groups={};const order=[];
+  for(const [id,t] of list){
+    const key=t.type==='prestige_quest'&&t.questId&&t.holder?`pq:${t.questId}:${t.holder.toLowerCase()}`:null;
+    if(key){
+      if(!groups[key]){groups[key]=[];order.push({key,grouped:true});}
+      groups[key].push([id,t]);
+    } else {
+      order.push({key:null,item:[id,t]});
+    }
+  }
+  return order.map(o=>o.grouped?(groups[o.key].length>1?{grouped:true,items:groups[o.key]}:groups[o.key][0]):o.item);
+}
+
 function renderTaskPage(list,containerId,paginationId,page){
-  const total=list.length;
+  const grouped=groupPendingTasks(list);
+  const total=grouped.length;
   const totalPages=Math.max(1,Math.ceil(total/TASKS_PER_PAGE));
   const p=Math.min(page,totalPages-1);
-  const slice=list.slice(p*TASKS_PER_PAGE,(p+1)*TASKS_PER_PAGE);
-  document.getElementById(containerId).innerHTML=slice.length?slice.map(([id,t])=>taskCardHtml(id,t)).join(''):'<div class="empty" style="padding:16px">No tasks.</div>';
+  const slice=grouped.slice(p*TASKS_PER_PAGE,(p+1)*TASKS_PER_PAGE);
+  document.getElementById(containerId).innerHTML=slice.length?slice.map(item=>Array.isArray(item)?taskCardHtml(item[0],item[1]):taskGroupCardHtml(item.items)).join(''):'<div class="empty" style="padding:16px">No tasks.</div>';
   const pg=document.getElementById(paginationId);
   if(totalPages<=1){pg.innerHTML='';return;}
   const key=paginationId==='taskPaginationPending'?'pending':'done';
@@ -2635,6 +2654,27 @@ function fundLabel(ft){
   if(ft==='events')return'<span class="fund-tag">Ministry of Events</span>';
   if(ft==='island')return'<span class="fund-tag">Ministry of Island Affairs</span>';
   return'';
+}
+
+function taskGroupCardHtml(items){
+  const [id,t]=items[0];
+  const n=items.length;
+  const ids=items.map(([i])=>i);
+  const party=t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)):[t.holder];
+  const partyStr=party.join(', ');
+  const totalPts=(t.prestigePoints||0)*n;
+  return`<div class="task-card" style="border-left:3px solid rgba(200,160,74,.5)">
+    <span class="task-status-badge badge-pending">pending ×${n}</span>
+    <div class="task-title">Quest Complete — ${t.holder||''} — ${t.questName||t.title||''}</div>
+    <div class="task-meta">Raised by ${t.createdBy||'?'} · ${t.createdAt?fmtDate(t.createdAt):''}</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px"><strong>${n} × ${t.prestigePoints||0} = ${totalPts} pts</strong> Laxi awarded to: ${partyStr}</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">= <strong>${fmtS(totalPts*silverRate)}</strong> total payout</div>
+    <div class="task-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="gold-btn" onclick="approveAllQuestTasks(${JSON.stringify(ids)})">✓ Approve All (${n})</button>
+      <button class="gold-btn" style="background:rgba(120,90,50,.15);color:var(--ink);border:1px solid rgba(120,90,50,.3)" onclick="completeTask('${id}')">✓ Approve 1</button>
+      <button class="red-btn" onclick="cancelAllQuestTasks(${JSON.stringify(ids)})">✕ Cancel All</button>
+    </div>
+  </div>`;
 }
 
 function taskCardHtml(id,t){
@@ -2785,9 +2825,9 @@ window.createTask=async function(){
   toast('Task created.');
 };
 
-window.completeTask=async function(id){
+window.completeTask=async function(id,silent=false){
   const t=tasks[id];if(!t)return;
-  if(!confirm(`Mark "${t.title}" as complete?`))return;
+  if(!silent&&!confirm(`Mark "${t.title}" as complete?`))return;
   const at=Date.now();const by=currentUserData.name;
   await update(ref(db,'tasks/'+id),{status:'completed',completedAt:at,completedBy:by});
   // Only write fund/treasury entry for the unpaid remainder (partial payments already wrote their share)
@@ -2916,6 +2956,27 @@ window.completeTask=async function(id){
   toast('Task completed.');
 };
 
+window.approveAllQuestTasks=async function(ids){
+  const n=ids.length;
+  if(!confirm(`Approve all ${n} quest completions?\n\nThis will award Laxi for each and deduct silver from the fund.`))return;
+  for(const id of ids){
+    if(tasks[id]?.status==='pending') await window.completeTask(id,true);
+  }
+  toast(`Approved ${n} quest tasks.`);
+};
+
+window.cancelAllQuestTasks=async function(ids){
+  const n=ids.length;
+  if(!confirm(`Cancel all ${n} quest tasks?`))return;
+  const at=Date.now();const by=currentUserData.name;
+  for(const id of ids){
+    const t=tasks[id];if(!t||t.status!=='pending')continue;
+    await update(ref(db,'tasks/'+id),{status:'cancelled',cancelledAt:at,cancelledBy:by});
+    if(t.questId) await remove(ref(db,'questDefs/'+t.questId+'/pendingComplete/'+id));
+  }
+  toast(`Cancelled ${n} quest tasks.`);
+};
+
 window.cancelTask=async function(id){
   const t=tasks[id];if(!t)return;
   if(!confirm(`Cancel "${t.title}"?`))return;
@@ -3032,8 +3093,16 @@ function renderMinistryQuests(key,defs){
   const el=document.getElementById('ministryQuestList-'+key);
   if(!el)return;
   const quests=Object.entries(defs).filter(([,d])=>d.ministry===key&&d.active!==false);
-  if(!quests.length){el.innerHTML='<div class="empty">No active quests.</div>';return;}
-  let totalSlots=0,claimedSlots=0,totalLaxi=0;
+  const fundBal=getFundBal(key);
+  const budgetEl=document.getElementById('ministryAvailableBudget-'+key);
+  if(!quests.length){
+    el.innerHTML='<div class="empty">No active quests.</div>';
+    if(budgetEl)budgetEl.innerHTML=fundBal
+      ?`<div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(28,42,64,.06);border-radius:20px"><span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Available</span><span style="font-size:14px;font-family:Georgia,serif;font-weight:bold">${fmtS(fundBal)}</span></div>`
+      :'';
+    return;
+  }
+  let totalSlots=0,claimedSlots=0,totalLaxi=0,committedLaxi=0;
   const isMarket=key==='quest';
   const rows=quests.map(([id,d])=>{
     const laxiText=Array.isArray(d.rewards)?d.rewards.find(r=>r.icon==='£')?.text:Object.values(d.rewards||{}).find(r=>r.icon==='£')?.text;
@@ -3042,10 +3111,10 @@ function renderMinistryQuests(key,defs){
     const claimedVal=_activeQuests[id];
     const claimants=claimedVal?(Array.isArray(claimedVal)?claimedVal:Object.values(claimedVal)):[];
     const filled=Math.min(claimants.length,slots);
-    totalSlots+=slots;claimedSlots+=filled;totalLaxi+=laxiVal*slots;
+    totalSlots+=slots;claimedSlots+=filled;totalLaxi+=laxiVal*slots;committedLaxi+=laxiVal*filled;
     const isFull=filled>=slots&&slots>0;
     const claimColor=isFull?'var(--seal-red)':filled>0?'#b07a00':'var(--ink-soft)';
-    const claimLabel=filled===0?'Unclaimed':isFull?`Claimed`:`${filled}/${slots}`;
+    const slotLine=filled===0?`Unclaimed · ${slots} slot${slots>1?'s':''}`:isFull?`${slots}/${slots} slots — Full`:`${filled}/${slots} slots`;
     const claimantLine=!isMarket&&claimants.length?`<div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${claimants.join(', ')}</div>`:'';
     return`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;margin-bottom:6px;background:rgba(255,255,255,.5);border-left:3px solid ${isMarket?'rgba(120,90,50,.3)':claimColor};border:1px solid rgba(120,90,50,.2);border-radius:3px">
       <div style="flex:1;min-width:0">
@@ -3058,20 +3127,39 @@ function renderMinistryQuests(key,defs){
       </div>
       <div style="text-align:right;flex-shrink:0;min-width:90px;margin-left:12px">
         <div style="font-size:12px;color:#4a7c59;font-weight:bold">${laxiVal?laxiVal+' Laxi':'—'}</div>
-        ${!isMarket?`<div style="font-size:11px;font-weight:bold;color:${claimColor}">${claimLabel} · ${slots} slot${slots>1?'s':''}</div>`:`<div style="font-size:11px;color:var(--ink-soft)">${slots} slot(s)</div>`}
+        ${!isMarket?`<div style="font-size:11px;font-weight:bold;color:${claimColor}">${slotLine}</div>`:`<div style="font-size:11px;color:var(--ink-soft)">${slots} slot${slots>1?'s':''}</div>`}
         <button onclick="removeMinistryQuest('${id}')" style="font-size:10px;color:#8c2424;background:none;border:none;cursor:pointer;padding:2px 0;font-family:Georgia,serif">Remove</button>
       </div>
     </div>`;
   });
   const silverTotal=totalLaxi*silverRate;
+  const committedSilver=committedLaxi*silverRate;
+  const available=fundBal-committedSilver;
+  const availColor=available<0?'var(--seal-red)':available<committedSilver?'#b07a00':'#2a5a2a';
   const summaryEl=document.getElementById('ministryCommitSummary-'+key);
   if(summaryEl)summaryEl.textContent=`${claimedSlots}/${totalSlots} slots claimed`;
+  // Footer: Total active + committed only
+  const committedRow=committedLaxi>0
+    ?`<div style="display:flex;justify-content:flex-end;gap:16px;flex-wrap:wrap;align-items:center;padding:6px 12px;background:rgba(28,42,64,.04);border-top:1px solid rgba(120,90,50,.15);font-family:Georgia,serif;font-size:12px">
+        <span style="color:var(--ink-soft)">Committed: <strong style="color:#b07a00">${committedLaxi} Laxi = ${fmtS(committedSilver)}</strong></span>
+      </div>`
+    :'';
   el.innerHTML=rows.join('')+(totalLaxi?`<div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:7px 12px;background:rgba(28,42,64,.06);border-top:1px solid rgba(120,90,50,.2);font-family:Georgia,serif;font-size:12px">
     <span style="color:var(--ink-soft)">Total active:</span>
     <strong style="color:#4a7c59">${totalLaxi} Laxi</strong>
     <span style="color:var(--ink-soft)">=</span>
     <strong style="color:var(--ink)">${fmtS(silverTotal)}</strong>
-  </div>`:'');
+  </div>`:'')+committedRow;
+  // Available pill badge in fund header (same style as Market Commission)
+  if(budgetEl)budgetEl.innerHTML=committedLaxi>0
+    ?`<div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(28,42,64,.06);border-radius:20px">
+        <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Available</span>
+        <span style="font-size:14px;font-family:Georgia,serif;font-weight:bold;color:${availColor}">${fmtS(available)}</span>
+      </div>`
+    :`<div style="display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;background:rgba(28,42,64,.06);border-radius:20px">
+        <span style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Available</span>
+        <span style="font-size:14px;font-family:Georgia,serif;font-weight:bold">${fmtS(fundBal)}</span>
+      </div>`;
 }
 
 function renderMinistryCommitments(key,defs){renderMinistryQuests(key,defs);}
@@ -3159,8 +3247,8 @@ onAuthStateChanged(auth,async user=>{
     renderOverview();renderPrestigeValue();renderTreasuryChart();
   });
   safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();renderPrestigeValue();renderIslandContribution();});
-  safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();});
-  safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();});
+  safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();renderMinistryCommitments('events',_questDefs);});
+  safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();renderMinistryCommitments('island',_questDefs);});
   safeOnValue('bonds',snap=>{bondPeriods=snap.val()||{};renderBonds();renderOverview();});
   safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();renderOverview();renderIslandContribution();});
   safeOnValue('questBudget/wishlist',snap=>{_wishlistItems=snap.val()||{};renderWishlist();});
@@ -3415,7 +3503,7 @@ onAuthStateChanged(auth,async user=>{
     }
     populateCertificateUsers();
   });
-  safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();});
+  safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();renderMinistryCommitments('recruitment',_questDefs);});
   safeOnValue('bondRequests',snap=>{_bondRequests=snap.val()||{};renderBonds();});
   renderBudgetPermissions();
 });
@@ -3671,7 +3759,7 @@ window.renderFundRequests = function() {
             <div>
               <div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">${dateStr} &nbsp;·&nbsp; from <strong>${req.requestedBy}</strong></div>
               <div style="margin-top:4px;font-family:Georgia,serif;font-size:14px;color:var(--ink)">
-                Requested <strong style="color:var(--navy)">${fmtS(req.amount)}</strong> for <strong style="text-transform:uppercase">${req.fundKey}</strong>
+                Requested <strong style="color:var(--navy)">${fmtS(req.amount)}</strong> for <strong>${FUND_LABELS_MAP[req.fundKey]||req.fundKey}</strong>
               </div>
               <div style="margin-top:4px;font-size:12px;color:var(--ink-soft);font-style:italic">"${req.reason}"</div>
             </div>

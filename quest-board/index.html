@@ -656,6 +656,11 @@
   .active-toggle.is-inactive { background: var(--seal-red); border-color: var(--seal-red-dark); color: var(--parchment); }
   .complete-claim-btn { font-family: Georgia, serif; font-size: 11px; line-height: 1; padding: 2px 7px; height: 18px; background: #2a5a2a; color: var(--parchment); border: none; border-radius: 2px; cursor: pointer; white-space: nowrap; }
   .complete-claim-btn:hover { background: #1e431e; }
+  .complete-all-btn { font-family: Georgia, serif; font-size: 11px; line-height: 1; padding: 2px 9px; height: 18px; background: #2a5a2a; color: var(--parchment); border: none; border-radius: 2px; cursor: pointer; white-space: nowrap; font-weight: bold; }
+  .complete-all-btn:hover { background: #1e431e; }
+  .bulk-claim-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .bulk-qty-input { width: 52px; font-family: Georgia, serif; font-size: 13px; padding: 4px 6px; background: rgba(255,255,255,.7); border: 1px solid rgba(46,32,20,.3); color: var(--ink); border-radius: 2px; text-align: center; }
+  .bulk-complete-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
   .remove-claim-btn { font-family: Georgia, serif; font-size: 12px; line-height: 1; width: 16px; height: 16px; background: var(--seal-red); color: var(--parchment); border: none; border-radius: 2px; cursor: pointer; padding: 0; }
   .claim-tag.admin-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px 3px 9px; }
   .inactive-section { max-width: 980px; margin: 60px auto 0; }
@@ -1326,13 +1331,15 @@
     };
   }
 
-  function buildDefFromData(data, order, existingActive) {
+  function buildDefFromData(data, order, existingActive, existingDef) {
+    const base = existingDef ? { ...existingDef } : {};
     return {
+      ...base,
       order, active: existingActive !== false,
       level: data.level, slots: data.slots, name: data.name,
       issuer: data.issuer, description: data.description, guildGain: data.guildGain,
       deadline: data.deadline,
-      rewards: [{ icon: '£', text: `${data.prestige} Laxi` }]
+      rewards: [{ icon: base.ministry ? '£' : '♦', text: `${data.prestige} Laxi` }]
     };
   }
 
@@ -1344,7 +1351,7 @@
     const data = gatherCardData(card);
     if (!validateCard(data)) { flashStatus(card, 'Please fill in all fields.'); return; }
     const def = currentQuestDefs[id] || {};
-    await db.ref('questDefs/' + id).set(buildDefFromData(data, def.order ?? 1, def.active));
+    await db.ref('questDefs/' + id).set(buildDefFromData(data, def.order ?? 1, def.active, def));
     flashStatus(card, 'Saved ✓');
   }
 
@@ -1385,21 +1392,8 @@
     await db.ref('quests/' + id).set(claims.length ? claims : null);
   }
 
-  async function completeClaimant(id, index) {
-    const def = currentQuestDefs[id];
-    const claims = (currentClaims[id] || []).slice();
-    const name = claims[index];
-    if (name === undefined) return;
-    if (!confirm(`Mark ${name}'s contract as complete?\n\nA councillor will need to approve before the quest closes.`)) return;
-
-    // Read party data
-    function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
-    const partySnap = await db.ref('questParties/' + id + '/' + partyKey(name)).get();
-    const partyVal = partySnap.val();
-    const partyMembers = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : [name];
-
-    // Create prestige_quest task — approval removes claimant and closes slot
-    const prestigeReward = extractRewardValue(def.rewards, '♦');
+  async function _submitCompleteTask(id, def, name, partyMembers) {
+    const prestigeReward = extractRewardValue(def.rewards, '£') || extractRewardValue(def.rewards, '♦');
     const isPersonal = !!(def.ownerUid);
     const taskRef = await db.ref('tasks').push({
       title: `Quest Complete — ${name} — ${def.name || id}`,
@@ -1416,9 +1410,43 @@
       issuerName: def.ownerName || null,
       issuerUid: def.ownerUid || null,
     });
-
-    // Mark quest as pending completion (quest stays on board until approved)
     await db.ref('questDefs/' + id + '/pendingComplete/' + taskRef.key).set(name);
+  }
+
+  async function completeClaimant(id, index) {
+    const def = currentQuestDefs[id];
+    const claims = (currentClaims[id] || []).slice();
+    const name = claims[index];
+    if (name === undefined) return;
+    if (!confirm(`Mark ${name}'s contract as complete?\n\nA councillor will need to approve before the quest closes.`)) return;
+    function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
+    const partySnap = await db.ref('questParties/' + id + '/' + partyKey(name)).get();
+    const partyVal = partySnap.val();
+    const partyMembers = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : [name];
+    await _submitCompleteTask(id, def, name, partyMembers);
+  }
+
+  async function completeAllForClaimant(id, name, count) {
+    const def = currentQuestDefs[id];
+    if (!def) return;
+    if (!confirm(`Mark all ${count} contracts for ${name} as complete?\n\nThis will create ${count} approval tasks.`)) return;
+    function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
+    const partySnap = await db.ref('questParties/' + id + '/' + partyKey(name)).get();
+    const partyVal = partySnap.val();
+    const partyMembers = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : [name];
+    for (let i = 0; i < count; i++) {
+      await _submitCompleteTask(id, def, name, partyMembers);
+    }
+  }
+
+  async function memberCompleteQuestOnce(id, claimantName) {
+    const def = currentQuestDefs[id];
+    if (!def) return;
+    function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
+    const partySnap = await db.ref('questParties/' + id + '/' + partyKey(claimantName)).get();
+    const partyVal = partySnap.val();
+    const partyMembers = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : [claimantName];
+    await _submitCompleteTask(id, def, claimantName, partyMembers);
   }
 
   async function memberCompleteQuest(id, claimantName) {
@@ -1428,32 +1456,8 @@
     const pendingCount = Object.values(pendingMap).filter(n => n?.toLowerCase() === claimantName.toLowerCase()).length;
     const claimCount = (currentClaims[id] || []).filter(n => n?.toLowerCase() === claimantName.toLowerCase()).length;
     if (pendingCount >= claimCount) { alert('All your contracts are already awaiting approval.'); return; }
-    if (!confirm(`Submit your contract as complete?\n\nA councillor will approve and award your prestige.`)) return;
-
-    function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
-    const partySnap = await db.ref('questParties/' + id + '/' + partyKey(claimantName)).get();
-    const partyVal = partySnap.val();
-    const partyMembers = partyVal ? (Array.isArray(partyVal) ? partyVal : Object.values(partyVal)) : [claimantName];
-
-    const prestigeReward = extractRewardValue(def.rewards, '♦');
-    const isPersonal = !!(def.ownerUid);
-    const taskRef = await db.ref('tasks').push({
-      title: `Quest Complete — ${claimantName} — ${def.name || id}`,
-      type: 'prestige_quest',
-      prestigePoints: prestigeReward || 0,
-      holder: claimantName,
-      partyMembers: partyMembers,
-      questId: id,
-      questName: def.name || id,
-      status: 'pending',
-      createdAt: Date.now(),
-      createdBy: currentUserData ? currentUserData.name : 'System',
-      issuerApproval: isPersonal,
-      issuerName: def.ownerName || null,
-      issuerUid: def.ownerUid || null,
-    });
-
-    await db.ref('questDefs/' + id + '/pendingComplete/' + taskRef.key).set(claimantName);
+    if (!confirm(`Submit your contract as complete?\n\nA councillor will approve and award your Laxi.`)) return;
+    await memberCompleteQuestOnce(id, claimantName);
   }
 
   async function toggleActive(id, currentlyActive) {
@@ -1507,7 +1511,7 @@
   function buildAdminCardShell(opts) {
     const { tilt, level, slotsValue, slotsLabel, name, issuer, descriptionHtml,
             guildGain, prestige, silver, claimsHtml, slotStatus, slotStatusFull,
-            saveLabel, deadlineValue, outOfTime, isActive } = opts;
+            saveLabel, deadlineValue, outOfTime, isActive, isMinistry } = opts;
 
     const article = document.createElement('article');
     article.className = 'quest-card';
@@ -1545,7 +1549,7 @@
       <p class="guild-gain"><strong>Guild Gain:</strong> <span class="editable" contenteditable="true">${guildGain}</span></p>
       <div class="reward">
         <div class="reward-item">
-          <svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-prestige"/></svg>
+          ${isMinistry ? `<span class="reward-icon">£</span>` : `<svg class="reward-icon" viewBox="0 0 16 16"><use href="#icon-prestige"/></svg>`}
           <input type="number" class="num-input reward-prestige-input silver-input" inputmode="numeric" type="text" value="${prestige}"> Laxi
         </div>
       </div>
@@ -1574,14 +1578,16 @@
 
   function buildAdminCard(id, def, claims) {
     const tilt = (Math.random() * 2.4 - 1.2).toFixed(2);
-    const prestige = extractRewardValue(def.rewards, '♦');
+    const prestige = extractRewardValue(def.rewards, '£') || extractRewardValue(def.rewards, '♦');
     const silver   = extractRewardValue(def.rewards, '⛀');
     const remaining = Math.max((def.slots || 0) - claims.length, 0);
 
     const claimsHtml = groupClaimantsAdmin(claims).map(({ name, count, index }) => `
       <span class="claim-tag admin-tag">
         ${escapeHtml(name)}${count > 1 ? ` <span class="claim-count">×${count}</span>` : ''}
-        <button class="complete-claim-btn" data-id="${escapeHtml(id)}" data-index="${index}">✓</button>
+        ${count > 1
+          ? `<button class="complete-all-btn" data-id="${escapeHtml(id)}" data-name="${escapeHtml(name)}" data-count="${count}">✓ All</button>`
+          : `<button class="complete-claim-btn" data-id="${escapeHtml(id)}" data-index="${index}">✓</button>`}
         <button class="remove-claim-btn" data-id="${escapeHtml(id)}" data-index="${index}">×</button>
       </span>`).join('');
 
@@ -1590,6 +1596,7 @@
       slotsLabel: pluralize(def.slots, 'contract') + ' open',
       name: escapeHtml(def.name), issuer: escapeHtml(def.issuer),
       descriptionHtml: def.description, guildGain: escapeHtml(def.guildGain),
+      isMinistry: !!def.ministry,
       prestige, silver, claimsHtml,
       slotStatus: `${remaining} / ${def.slots} contracts open`,
       slotStatusFull: remaining === 0, saveLabel: 'Save Changes',
@@ -1610,6 +1617,9 @@
     });
     article.querySelectorAll('.complete-claim-btn').forEach(btn => {
       btn.addEventListener('click', () => completeClaimant(id, parseInt(btn.dataset.index, 10)));
+    });
+    article.querySelectorAll('.complete-all-btn').forEach(btn => {
+      btn.addEventListener('click', () => completeAllForClaimant(btn.dataset.id, btn.dataset.name, parseInt(btn.dataset.count, 10)));
     });
     return article;
   }
@@ -1894,19 +1904,46 @@
 
     const iAmClaimant = myName && claimsArr.some(n => n?.toLowerCase() === myName.toLowerCase());
     if (iAmClaimant && id) {
-      if (isPendingComplete) {
+      const remaining = myClaimCount - myPendingCount;
+      if (myPendingCount > 0 && remaining <= 0) {
         const note = document.createElement('span');
         note.className = 'pending-approval-note';
         note.style.cssText = 'font-size:11px;font-style:italic;color:var(--ink-soft);display:block;margin-top:6px';
         note.textContent = '⏳ Awaiting councillor approval…';
         claimControls.appendChild(note);
       } else {
+        const row = document.createElement('div');
+        row.className = 'bulk-complete-row';
+        if (remaining > 1) {
+          const qtyIn = document.createElement('input');
+          qtyIn.type = 'number';
+          qtyIn.className = 'bulk-qty-input complete-qty';
+          qtyIn.value = remaining;
+          qtyIn.min = 1;
+          qtyIn.max = remaining;
+          qtyIn.title = 'How many to submit';
+          row.appendChild(qtyIn);
+        }
         const completeBtn = document.createElement('button');
         completeBtn.className = 'member-complete-btn gold-btn';
-        completeBtn.style.cssText = 'font-size:11px;padding:4px 12px;margin-top:6px';
-        completeBtn.textContent = myClaimCount > 1 ? `✓ Complete (${myPendingCount}/${myClaimCount})` : '✓ Complete';
-        completeBtn.addEventListener('click', () => memberCompleteQuest(id, myName));
-        claimControls.appendChild(completeBtn);
+        completeBtn.style.cssText = 'font-size:11px;padding:4px 12px';
+        completeBtn.textContent = remaining > 1 ? `✓ Complete (${myPendingCount ? myPendingCount+'/' : ''}${myClaimCount})` : '✓ Complete';
+        completeBtn.addEventListener('click', async () => {
+          const qtyEl = row.querySelector('.complete-qty');
+          const n = qtyEl ? Math.min(Math.max(1, parseInt(qtyEl.value, 10) || 1), remaining) : 1;
+          if (!confirm(n > 1 ? `Submit ${n} contracts as complete?\n\nA councillor will approve and award your Laxi.` : `Submit contract as complete?\n\nA councillor will approve and award your Laxi.`)) return;
+          completeBtn.disabled = true;
+          for (let i = 0; i < n; i++) await memberCompleteQuestOnce(id, myName);
+          completeBtn.disabled = false;
+        });
+        row.appendChild(completeBtn);
+        if (myPendingCount > 0) {
+          const note = document.createElement('span');
+          note.style.cssText = 'font-size:11px;font-style:italic;color:var(--ink-soft)';
+          note.textContent = `(${myPendingCount} awaiting approval)`;
+          row.appendChild(note);
+        }
+        claimControls.appendChild(row);
       }
     }
 
@@ -2015,7 +2052,10 @@
         <div class="slot-status">— / ${def.slots} contracts open</div>
         <div class="claimants"></div>
         <div class="claim-controls">
-          <button class="claim-btn">Claim Contract</button>
+          <div class="bulk-claim-row">
+            <input type="number" class="bulk-qty-input claim-qty" value="1" min="1" max="${def.slots}" title="How many slots to claim">
+            <button class="claim-btn">Claim Contract</button>
+          </div>
         </div>
         <div class="owner-controls" style="display:none;margin-top:8px;display:none;gap:6px;flex-wrap:wrap;">
           <button class="owner-complete-btn" style="font-family:Georgia,serif;font-size:11px;padding:4px 10px;background:#2a5a2a;color:var(--parchment);border:none;border-radius:2px;cursor:pointer;">✓ Complete</button>
@@ -2225,39 +2265,36 @@
   }, 60000);
 
   async function claimQuest(card) {
-    if (!currentUserData) {
-      window.location.href = '../';
-      return;
-    }
+    if (!currentUserData) { window.location.href = '../'; return; }
     const id = card.dataset.questId;
     const totalSlots = parseInt(card.dataset.slots, 10);
     const trimmedName = currentUserData.name;
+    const qtyInput = card.querySelector('.claim-qty');
+    const qty = Math.max(1, parseInt(qtyInput?.value, 10) || 1);
 
     const claimBtn = card.querySelector('.claim-btn');
     if (claimBtn) { claimBtn.disabled = true; claimBtn.textContent = 'Claiming…'; }
 
     const ref = db.ref(`quests/${id}`);
-    let result;
-    try {
-      result = await ref.transaction(current => {
-        const claims = current || [];
-        if (claims.length >= totalSlots) {
-          return; // undefined = abort, no write
-        }
-        return [...claims, trimmedName];
-      });
-    } catch (e) {
-      if (claimBtn) { claimBtn.disabled = false; claimBtn.textContent = 'Claim Contract'; }
-      alert('Could not save claim — please try again.');
-      return;
+    let claimed = 0;
+    for (let i = 0; i < qty; i++) {
+      let result;
+      try {
+        result = await ref.transaction(current => {
+          const claims = current || [];
+          if (claims.length >= totalSlots) return; // abort
+          return [...claims, trimmedName];
+        });
+      } catch (e) {
+        break;
+      }
+      if (!result.committed) break;
+      claimed++;
     }
 
-    if (!result.committed) {
-      if (claimBtn) { claimBtn.disabled = false; claimBtn.textContent = 'Claim Contract'; }
-      alert('No contracts remaining for this quest.');
-      return;
-    }
-
+    if (claimBtn) { claimBtn.disabled = false; claimBtn.textContent = 'Claim Contract'; }
+    if (claimed === 0) alert('No contracts remaining for this quest.');
+    else if (claimed < qty) alert(`Claimed ${claimed} of ${qty} — no more slots available.`);
   }
 
   // ============ REQUEST A CONTRACT ============
