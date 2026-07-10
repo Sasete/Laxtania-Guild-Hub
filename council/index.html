@@ -407,6 +407,7 @@
         </div>
         <span id="questDeficitBadge" style="display:none;margin-left:8px;background:rgba(140,36,36,.1);border:1px solid rgba(140,36,36,.35);color:#8c2424;font-family:Georgia,serif;font-size:11px;font-variant:small-caps;letter-spacing:1px;padding:3px 10px;border-radius:20px"></span>
         <div id="questEfficiency" style="margin-top:6px;font-size:12px;color:var(--ink-soft);font-family:Georgia,serif"></div>
+        <div id="islandContribution"></div>
       </div>
       <div id="fundTabActions-quest" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('quest',1)">+ Income</button>
@@ -450,15 +451,6 @@
     </div>
     <div id="questWishlist" style="margin-bottom:20px"></div>
 
-    <!-- Active Commitments -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-      <span>Active Commitments</span>
-      <div style="display:flex;gap:16px;align-items:center">
-        <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)" id="questCommitmentCounts"></span>
-        <span style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Committed: <strong id="questCommitted" style="font-family:Georgia,serif;color:var(--seal-red)">—</strong></span>
-      </div>
-    </div>
-    <div id="questCommitments" style="margin-bottom:20px"></div>
 
 
 
@@ -476,6 +468,9 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <textarea id="mq-desc-quest" placeholder="Description..." rows="3" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px;resize:vertical;line-height:1.5"></textarea>
         <input type="number" id="mq-laxi-quest" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-gain-quest" placeholder="Guild Gain (optional — e.g. 50 Potions delivered)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('quest')">Post Quest</button>
@@ -599,7 +594,7 @@
 
     <!-- Ministry Quests: Ministry of Events -->
     <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-      <span>Ministry of Events — Quests</span>
+      <span>Ministry of Events — Quests <span id="ministryCommitSummary-events" style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-left:8px"></span></span>
       <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('events')">+ Post Quest</button>
     </div>
     <div id="ministryForm-events" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
@@ -611,6 +606,9 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <textarea id="mq-desc-events" placeholder="Description..." rows="3" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px;resize:vertical;line-height:1.5"></textarea>
         <input type="number" id="mq-laxi-events" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-gain-events" placeholder="Guild Gain (optional — e.g. 50 Potions delivered)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('events')">Post Quest</button>
@@ -670,7 +668,7 @@
 
     <!-- Ministry Quests: Ministry of Island Affairs -->
     <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-      <span>Ministry of Island Affairs — Quests</span>
+      <span>Ministry of Island Affairs — Quests <span id="ministryCommitSummary-island" style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-left:8px"></span></span>
       <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('island')">+ Post Quest</button>
     </div>
     <div id="ministryForm-island" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
@@ -682,6 +680,9 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <textarea id="mq-desc-island" placeholder="Description..." rows="3" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px;resize:vertical;line-height:1.5"></textarea>
         <input type="number" id="mq-laxi-island" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-gain-island" placeholder="Guild Gain (optional)..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('island')">Post Quest</button>
@@ -733,7 +734,7 @@
 
     <!-- Ministry Quests: Ministry of Recruitment -->
     <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-      <span>Ministry of Recruitment — Quests</span>
+      <span>Ministry of Recruitment — Quests <span id="ministryCommitSummary-recruitment" style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-left:8px"></span></span>
       <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('recruitment')">+ Post Quest</button>
     </div>
     <div id="ministryForm-recruitment" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
@@ -745,6 +746,9 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <textarea id="mq-desc-recruitment" placeholder="Description..." rows="3" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:3;min-width:200px;resize:vertical;line-height:1.5"></textarea>
         <input type="number" id="mq-laxi-recruitment" min="1" placeholder="Laxi reward" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:110px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <input type="text" id="mq-gain-recruitment" placeholder="Guild Gain (optional)..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('recruitment')">Post Quest</button>
@@ -2998,6 +3002,8 @@ window.submitMinistryQuest=async function(key){
   const slots=parseInt(document.getElementById('mq-slots-'+key)?.value)||1;
   const desc=(document.getElementById('mq-desc-'+key)?.value||'').trim();
   const laxi=parseInt(document.getElementById('mq-laxi-'+key)?.value)||0;
+  const gainInput=document.getElementById('mq-gain-'+key);
+  const guildGain=(gainInput?.value||'').trim()||`Contributes to ${MINISTRY_NAMES[key]||key} objectives`;
   const ministry=MINISTRY_NAMES[key]||key;
   if(!name||!desc||!laxi){toast('Fill in name, description and Laxi reward.');return;}
   const by=currentUserData?.name||'Council';
@@ -3006,7 +3012,7 @@ window.submitMinistryQuest=async function(key){
     name,level:level||'Guild Quest',slots,order,active:true,
     issuer:ministry,
     description:desc,
-    guildGain:`Contributes to ${ministry} objectives`,
+    guildGain,
     rewards:[{icon:'£',text:`${laxi} Laxi`}],
     ministry:key,
     createdBy:by,createdAt:Date.now(),
@@ -3017,6 +3023,7 @@ window.submitMinistryQuest=async function(key){
   document.getElementById('mq-slots-'+key).value='1';
   document.getElementById('mq-desc-'+key).value='';
   document.getElementById('mq-laxi-'+key).value='';
+  if(gainInput)gainInput.value='';
   toggleMinistryForm(key);
   toast(`Quest posted to quest board as "${ministry}".`);
 };
@@ -3024,24 +3031,70 @@ window.submitMinistryQuest=async function(key){
 function renderMinistryQuests(key,defs){
   const el=document.getElementById('ministryQuestList-'+key);
   if(!el)return;
-  const ministry=MINISTRY_NAMES[key]||key;
   const quests=Object.entries(defs).filter(([,d])=>d.ministry===key&&d.active!==false);
   if(!quests.length){el.innerHTML='<div class="empty">No active quests.</div>';return;}
-  el.innerHTML=quests.map(([id,d])=>{
-    const laxi=Array.isArray(d.rewards)?d.rewards.find(r=>r.icon==='£')?.text:Object.values(d.rewards||{}).find(r=>r.icon==='£')?.text;
-    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-bottom:6px;background:rgba(255,255,255,.5);border:1px solid rgba(120,90,50,.2);border-radius:3px">
-      <div>
-        <span style="font-family:Georgia,serif;font-size:13px;font-weight:bold;color:var(--navy)">${d.name}</span>
-        <span style="font-size:11px;color:var(--ink-soft);margin-left:10px">${d.level||''}</span>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${d.description?.replace(/<[^>]+>/g,' ')?.substring(0,80)||''}</div>
+  let totalSlots=0,claimedSlots=0,totalLaxi=0;
+  const isMarket=key==='quest';
+  const rows=quests.map(([id,d])=>{
+    const laxiText=Array.isArray(d.rewards)?d.rewards.find(r=>r.icon==='£')?.text:Object.values(d.rewards||{}).find(r=>r.icon==='£')?.text;
+    const laxiVal=parseInt(laxiText)||0;
+    const slots=d.slots||1;
+    const claimedVal=_activeQuests[id];
+    const claimants=claimedVal?(Array.isArray(claimedVal)?claimedVal:Object.values(claimedVal)):[];
+    const filled=Math.min(claimants.length,slots);
+    totalSlots+=slots;claimedSlots+=filled;totalLaxi+=laxiVal*slots;
+    const isFull=filled>=slots&&slots>0;
+    const claimColor=isFull?'var(--seal-red)':filled>0?'#b07a00':'var(--ink-soft)';
+    const claimLabel=filled===0?'Unclaimed':isFull?`Claimed`:`${filled}/${slots}`;
+    const claimantLine=!isMarket&&claimants.length?`<div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${claimants.join(', ')}</div>`:'';
+    return`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;margin-bottom:6px;background:rgba(255,255,255,.5);border-left:3px solid ${isMarket?'rgba(120,90,50,.3)':claimColor};border:1px solid rgba(120,90,50,.2);border-radius:3px">
+      <div style="flex:1;min-width:0">
+        <div>
+          <span style="font-family:Georgia,serif;font-size:13px;font-weight:bold;color:var(--navy)">${d.name}</span>
+          <span style="font-size:11px;color:var(--ink-soft);margin-left:8px">${d.level||''}</span>
+        </div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${d.description?.replace(/<[^>]+>/g,' ')?.substring(0,100)||''}</div>
+        ${claimantLine}
       </div>
-      <div style="text-align:right;min-width:80px">
-        <div style="font-size:12px;color:#4a7c59;font-weight:bold">${laxi||'—'}</div>
-        <div style="font-size:11px;color:var(--ink-soft)">${d.slots||1} slot(s)</div>
+      <div style="text-align:right;flex-shrink:0;min-width:90px;margin-left:12px">
+        <div style="font-size:12px;color:#4a7c59;font-weight:bold">${laxiVal?laxiVal+' Laxi':'—'}</div>
+        ${!isMarket?`<div style="font-size:11px;font-weight:bold;color:${claimColor}">${claimLabel} · ${slots} slot${slots>1?'s':''}</div>`:`<div style="font-size:11px;color:var(--ink-soft)">${slots} slot(s)</div>`}
         <button onclick="removeMinistryQuest('${id}')" style="font-size:10px;color:#8c2424;background:none;border:none;cursor:pointer;padding:2px 0;font-family:Georgia,serif">Remove</button>
       </div>
     </div>`;
-  }).join('');
+  });
+  const silverTotal=totalLaxi*silverRate;
+  const summaryEl=document.getElementById('ministryCommitSummary-'+key);
+  if(summaryEl)summaryEl.textContent=`${claimedSlots}/${totalSlots} slots claimed`;
+  el.innerHTML=rows.join('')+(totalLaxi?`<div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:7px 12px;background:rgba(28,42,64,.06);border-top:1px solid rgba(120,90,50,.2);font-family:Georgia,serif;font-size:12px">
+    <span style="color:var(--ink-soft)">Total active:</span>
+    <strong style="color:#4a7c59">${totalLaxi} Laxi</strong>
+    <span style="color:var(--ink-soft)">=</span>
+    <strong style="color:var(--ink)">${fmtS(silverTotal)}</strong>
+  </div>`:'');
+}
+
+function renderMinistryCommitments(key,defs){renderMinistryQuests(key,defs);}
+
+function renderIslandContribution(){
+  const el=document.getElementById('islandContribution');
+  if(!el)return;
+  const totalPaid=Object.values(tasks)
+    .filter(t=>t.type==='prestige_quest'&&t.status==='completed')
+    .reduce((s,t)=>s+(t.amount||0),0);
+  const totalDeposited=Object.values(questEntries)
+    .filter(e=>e.amount>0&&!e.auto)
+    .reduce((s,e)=>s+e.amount,0);
+  const pending=Math.max(0,totalPaid-totalDeposited);
+  if(!totalPaid){el.innerHTML='';return;}
+  el.innerHTML=`<div style="margin-top:10px;padding:8px 12px;background:rgba(28,42,64,.06);border-radius:3px;border-left:3px solid rgba(200,160,74,.4)">
+    <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft);margin-bottom:4px">Island Budget — Siankael</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;font-family:Georgia,serif">
+      <span>Total paid out: <strong>${fmtS(totalPaid)}</strong></span>
+      <span>Deposited: <strong>${fmtS(totalDeposited)}</strong></span>
+      ${pending>0?`<span style="color:var(--seal-red);font-weight:bold">→ Pending: ${fmtS(pending)}</span>`:`<span style="color:#2a5a2a;font-weight:bold">✓ Covered</span>`}
+    </div>
+  </div>`;
 }
 
 window.removeMinistryQuest=async function(id){
@@ -3055,6 +3108,7 @@ window.removeMinistryQuest=async function(id){
 onValue(ref(db,'questDefs'),snap=>{
   const defs=snap.val()||{};
   ['quest','events','island','recruitment'].forEach(key=>renderMinistryQuests(key,defs));
+  ['events','island','recruitment'].forEach(key=>renderMinistryCommitments(key,defs));
 });
 
 // ── DEV: Fake crisis log — remove after test ──
@@ -3104,14 +3158,14 @@ onAuthStateChanged(auth,async user=>{
     treasuryBalance=Object.values(treasuryEntries).reduce((s,e)=>s+(e.amount||0),0);
     renderOverview();renderPrestigeValue();renderTreasuryChart();
   });
-  safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();renderPrestigeValue();});
+  safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();renderPrestigeValue();renderIslandContribution();});
   safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();});
   safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();});
   safeOnValue('bonds',snap=>{bondPeriods=snap.val()||{};renderBonds();renderOverview();});
-  safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();renderOverview();});
+  safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();renderOverview();renderIslandContribution();});
   safeOnValue('questBudget/wishlist',snap=>{_wishlistItems=snap.val()||{};renderWishlist();});
-  safeOnValue('questDefs',snap=>{_questDefs=snap.val()||{};renderQuestCommitments();});
-  safeOnValue('quests',snap=>{_activeQuests=snap.val()||{};renderQuestCommitments();});
+  safeOnValue('questDefs',snap=>{_questDefs=snap.val()||{};renderQuestCommitments();['events','island','recruitment'].forEach(key=>renderMinistryCommitments(key,_questDefs));});
+  safeOnValue('quests',snap=>{_activeQuests=snap.val()||{};renderQuestCommitments();['events','island','recruitment'].forEach(key=>renderMinistryCommitments(key,_questDefs));});
   onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
     if(snap.exists()){silverRate=snap.val();document.getElementById('silverRateInput').value=silverRate.toLocaleString('tr-TR');}
     document.getElementById('rateHint').textContent=`1 Laxi = ${silverRate.toLocaleString()} Silver`;

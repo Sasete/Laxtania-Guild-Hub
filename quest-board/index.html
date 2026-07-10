@@ -173,6 +173,8 @@
       inset 0 0 40px rgba(120,90,50,0.18),
       0 14px 28px rgba(0,0,0,0.45);
     transform: rotate(var(--tilt, 0deg));
+    display: flex;
+    flex-direction: column;
   }
 
 
@@ -243,6 +245,9 @@
     font-size: 15px;
     line-height: 1.6;
     color: var(--ink);
+    max-height: 120px;
+    overflow-y: auto;
+    flex: 1;
   }
 
   .guild-gain {
@@ -1272,11 +1277,24 @@
 
   function cleanDescriptionHtml(html) {
     let out = html;
-    out = out.replace(/<div>/gi, ' ').replace(/<\/div>/gi, '');
-    out = out.replace(/<br\s*\/?>/gi, ' ');
+    // div → line break (contenteditable wraps new lines in divs)
+    out = out.replace(/<div>/gi, '<br>').replace(/<\/div>/gi, '');
+    // keep <br>, <strong>, and [item="..."] tags; strip everything else
     out = out.replace(/<b>/gi, '<strong>').replace(/<\/b>/gi, '</strong>');
-    out = out.replace(/<(?!\/?strong\b)[^>]*>/gi, '');
-    return out.replace(/\s+/g, ' ').trim();
+    out = out.replace(/<(?!\/?strong\b)(?!br\s*\/?)(?!\/?img\b)[^>]*>/gi, '');
+    // collapse multiple consecutive <br> to max 2
+    out = out.replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>');
+    return out.trim();
+  }
+
+  function renderItemTags(html) {
+    return html.replace(/\[item="([^"]+)"\]/g, (_, id) =>
+      `<img src="https://render.albiononline.com/v1/item/${encodeURIComponent(id)}.png" width="22" height="22" style="vertical-align:middle;display:inline-block;margin:0 2px" title="${id}" onerror="this.style.display='none'">`
+    );
+  }
+
+  function renderDescription(html) {
+    return renderItemTags(html);
   }
 
   function groupClaimantsAdmin(claims) {
@@ -1522,7 +1540,7 @@
       <hr class="divider">
       <div class="description-wrap">
         <button class="bold-toggle" title="Bold selected text">B</button>
-        <p class="description editable" contenteditable="true">${descriptionHtml}</p>
+        <p class="description editable" contenteditable="true">${renderDescription(descriptionHtml)}</p>
       </div>
       <p class="guild-gain"><strong>Guild Gain:</strong> <span class="editable" contenteditable="true">${guildGain}</span></p>
       <div class="reward">
@@ -1981,8 +1999,8 @@
       <h2 class="quest-name">${escapeHtml(def.name)}</h2>
       ${!def.ministry ? `<p class="issuer">${escapeHtml(def.issuer)}</p>` : ''}
       <hr class="divider">
-      <p class="description">${def.description}</p>
-      <p class="guild-gain"><strong>Guild Gain:</strong> ${escapeHtml(def.guildGain)}</p>
+      <p class="description">${renderDescription(def.description)}</p>
+      ${def.guildGain ? `<p class="guild-gain"><strong>Guild Gain:</strong> ${escapeHtml(def.guildGain)}</p>` : ''}
       <div class="reward">${rewardsHtml}</div>
       <div class="party-row" id="party-row-${id}" style="display:none"></div>
       <div class="participants-panel" id="party-panel-${id}">
