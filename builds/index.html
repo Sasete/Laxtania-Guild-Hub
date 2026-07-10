@@ -159,9 +159,18 @@
       </div>
       <div class="form-group">
         <label>Content</label>
-        <select id="bContent">
-          <option>ZvZ</option><option>GvG</option><option>Corrupted</option><option>Solo</option><option>Ganking</option><option>Dungeon</option>
-        </select>
+        <input type="text" id="bContent" list="contentList" placeholder="e.g. ZvZ, HCE, Roads...">
+        <datalist id="contentList">
+          <option value="ZvZ">
+          <option value="GvG">
+          <option value="Corrupted">
+          <option value="Solo">
+          <option value="Ganking">
+          <option value="Dungeon">
+          <option value="HCE">
+          <option value="Ava Roads">
+          <option value="Hellgates">
+        </datalist>
       </div>
     </div>
 
@@ -331,9 +340,16 @@ onAuthStateChanged(auth, async user => {
 });
 
 // ── Live data ──
+let initialLoad = true;
 onValue(ref(db,'builds'), snap => {
   allBuilds = snap.val() || {};
   renderBuilds();
+  if (initialLoad) {
+    initialLoad = false;
+    const params = new URLSearchParams(window.location.search);
+    const bId = params.get('build') || window.location.hash.slice(1);
+    if (bId && allBuilds[bId]) openBuild(bId);
+  }
 });
 
 // ── Build equipment grid (form) ──
@@ -478,7 +494,7 @@ window.renderBuilds = function() {
 
   if (activeFilter !== 'all') {
     const [filterType, filterVal] = activeFilter.split(':');
-    entries = entries.filter(([,b]) => b[filterType] === filterVal);
+    entries = entries.filter(([,b]) => (b[filterType]||'').toLowerCase() === filterVal.toLowerCase());
   }
 
   if (entries.length === 0) {
@@ -546,15 +562,28 @@ window.openBuild = function(id) {
   else descEl.style.display = 'none';
 
   const actionsEl = document.getElementById('mActions');
-  actionsEl.innerHTML = isCouncil
+  const shareBtn = `<button class="btn-primary" onclick="copyBuildLink('${id}')" style="margin-right:auto;">Share Link</button>`;
+  actionsEl.innerHTML = shareBtn + (isCouncil
     ? `<button class="btn-danger" onclick="deleteBuild('${id}')">Delete</button><button class="btn-cancel" onclick="closeBuildModal()">Close</button>`
-    : `<button class="btn-cancel" onclick="closeBuildModal()">Close</button>`;
+    : `<button class="btn-cancel" onclick="closeBuildModal()">Close</button>`);
 
   document.getElementById('buildModal').classList.add('show');
 };
 window.closeBuildModal = function() {
   document.getElementById('buildModal').classList.remove('show');
   openBuildId = null;
+  const url = new URL(window.location);
+  url.searchParams.delete('build');
+  if (url.hash) url.hash = '';
+  window.history.replaceState({}, '', url);
+};
+window.copyBuildLink = function(id) {
+  const url = window.location.origin + window.location.pathname + '?build=' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Link copied to clipboard!');
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
 };
 window.deleteBuild = async function(id) {
   if (!isCouncil) return;
