@@ -12,7 +12,7 @@ async function _loadDb() {
   }
   _dbLoading = true;
   try {
-    const r = await fetch('/js/albion-items-full.json');
+    const r = await fetch('/js/albion-items-full.json?v=' + Date.now());
     const raw = await r.json(); // [[id, name], ...]
     _fullDb = raw.map(([id, name]) => {
       const tierMatch = id.match(/^T(\d+)_/);

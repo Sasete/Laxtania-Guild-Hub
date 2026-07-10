@@ -443,7 +443,18 @@
           }
           onValue(ref(db,'tasks'),snap=>{
             _navAllTasks=snap.val()||{};
-            _navPendingTasks=Object.values(_navAllTasks).filter(t=>t.status==='pending').length;
+            // Group prestige_quest tasks by questId+holder — each group counts as 1
+            const pending=Object.entries(_navAllTasks).filter(([,t])=>t.status==='pending');
+            const seen=new Set();let count=0;
+            for(const [id,t] of pending){
+              if(t.type==='prestige_quest'&&t.questId&&t.holder){
+                const key=`pq:${t.questId}:${t.holder.toLowerCase()}`;
+                if(seen.has(key))continue;
+                seen.add(key);
+              }
+              count++;
+            }
+            _navPendingTasks=count;
             _navUpdateBadge();
             _navUpdatePrestigePending();
             // Track own pending buy/sell tasks

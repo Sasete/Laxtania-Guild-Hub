@@ -203,6 +203,7 @@
 
 <div id="navbar-placeholder" data-page="council" data-path-prefix="../"></div>
 <script>const _ns=document.createElement("script");_ns.src="../navbar.js?v="+Date.now();document.currentScript.replaceWith(_ns);</script>
+<script src="../js/albion-items.js?v=2"></script>
 
 <div class="board-header">
   <h1>⚜ Council Chamber</h1>
@@ -216,7 +217,7 @@
       <button class="tab-dropdown-btn" id="budgetDropdownBtn">Ministries</button>
       <div class="tab-dropdown-menu">
         <button class="tab-dropdown-item" id="bdItem-quest" onclick="switchTab('quest')">Market Commission</button>
-        <button class="tab-dropdown-item" id="bdItem-events" onclick="switchTab('events')">Ministry of Events</button>
+        <button class="tab-dropdown-item" id="bdItem-events" onclick="switchTab('events')">Ministry of War</button>
         <button class="tab-dropdown-item" id="bdItem-island" onclick="switchTab('island')">Ministry of Island Affairs</button>
         <button class="tab-dropdown-item" id="bdItem-recruitment" onclick="switchTab('recruitment')">Ministry of Recruitment</button>
       </div>
@@ -299,7 +300,7 @@
       </div>
       <div class="fund-summary-card">
         <div class="fs-pct" id="ovPct-events">—</div>
-        <div class="fs-label">Ministry of Events</div>
+        <div class="fs-label">Ministry of War</div>
         <div class="fs-value" id="ovEventsBal">—</div>
         <div id="ovPending-events" style="font-size:11px;font-variant:small-caps;letter-spacing:.5px;color:var(--ink-soft);min-height:14px"></div>
 
@@ -435,21 +436,63 @@
       </div>
     </div>
 
-    <!-- Market Wishlist -->
-    <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Market Wishlist</span>
-      <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleWishlistForm()">+ Add Item</button>
+    <!-- Market Stats -->
+<div id="marketStats" style="margin-bottom:16px"></div>
+
+<!-- Market Inventory -->
+<div class="section-eyebrow" style="margin-top:4px">Stock Inventory</div>
+<!-- Edit panel (shared) -->
+<div id="miQuestPanel" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:4px">
+  <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px">Post Quest — <span id="miQuestItemName" style="color:var(--navy)"></span></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+    <input type="hidden" id="miQuestItemId">
+    <div>
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Stack qty <span style="opacity:.6">(per slot)</span></div>
+      <input type="number" id="miQuestQty" min="1" value="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:80px">
     </div>
-    <div id="wishlistForm" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="wishItemName" placeholder="Item name..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:160px">
-        <input type="number" id="wishItemQty" placeholder="Qty" step="1" min="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:70px">
-        <input type="text" class="silver-input" inputmode="numeric" id="wishItemPrice" placeholder="Target price" step="10000" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:140px">
-        <button class="gold-btn" onclick="addWishlistItem()">Add</button>
-        <button class="ghost-btn" onclick="toggleWishlistForm()">Cancel</button>
-      </div>
+    <div>
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Slots</div>
+      <input type="number" id="miQuestSlots" min="1" value="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:80px">
     </div>
-    <div id="questWishlist" style="margin-bottom:20px"></div>
+    <div>
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Laxi / slot</div>
+      <input type="number" id="miQuestLaxi" min="1" value="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:80px">
+    </div>
+    <div style="display:flex;gap:6px;align-items:flex-end">
+      <button class="gold-btn" onclick="submitMiQuest()">Post Quest</button>
+      <button class="ghost-btn" onclick="document.getElementById('miQuestPanel').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="miEditPanel" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:4px">
+  <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:8px">Edit Item</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+    <input type="hidden" id="miEditId">
+    <div style="flex:2;min-width:140px">
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Name</div>
+      <input type="text" id="miEditName" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box">
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Sale price</div>
+      <input type="text" class="silver-input" inputmode="numeric" id="miEditPrice" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:150px">
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Stock</div>
+      <input type="number" id="miEditStock" min="0" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:75px">
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--ink-soft);margin-bottom:3px">Target</div>
+      <input type="number" id="miEditTarget" min="1" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:75px">
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="gold-btn" onclick="saveMiEdit()">Save</button>
+      <button class="ghost-btn" onclick="document.getElementById('miEditPanel').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="marketItemForm" style="display:none"></div>
+<div id="marketItemList" style="margin-bottom:20px"></div>
+
 
 
 
@@ -593,9 +636,9 @@
     </div>
 
 
-    <!-- Ministry Quests: Ministry of Events -->
+    <!-- Ministry Quests: Ministry of War -->
     <div class="section-eyebrow" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-      <span>Ministry of Events — Quests <span id="ministryCommitSummary-events" style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-left:8px"></span></span>
+      <span>Ministry of War — Quests <span id="ministryCommitSummary-events" style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-left:8px"></span></span>
       <button class="ghost-btn" style="font-size:11px;padding:3px 10px" onclick="toggleMinistryForm('events')">+ Post Quest</button>
     </div>
     <div id="ministryForm-events" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(28,42,64,.05);border-radius:3px">
@@ -851,7 +894,7 @@
           <select id="taskFundType">
             <option value="">— General —</option>
             <option value="quest">Market Commission</option>
-            <option value="events">Ministry of Events</option>
+            <option value="events">Ministry of War</option>
             <option value="island">Ministry of Island Affairs</option>
           </select>
         </div>
@@ -937,6 +980,13 @@
         Loading crisis info…
       </div>
       <div id="crisisLogList" style="font-size:12px;color:var(--ink-soft);font-style:italic">No circuit breaker events on record.</div>
+    </div>
+
+    <!-- Admin Tools -->
+    <div class="add-form" style="margin-top:20px">
+      <div class="section-eyebrow" style="margin:0 0 10px">Admin Tools</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">Fix misattributed Laxi: move 12 pts (Fill &amp; Deliver | T5 Gathering Journals) from Market Commission → Island Affairs.</div>
+      <button class="gold-btn" onclick="fixMisattributedLaxi()">Apply Fix (12 Laxi → Island Affairs)</button>
     </div>
 
   </div>
@@ -1028,7 +1078,9 @@ const db=getDatabase(app);
 
 let currentUser=null,currentUserData=null;
 let _fundRequests={};
-let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={};
+let questPrestigeEntries={},eventsPrestigeEntries={},islandPrestigeEntries={},recruitmentPrestigeEntries={};
+let _miAddOpen=false,_miFormState={};
+let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={},_marketItems={};
 let _fundDeficits={quest:0,events:0,island:0,recruitment:0};
 function fmtLaxi(n){const a=Math.abs(n);const s=a>=1000000?(a/1000000).toFixed(2).replace(/\.?0+$/,'')+'M':a>=1000?(a/1000).toFixed(1).replace(/\.0$/,'')+'K':String(a);return(n<0?'−':'')+s;}
 
@@ -1061,54 +1113,15 @@ function renderFundEfficiency(key){
   const laxiTasks=taskEntries.filter(([,t])=>
     t.status==='completed'&&t.fundType===key&&(t.type==='prestige_quest'||t.type==='prestige_event')
   );
-  if(!laxiTasks.length){effEl.innerHTML='<span style="font-style:italic">No Laxi distributed yet.</span>';return;}
+  const fundEntries=Object.values(getFundEntries(key));
+  // Manual prestige entries (no taskId, negative amount = Laxi paid out)
+  const manualPrestige=Object.values(getFundPrestigeEntries(key)).filter(e=>!e.taskId&&e.amount<0);
+  if(!laxiTasks.length&&!manualPrestige.length){effEl.innerHTML='<span style="font-style:italic">No Laxi distributed yet.</span>';return;}
 
-  const fundEntryByTaskId=Object.fromEntries(
-    Object.values(getFundEntries(key)).filter(e=>e.auto&&e.amount<0&&e.taskId).map(e=>[e.taskId,Math.abs(e.amount)])
-  );
-  // Group tasks by YYYY-MM
-  const byMonth={};
-  laxiTasks.forEach(([tid,t])=>{
-    const d=new Date(t.completedAt||t.createdAt||0);
-    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    if(!byMonth[mk])byMonth[mk]={pts:0,silverPaid:0};
-    byMonth[mk].pts+=(t.prestigePoints||t.prestigeTotal||0);
-    byMonth[mk].silverPaid+=(fundEntryByTaskId[tid]??((t.prestigePoints||t.prestigeTotal||0)*silverRate));
-  });
-  // Income entries grouped by month
-  const incomeByMonth={};
-  Object.values(getFundEntries(key)).filter(e=>e.amount>0).forEach(e=>{
-    const d=new Date(e.at||0);
-    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    incomeByMonth[mk]=(incomeByMonth[mk]||0)+e.amount;
-  });
-
-  const months=Object.keys(byMonth).sort().reverse().slice(0,6);
-  const monthLabel=mk=>{const[y,m]=mk.split('-');return new Date(+y,+m-1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});};
-  const rows=months.map(mk=>{
-    const{pts,silverPaid}=byMonth[mk];
-    const income=incomeByMonth[mk]||0;
-    const eff=silverPaid>0?Math.round(income/silverPaid*100):null;
-    const col=eff==null?'var(--ink-soft)':eff>=100?'#2a5a2a':eff>=70?'#7a5a10':'#8c2424';
-    return`<tr style="border-bottom:1px solid rgba(120,90,50,0.1)">
-      <td style="padding:3px 10px 3px 0;color:var(--ink-soft);white-space:nowrap">${monthLabel(mk)}</td>
-      <td style="padding:3px 10px;text-align:right;font-family:Georgia,serif">£ ${fmtLaxi(pts)}</td>
-      <td style="padding:3px 10px;text-align:right;font-family:Georgia,serif">${fmtS(silverPaid)}</td>
-      <td style="padding:3px 6px;text-align:right;font-family:Georgia,serif">${fmtS(income)}</td>
-      <td style="padding:3px 0 3px 10px;text-align:right;font-weight:bold;color:${col}">${eff!=null?eff+'%':'—'}</td>
-    </tr>`;
-  }).join('');
-  effEl.innerHTML=`<details style="margin-top:4px"><summary style="cursor:pointer;font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Laxi Distribution History</summary>
-  <table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11px">
-    <thead><tr style="border-bottom:1px solid rgba(120,90,50,0.2)">
-      <th style="text-align:left;padding:2px 10px 4px 0;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Month</th>
-      <th style="text-align:right;padding:2px 10px;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Laxi</th>
-      <th style="text-align:right;padding:2px 10px;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Paid</th>
-      <th style="text-align:right;padding:2px 6px;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Income</th>
-      <th style="text-align:right;padding:2px 0;font-variant:small-caps;font-weight:normal;color:var(--ink-soft)">Eff.</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table></details>`;
+  const totalFromTasks=laxiTasks.reduce((s,[,t])=>s+(t.prestigePoints||t.prestigeTotal||0),0);
+  const totalFromManual=manualPrestige.reduce((s,e)=>s+Math.abs(e.amount),0);
+  const totalLaxi=totalFromTasks+totalFromManual;
+  effEl.innerHTML=`<span style="font-size:12px;color:var(--ink-soft)">Laxi distributed: <strong style="color:var(--navy);font-family:Georgia,serif">${fmtLaxi(totalLaxi)} £</strong></span>`;
 }
 
 
@@ -1294,7 +1307,7 @@ window.switchTab=function(tab){
   // Dropdown state
   const isBudget=BUDGET_TABS.has(tab);
   const btn=document.getElementById('budgetDropdownBtn');
-  const labels={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
+  const labels={quest:'Market Commission',events:'Ministry of War',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
   if(btn){btn.classList.toggle('active',isBudget);btn.firstChild.textContent=isBudget?labels[tab]:'Ministries';}
   document.querySelectorAll('.tab-dropdown-item').forEach(it=>it.classList.toggle('active',it.id==='bdItem-'+tab));
 };
@@ -1457,7 +1470,7 @@ function renderBudgetPie(qBal,eBal,iBal,rBal,free){
   const tooltip=document.getElementById('pieTooltip');
   const slices=[
     {label:'Market Commission',val:qBal,color:'#4a7c59'},
-    {label:'Ministry of Events',val:eBal,color:'#7c6a2f'},
+    {label:'Ministry of War',val:eBal,color:'#7c6a2f'},
     {label:'Ministry of Island Affairs',val:iBal,color:'#2f5c7c'},
     {label:'Recruitment',val:rBal,color:'#7c3f2f'},
     {label:'Free Treasury',val:Math.max(0,free),color:'rgba(180,160,110,.5)'},
@@ -1559,7 +1572,7 @@ function renderOverview(){
   });
 
   // Treasury entry log
-  const FUND_LABELS={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs'};
+  const FUND_LABELS={quest:'Market Commission',events:'Ministry of War',island:'Ministry of Island Affairs'};
   const sorted=Object.entries(treasuryEntries).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
   renderEntryPage(sorted,'adjList','adjPagination','treasury',
     ([eid,e])=>`<div class="adj-row">
@@ -1578,7 +1591,7 @@ window.deleteTreasuryEntry=async function(eid){
 
 // ── TREASURY ACTIONS ──
 let _activeAction=null;
-const FUND_LABELS_MAP={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
+const FUND_LABELS_MAP={quest:'Market Commission',events:'Ministry of War',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
 
 window.openAction=function(sign,fund){
   _activeAction={sign,fund};
@@ -1622,6 +1635,7 @@ const FUND_BAL_ELS={quest:'questBal',events:'eventsBal',island:'islandBal',recru
 const FUND_LIST_ELS={quest:'questEntryList',events:'eventsEntryList',island:'islandEntryList',recruitment:'recruitmentEntryList'};
 
 function getFundEntries(k){return k==='quest'?questEntries:k==='events'?eventsEntries:k==='island'?islandEntries:recruitmentEntries;}
+function getFundPrestigeEntries(k){return k==='quest'?questPrestigeEntries:k==='events'?eventsPrestigeEntries:k==='island'?islandPrestigeEntries:recruitmentPrestigeEntries;}
 function getFundBal(k){return k==='quest'?calcQuestBal():k==='events'?calcEventsBal():k==='island'?calcIslandBal():calcRecruitmentBal();}
 
 
@@ -1907,16 +1921,36 @@ window.toggleWishlistForm=function(){
   if(!open){document.getElementById('wishItemName').focus();}
 };
 
+window.onWishItemSearch=async function(q){
+  const res=document.getElementById('wishItemSearchResults');
+  if(!q||q.length<2){res.style.display='none';return;}
+  const items=await window.searchAlbionItemsAsync(q,10);
+  if(!items.length){res.style.display='none';return;}
+  res.style.display='block';
+  res.innerHTML=items.map(i=>`<div onclick="selectWishItem('${i.id}','${i.name.replace(/'/g,"&#39;")}')"
+    style="padding:6px 10px;cursor:pointer;font-family:Georgia,serif;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(120,90,50,.1)"
+    onmouseover="this.style.background='rgba(200,160,74,.15)'" onmouseout="this.style.background=''">
+    <img src="${window.albionItemImg(i.id)}" width="22" height="22" style="flex-shrink:0">
+    <span>${i.name}</span>
+    <span style="color:var(--ink-soft);font-size:10px;margin-left:auto">${i.id}</span>
+  </div>`).join('');
+};
+window.selectWishItem=function(id,name){
+  document.getElementById('wishItemAlbionId').value=id;
+  document.getElementById('wishItemName').value=name;
+  document.getElementById('wishItemSearch').value=name;
+  document.getElementById('wishItemSearchResults').style.display='none';
+};
+
 window.addWishlistItem=async function(){
   const name=document.getElementById('wishItemName').value.trim();
+  const albionId=(document.getElementById('wishItemAlbionId')?.value||'').trim();
   const qty=parseAmt(document.getElementById('wishItemQty').value)||1;
   const price=parseAmt(document.getElementById('wishItemPrice').value)||0;
   if(!name)return;
   const by=currentUserData?.name||'?';
-  await push(ref(db,'questBudget/wishlist'),{name,qty,targetPrice:price,inStock:true,addedAt:Date.now(),addedBy:by});
-  document.getElementById('wishItemName').value='';
-  document.getElementById('wishItemQty').value='';
-  document.getElementById('wishItemPrice').value='';
+  await push(ref(db,'questBudget/wishlist'),{name,albionId,qty,targetPrice:price,inStock:true,addedAt:Date.now(),addedBy:by});
+  ['wishItemName','wishItemAlbionId','wishItemSearch','wishItemQty','wishItemPrice'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('wishlistForm').style.display='none';
 };
 
@@ -1958,28 +1992,33 @@ function renderWishlist(){
   if(!items.length){el.innerHTML='<div class="empty">No items on the wishlist yet.</div>';return;}
   const totalTarget=items.reduce((s,[,i])=>s+(i.targetPrice||0),0);
   el.innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:12px">
       ${items.map(([id,i])=>{
         const inStock=i.inStock!==false;
-        const border=inStock?'rgba(200,160,74,.5)':'rgba(140,36,36,.5)';
-        const bg=inStock?'rgba(28,42,64,.04)':'rgba(140,36,36,.05)';
+        const borderColor=inStock?'rgba(200,160,74,.45)':'rgba(140,36,36,.4)';
         const stockLabel=inStock?'✓ In Stock':'✕ Not Found';
         const stockColor=inStock?'var(--forest)':'var(--seal-red)';
-        const qtyTxt=i.qty&&i.qty>1?` ×${i.qty}`:'';
-        return`<div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${bg};border-left:3px solid ${border};border-radius:2px">
-            <span style="flex:1;font-size:13px;color:var(--ink)">${i.name}${qtyTxt?`<span style='font-size:11px;color:var(--ink-soft)'>${qtyTxt}</span>`:''}</span>
-            <span style="font-size:13px;font-family:Georgia,serif;color:var(--ink-soft);white-space:nowrap">${i.targetPrice?fmtS(i.targetPrice):'—'}</span>
-            <button onclick="toggleWishlistStock('${id}',${inStock})" style="font-size:11px;background:none;border:1px solid ${stockColor};border-radius:10px;color:${stockColor};cursor:pointer;padding:2px 8px;white-space:nowrap">${stockLabel}</button>
-            <button onclick="openWishlistEdit('${id}')" style="font-size:12px;background:none;border:none;color:var(--ink-soft);cursor:pointer;padding:0 4px" title="Edit">✎</button>
-            <button onclick="removeWishlistItem('${id}')" style="font-size:11px;background:none;border:none;color:var(--seal-red);cursor:pointer;padding:0 4px;opacity:.6" title="Remove">✕</button>
-          </div>
-          <div id="wish-edit-${id}" class="wishlist-edit-row" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px;background:rgba(28,42,64,.06);border-left:3px solid rgba(28,42,64,.2);margin-bottom:2px">
-            <input id="wish-name-${id}" type="text" value="${(i.name||'').replace(/"/g,'&quot;')}" placeholder="Name" style="${_INP};flex:1;min-width:140px">
-            <input id="wish-qty-${id}" type="number" value="${i.qty||1}" placeholder="Qty" min="1" style="${_INP};width:60px">
-            <input id="wish-price-${id}" type="number" value="${i.targetPrice||''}" placeholder="Target price" step="10000" style="${_INP};width:130px">
-            <button class="gold-btn" style="font-size:11px;padding:4px 12px" onclick="saveWishlistEdit('${id}')">Save</button>
-            <button class="ghost-btn" style="font-size:11px;padding:4px 10px" onclick="cancelWishlistEdit('${id}')">Cancel</button>
+        const iconHtml=i.albionId
+          ?`<img src="${window.albionItemImg(i.albionId)}" width="52" height="52" style="border-radius:4px;image-rendering:pixelated" onerror="this.style.display='none'">`
+          :`<div style="width:52px;height:52px;background:rgba(120,90,50,.15);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--ink-soft)">?</div>`;
+        return`<div style="position:relative;background:rgba(255,255,255,.5);border:1px solid ${borderColor};border-radius:4px;padding:10px 8px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px">
+          <button onclick="removeWishlistItem('${id}')" title="Remove" style="position:absolute;top:4px;right:5px;font-size:11px;background:none;border:none;color:var(--seal-red);cursor:pointer;opacity:.55;line-height:1">✕</button>
+          <button onclick="openWishlistEdit('${id}')" title="Edit" style="position:absolute;top:4px;left:5px;font-size:12px;background:none;border:none;color:var(--ink-soft);cursor:pointer;opacity:.55;line-height:1">✎</button>
+          ${iconHtml}
+          <div style="font-size:12px;font-family:Georgia,serif;color:var(--navy);line-height:1.3;word-break:break-word">${i.name}${i.qty&&i.qty>1?`<span style='font-size:10px;color:var(--ink-soft)'> ×${i.qty}</span>`:''}</div>
+          ${i.targetPrice?`<div style="font-size:11px;color:var(--ink-soft);font-family:Georgia,serif">${fmtS(i.targetPrice)}</div>`:''}
+          <button onclick="toggleWishlistStock('${id}',${inStock})" style="margin-top:2px;font-size:10px;background:none;border:1px solid ${stockColor};border-radius:10px;color:${stockColor};cursor:pointer;padding:2px 7px;white-space:nowrap;font-family:Georgia,serif">${stockLabel}</button>
+          <div id="wish-edit-${id}" class="wishlist-edit-row" style="display:none;position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(245,240,228,.97);border:1px solid rgba(120,90,50,.3);border-radius:4px;padding:10px 8px;text-align:left">
+            <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:6px">Edit Item</div>
+            <input id="wish-name-${id}" type="text" value="${(i.name||'').replace(/"/g,'&quot;')}" placeholder="Name" style="${_INP};width:100%;margin-bottom:4px;box-sizing:border-box">
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+              <input id="wish-qty-${id}" type="number" value="${i.qty||1}" placeholder="Qty" min="1" style="${_INP};width:50px">
+              <input id="wish-price-${id}" type="number" value="${i.targetPrice||''}" placeholder="Target price" step="10000" style="${_INP};flex:1">
+            </div>
+            <div style="display:flex;gap:4px">
+              <button class="gold-btn" style="font-size:11px;padding:3px 10px;flex:1" onclick="saveWishlistEdit('${id}')">Save</button>
+              <button class="ghost-btn" style="font-size:11px;padding:3px 8px" onclick="cancelWishlistEdit('${id}')">✕</button>
+            </div>
           </div>
         </div>`;
       }).join('')}
@@ -2606,12 +2645,13 @@ function groupPendingTasks(list){
 }
 
 function renderTaskPage(list,containerId,paginationId,page){
-  const grouped=groupPendingTasks(list);
+  const isPending=containerId==='taskListPending';
+  const grouped=isPending?groupPendingTasks(list):list;
   const total=grouped.length;
   const totalPages=Math.max(1,Math.ceil(total/TASKS_PER_PAGE));
   const p=Math.min(page,totalPages-1);
   const slice=grouped.slice(p*TASKS_PER_PAGE,(p+1)*TASKS_PER_PAGE);
-  document.getElementById(containerId).innerHTML=slice.length?slice.map(item=>Array.isArray(item)?taskCardHtml(item[0],item[1]):taskGroupCardHtml(item.items)).join(''):'<div class="empty" style="padding:16px">No tasks.</div>';
+  document.getElementById(containerId).innerHTML=slice.length?slice.map(item=>isPending?(Array.isArray(item)?taskCardHtml(item[0],item[1]):taskGroupCardHtml(item.items)):taskCardHtml(item[0],item[1])).join(''):'<div class="empty" style="padding:16px">No tasks.</div>';
   const pg=document.getElementById(paginationId);
   if(totalPages<=1){pg.innerHTML='';return;}
   const key=paginationId==='taskPaginationPending'?'pending':'done';
@@ -2644,14 +2684,15 @@ function renderTasks(){
   const pending=Object.entries(tasks).filter(([,t])=>t.status==='pending').sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const done=Object.entries(tasks).filter(([,t])=>t.status!=='pending').sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const badge=document.getElementById('taskTabBadge');
-  if(pending.length){badge.textContent=pending.length;badge.style.display='inline';}else{badge.style.display='none';}
+  const groupedCount=groupPendingTasks(pending).length;
+  if(groupedCount){badge.textContent=groupedCount;badge.style.display='inline';}else{badge.style.display='none';}
   renderTaskPage(pending,'taskListPending','taskPaginationPending',_taskPagePending);
   renderTaskPage(done,'taskListDone','taskPaginationDone',_taskPageDone);
 }
 
 function fundLabel(ft){
   if(ft==='quest')return'<span class="fund-tag">Market Commission</span>';
-  if(ft==='events')return'<span class="fund-tag">Ministry of Events</span>';
+  if(ft==='events')return'<span class="fund-tag">Ministry of War</span>';
   if(ft==='island')return'<span class="fund-tag">Ministry of Island Affairs</span>';
   return'';
 }
@@ -2670,9 +2711,9 @@ function taskGroupCardHtml(items){
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px"><strong>${n} × ${t.prestigePoints||0} = ${totalPts} pts</strong> Laxi awarded to: ${partyStr}</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">= <strong>${fmtS(totalPts*silverRate)}</strong> total payout</div>
     <div class="task-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <button class="gold-btn" onclick="approveAllQuestTasks(${JSON.stringify(ids)})">✓ Approve All (${n})</button>
+      <button class="gold-btn" onclick='approveAllQuestTasks(${JSON.stringify(ids)})'>✓ Approve All (${n})</button>
       <button class="gold-btn" style="background:rgba(120,90,50,.15);color:var(--ink);border:1px solid rgba(120,90,50,.3)" onclick="completeTask('${id}')">✓ Approve 1</button>
-      <button class="red-btn" onclick="cancelAllQuestTasks(${JSON.stringify(ids)})">✕ Cancel All</button>
+      <button class="red-btn" onclick='cancelAllQuestTasks(${JSON.stringify(ids)})'>✕ Cancel All</button>
     </div>
   </div>`;
 }
@@ -2705,7 +2746,7 @@ function taskCardHtml(id,t){
   const isPrestigeTask=isPrestigeBuy||isPrestigeSell||isPrestigeQuest;
   const partyStr=isPrestigeQuest&&t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)).join(', '):'';
   const isPrestigeEvent=t.type==='prestige_event';
-  const prestigePtsLine=isPrestigeTask&&(t.prestigePoints||t.prestigeTotal)?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints||t.prestigeTotal} pts</strong> Laxi ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}${isPrestigeEvent&&t.guildIncome?' · <strong>'+fmtS(t.guildIncome)+'</strong> income → Ministry of Events'+(t.estimated?' <em>(estimated)</em>':''):''}</div>`:'';
+  const prestigePtsLine=isPrestigeTask&&(t.prestigePoints||t.prestigeTotal)?`<div style="font-size:11px;color:var(--ink-soft);margin-top:4px">${isPrestigeBuy?'Member pays <strong>'+fmtS(target)+'</strong> ·':isPrestigeSell?'Member receives <strong>'+fmtS(target)+'</strong> ·':''} <strong>${t.prestigePoints||t.prestigeTotal} pts</strong> Laxi ${isPrestigeBuy?'added':isPrestigeSell?'deducted':'awarded'}${isPrestigeQuest&&partyStr?' to: '+partyStr:''}${isPrestigeQuest&&t.issuerApproval?' <em>· Issuer approval: '+t.issuerName+'</em>':''}${isPrestigeEvent&&t.guildIncome?' · <strong>'+fmtS(t.guildIncome)+'</strong> income → Ministry of War'+(t.estimated?' <em>(estimated)</em>':''):''}</div>`:'';
   const disputeLine=isMarketDispute?`<div style="margin-top:6px;padding:8px 10px;background:rgba(180,50,50,0.08);border:1px solid rgba(180,50,50,0.2);border-radius:3px;font-size:11px;line-height:1.6;">
     <strong style="color:#8c2424;">Market Dispute</strong><br>
     Item: <strong>${t.itemName||'?'}</strong> · <strong>${target} Laxi</strong> held<br>
@@ -2882,36 +2923,46 @@ window.completeTask=async function(id,silent=false){
       }
       if(Object.keys(upd).length)await update(ref(db),upd);
     }
-    // Clean up quest from board if it was pending completion
+    // Clean up quest + market stock (single fetch)
+    let _questFundKey='quest';
     if(t.questId){
       const qdSnap=await get(ref(db,'questDefs/'+t.questId));
-      if(qdSnap.exists()){
-        const qd=qdSnap.val();
-        // Remove claimant from quests list and reduce slots
+      const qd=qdSnap.val();
+      if(qd){
+        _questFundKey=qd.ministry||'quest';
+        // Remove claimant & reduce slots
         const questSnap=await get(ref(db,'quests/'+t.questId));
         const claimsArr=questSnap.exists()?(Array.isArray(questSnap.val())?questSnap.val():Object.values(questSnap.val()||{})):[];
         const holderIdx=claimsArr.findIndex(n=>n?.toLowerCase()===(t.holder||'').toLowerCase());
         if(holderIdx>=0)claimsArr.splice(holderIdx,1);
         const newSlots=Math.max(0,(qd.slots||1)-1);
-        const newActive=newSlots>0?(qd.active!==false):false;
         const questUpd={};
         questUpd['questDefs/'+t.questId+'/slots']=newSlots||1;
-        questUpd['questDefs/'+t.questId+'/active']=newActive;
+        questUpd['questDefs/'+t.questId+'/active']=newSlots>0?(qd.active!==false):false;
         questUpd['questDefs/'+t.questId+'/pendingComplete/'+id]=null;
         questUpd['quests/'+t.questId]=claimsArr.length?claimsArr:null;
         await update(ref(db),questUpd);
-        // Clean up party data
         function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
         await remove(ref(db,'questParties/'+t.questId+'/'+partyKey(t.holder||'')));
+        // Auto-update market item stock
+        if(qd.marketItemId){
+          const miRef=ref(db,'marketItems/'+qd.marketItemId);
+          const miSnap=await get(miRef);
+          const mi=miSnap.val()||{};
+          const addQty=qd.marketItemQty||1;
+          const newStock=(mi.stock||0)+addQty;
+          const newTarget=newStock>(mi.targetStock||0)?newStock:(mi.targetStock||newStock);
+          await update(miRef,{stock:newStock,targetStock:newTarget});
+        }
       }
     }
-    // Deduct from Market Budget prestige + deduct silver from budget (or record deficit)
+    // Deduct from correct ministry fund
     const totalPts=t.prestigePoints||0;
     if(totalPts>0){
       const qSilver=totalPts*silverRate;
       const qReason=`Laxi award — ${t.questName||t.title} (${totalPts} pts × ${silverRate.toLocaleString()} S)`;
-      await push(ref(db,'funds/quest/prestigeEntries'),{amount:-totalPts,reason:`Quest: ${t.questName||t.title}`,at,by,auto:true,taskId:id});
-      await _fundDeductSilver('quest',qSilver,qReason,by,at,id);
+      await push(ref(db,`funds/${_questFundKey}/prestigeEntries`),{amount:-totalPts,reason:`Quest: ${t.questName||t.title}`,at,by,auto:true,taskId:id});
+      await _fundDeductSilver(_questFundKey,qSilver,qReason,by,at,id);
     }
     toast(`Approved — ${t.prestigePoints} laxi awarded to ${party.join(', ')}.`);
     return;
@@ -2957,12 +3008,69 @@ window.completeTask=async function(id,silent=false){
 };
 
 window.approveAllQuestTasks=async function(ids){
-  const n=ids.length;
-  if(!confirm(`Approve all ${n} quest completions?\n\nThis will award Laxi for each and deduct silver from the fund.`))return;
-  for(const id of ids){
-    if(tasks[id]?.status==='pending') await window.completeTask(id,true);
+  const toApprove=ids.filter(id=>tasks[id]?.status==='pending');
+  const n=toApprove.length;
+  if(!n){toast('No pending tasks to approve.');return;}
+  const sample=tasks[toApprove[0]];
+  const totalPts=toApprove.reduce((s,id)=>s+(tasks[id]?.prestigePoints||0),0);
+  const party=sample.partyMembers?(Array.isArray(sample.partyMembers)?sample.partyMembers:Object.values(sample.partyMembers)):[sample.holder];
+  const partyStr=party.join(', ');
+  if(!confirm(`Approve all ${n} quest completions for ${partyStr}?\n${n} × ${sample.prestigePoints||0} = ${totalPts} pts · ${fmtS(totalPts*silverRate)} total`))return;
+  const at=Date.now();const by=currentUserData.name;
+  // 1. Batch-mark all tasks completed
+  const upd={};
+  for(const id of toApprove) upd[`tasks/${id}`]={...tasks[id],status:'completed',completedAt:at,completedBy:by};
+  await update(ref(db),upd);
+  // 2. Award prestige in one write
+  const perMember=Math.floor(totalPts/party.length);
+  if(perMember>0){
+    const membersSnap=await get(ref(db,'prestige/members'));
+    const members=membersSnap.val()||{};
+    const presUpd={};
+    for(const mName of party){
+      const entry=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===mName.toLowerCase());
+      if(entry)presUpd[`prestige/members/${entry[0]}/points`]=(entry[1].points||0)+perMember;
+    }
+    if(Object.keys(presUpd).length)await update(ref(db),presUpd);
   }
-  toast(`Approved ${n} quest tasks.`);
+  // 3. Deduct prestige entries + silver from correct ministry fund in one write
+  // (questDef fetch also needed for step 4 — do it once here)
+  let _batchFundKey='quest';
+  if(sample.questId){
+    const qdMeta=await get(ref(db,'questDefs/'+sample.questId));
+    if(qdMeta.exists())_batchFundKey=qdMeta.val()?.ministry||'quest';
+  }
+  if(totalPts>0){
+    const qSilver=totalPts*silverRate;
+    const qReason=`Laxi award ×${n} — ${sample.questName||sample.title} (${totalPts} pts × ${silverRate.toLocaleString()} S)`;
+    await push(ref(db,`funds/${_batchFundKey}/prestigeEntries`),{amount:-totalPts,reason:`Quest ×${n}: ${sample.questName||sample.title}`,at,by,auto:true});
+    await _fundDeductSilver(_batchFundKey,qSilver,qReason,by,at,null);
+  }
+  // 4. Clean up quest — remove all claimants & pendingComplete in one write
+  if(sample.questId){
+    const qdSnap=await get(ref(db,'questDefs/'+sample.questId));
+    if(qdSnap.exists()){
+      const qd=qdSnap.val();
+      const questSnap=await get(ref(db,'quests/'+sample.questId));
+      let claimsArr=questSnap.exists()?(Array.isArray(questSnap.val())?questSnap.val():Object.values(questSnap.val()||{})):[];
+      for(const id of toApprove){
+        const h=(tasks[id]?.holder||'').toLowerCase();
+        const idx=claimsArr.findIndex(c=>c?.toLowerCase()===h);
+        if(idx>=0)claimsArr.splice(idx,1);
+      }
+      const newSlots=Math.max(0,(qd.slots||n)-n);
+      const questUpd={};
+      questUpd[`questDefs/${sample.questId}/slots`]=newSlots||1;
+      questUpd[`questDefs/${sample.questId}/active`]=newSlots>0?(qd.active!==false):false;
+      for(const id of toApprove) questUpd[`questDefs/${sample.questId}/pendingComplete/${id}`]=null;
+      questUpd[`quests/${sample.questId}`]=claimsArr.length?claimsArr:null;
+      await update(ref(db),questUpd);
+      // Clean up party data
+      function partyKey(n){return n.toLowerCase().replace(/[.#$[\]/\s]/g,'_');}
+      for(const mName of party) await remove(ref(db,`questParties/${sample.questId}/${partyKey(mName)}`));
+    }
+  }
+  toast(`Approved ${n} completions — ${totalPts} Laxi awarded to ${partyStr}.`);
 };
 
 window.cancelAllQuestTasks=async function(ids){
@@ -3011,7 +3119,7 @@ window.cancelTask=async function(id){
 let _paCurrentKey=null;
 window.openPrestigeAlloc=function(key){
   _paCurrentKey=key;
-  const labels={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
+  const labels={quest:'Market Commission',events:'Ministry of War',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
   document.getElementById('paModalLabel').textContent=labels[key]||key;
   document.getElementById('paAmount').value='';
   document.getElementById('paReason').value='';
@@ -3050,7 +3158,7 @@ window.saveRate=async function(){
 };
 
 // ── Ministry Quests ──────────────────────────────────────────────────────
-const MINISTRY_NAMES={quest:'Market Commission',events:'Ministry of Events',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
+const MINISTRY_NAMES={quest:'Market Commission',events:'Ministry of War',island:'Ministry of Island Affairs',recruitment:'Ministry of Recruitment'};
 
 window.toggleMinistryForm=function(key){
   const el=document.getElementById('ministryForm-'+key);
@@ -3079,6 +3187,10 @@ window.submitMinistryQuest=async function(key){
     createdBy:by,createdAt:Date.now(),
   };
   const newRef=await push(ref(db,'questDefs'),def);
+  if(key==='quest'&&window._pendingMarketItemId){
+    await update(ref(db,'questDefs/'+newRef.key),{marketItemId:window._pendingMarketItemId,marketItemQty:parseInt(document.getElementById('mq-slots-quest')?.value)||1});
+    window._pendingMarketItemId=null;
+  }
   document.getElementById('mq-name-'+key).value='';
   document.getElementById('mq-level-'+key).value='';
   document.getElementById('mq-slots-'+key).value='1';
@@ -3249,9 +3361,14 @@ onAuthStateChanged(auth,async user=>{
   safeOnValue('funds/quest/entries',snap=>{questEntries=snap.val()||{};renderQuestFund();renderOverview();renderPrestigeValue();renderIslandContribution();});
   safeOnValue('funds/events/entries',snap=>{eventsEntries=snap.val()||{};renderEventsFund();renderOverview();renderPrestigeValue();renderMinistryCommitments('events',_questDefs);});
   safeOnValue('funds/island/entries',snap=>{islandEntries=snap.val()||{};renderIslandFund();renderOverview();renderPrestigeValue();renderMinistryCommitments('island',_questDefs);});
+  safeOnValue('funds/quest/prestigeEntries',snap=>{questPrestigeEntries=snap.val()||{};renderFundEfficiency('quest');});
+  safeOnValue('funds/events/prestigeEntries',snap=>{eventsPrestigeEntries=snap.val()||{};renderFundEfficiency('events');});
+  safeOnValue('funds/island/prestigeEntries',snap=>{islandPrestigeEntries=snap.val()||{};renderFundEfficiency('island');});
+  safeOnValue('funds/recruitment/prestigeEntries',snap=>{recruitmentPrestigeEntries=snap.val()||{};renderFundEfficiency('recruitment');});
   safeOnValue('bonds',snap=>{bondPeriods=snap.val()||{};renderBonds();renderOverview();});
   safeOnValue('tasks',snap=>{tasks=snap.val()||{};renderTasks();renderQuestCommitments();renderOverview();renderIslandContribution();});
   safeOnValue('questBudget/wishlist',snap=>{_wishlistItems=snap.val()||{};renderWishlist();});
+  safeOnValue('marketItems',snap=>{_marketItems=snap.val()||{};renderMarketItems();renderMarketStats();});
   safeOnValue('questDefs',snap=>{_questDefs=snap.val()||{};renderQuestCommitments();['events','island','recruitment'].forEach(key=>renderMinistryCommitments(key,_questDefs));});
   safeOnValue('quests',snap=>{_activeQuests=snap.val()||{};renderQuestCommitments();['events','island','recruitment'].forEach(key=>renderMinistryCommitments(key,_questDefs));});
   onValue(ref(db,'treasury/settings/silverPerLaxi'),snap=>{
@@ -3777,6 +3894,330 @@ window.renderFundRequests = function() {
   }
 };
 // -- FUND REQUESTS INJECTED END --
+
+// ── MARKET COMMISSION INVENTORY ──
+
+window.toggleMarketItemForm=function(){
+  const f=document.getElementById('marketItemForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+};
+
+window.onMarketItemSearch=async function(q){
+  const res=document.getElementById('mi-search-results');
+  if(!q||q.length<2){res.style.display='none';return;}
+  const items=await window.searchAlbionItemsAsync(q,10);
+  if(!items.length){res.style.display='none';return;}
+  res.style.display='block';
+  res.innerHTML=items.map(i=>`<div onclick="selectMarketItem('${i.id}','${i.name.replace(/'/g,"&#39;")}')"
+    style="padding:6px 10px;cursor:pointer;font-family:Georgia,serif;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(120,90,50,.1)"
+    onmouseover="this.style.background='rgba(200,160,74,.15)'" onmouseout="this.style.background=''">
+    <img src="${window.albionItemImg(i.id)}" width="22" height="22" style="flex-shrink:0">
+    <span>${i.name}</span>
+    <span style="color:var(--ink-soft);font-size:10px;margin-left:auto">${i.id}</span>
+  </div>`).join('');
+};
+
+window.selectMarketItem=function(id,name){
+  _miFormState.albionId=id;
+  _miFormState.name=name;
+  _miFormState.search=name;
+  _miFormState.enc=parseInt(document.getElementById('mi-enc')?.value)||0;
+  _miFormState.price=document.getElementById('mi-sale-price')?.value||'';
+  _miFormState.stock=document.getElementById('mi-initial-stock')?.value||0;
+  _miFormState.target=document.getElementById('mi-target-stock')?.value||10;
+  renderMarketItems();
+  setTimeout(()=>{document.getElementById('mi-name')?.focus();},30);
+};
+window.updateMiIconPreview=function(){
+  _miFormState.enc=parseInt(document.getElementById('mi-enc')?.value)||0;
+  _miFormState.albionId=document.getElementById('mi-albion-id')?.value||_miFormState.albionId||'';
+  renderMarketItems();
+};
+
+window.submitMarketItem=async function(){
+  const name=(document.getElementById('mi-name').value||'').trim();
+  const albionId=(document.getElementById('mi-albion-id').value||'').trim();
+  const albionEnc=parseInt(document.getElementById('mi-enc')?.value)||0;
+  const salePrice=parseAmt(document.getElementById('mi-sale-price').value)||0;
+  const initialStock=parseInt(document.getElementById('mi-initial-stock').value)||0;
+  const targetStock=Math.max(parseInt(document.getElementById('mi-target-stock').value)||10, initialStock);
+  if(!name){toast('Enter an item name.');return;}
+  await push(ref(db,'marketItems'),{name,albionId,albionEnc,salePrice,targetStock,stock:initialStock,totalSold:0,totalRevenue:0,createdBy:currentUserData?.name||'',createdAt:Date.now()});
+  ['mi-name','mi-albion-id','mi-search','mi-sale-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('mi-target-stock').value='10';
+  document.getElementById('mi-initial-stock').value='0';
+  if(document.getElementById('mi-enc'))document.getElementById('mi-enc').value='0';
+  closeMiAddCard();
+  toast('Item added to inventory.');
+};
+
+window.postItemQuest=function(itemId){
+  const item=_marketItems[itemId];if(!item)return;
+  document.getElementById('miQuestItemId').value=itemId;
+  document.getElementById('miQuestItemName').textContent=item.name;
+  document.getElementById('miQuestQty').value=1;
+  document.getElementById('miQuestSlots').value=1;
+  document.getElementById('miQuestLaxi').value=1;
+  const panel=document.getElementById('miQuestPanel');
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+window.submitMiQuest=async function(){
+  const itemId=document.getElementById('miQuestItemId').value;
+  const item=_marketItems[itemId];
+  if(!item){toast('Item not found.');return;}
+  const qty=Math.max(1,parseInt(document.getElementById('miQuestQty').value)||1);
+  const slots=Math.max(1,parseInt(document.getElementById('miQuestSlots').value)||1);
+  const laxi=Math.max(1,parseInt(document.getElementById('miQuestLaxi').value)||1);
+  const by=currentUserData?.name||'Council';
+  const def={
+    name:`Deliver: ${item.name}`,
+    description:`Deliver ${qty}× ${item.name} to the guild island market.`,
+    level:'Market · Supply',
+    issuer:'Market Commission',
+    type:'prestige_quest',
+    laxi,slots,
+    rewards:[{icon:'£',text:`${laxi} Laxi`}],
+    ministry:'quest',
+    marketItemId:itemId,
+    marketItemQty:qty,
+    createdBy:by,createdAt:Date.now(),
+  };
+  const newRef=await push(ref(db,'questDefs'),def);
+  await update(ref(db,'questDefs/'+newRef.key),{active:true});
+  document.getElementById('miQuestPanel').style.display='none';
+  toast(`Quest posted — ${slots} slot(s), ${qty}× per slot.`);
+};
+
+window.openSellForm=function(itemId){
+  const existing=document.getElementById('sell-form-'+itemId);
+  if(existing){existing.style.display=existing.style.display==='none'?'block':'none';return;}
+};
+
+window.recordMarketSale=async function(itemId){
+  const item=_marketItems[itemId];if(!item)return;
+  const qtyEl=document.getElementById('sell-qty-'+itemId);
+  const priceEl=document.getElementById('sell-price-'+itemId);
+  const qty=parseInt(qtyEl?.value)||0;
+  const price=parseAmt(priceEl?.value)||0;
+  if(!qty||qty<1){toast('Enter quantity sold.');return;}
+  if(!price){toast('Enter sale price.');return;}
+  const revenue=qty*price;
+  const by=currentUserData?.name||'';
+  const at=Date.now();
+  const cur=_marketItems[itemId]||{};
+  const newStock=Math.max(0,(cur.stock||0)-qty);
+  await update(ref(db,'marketItems/'+itemId),{
+    stock:newStock,
+    totalSold:(cur.totalSold||0)+qty,
+    totalRevenue:(cur.totalRevenue||0)+revenue,
+  });
+  await push(ref(db,'funds/quest/entries'),{
+    amount:revenue,
+    reason:`Market Sale — ${item.name} ×${qty} @ ${fmtS(price)}/item`,
+    by,at,auto:true,itemId
+  });
+  if(qtyEl)qtyEl.value='';
+  if(priceEl)priceEl.value='';
+  document.getElementById('sell-form-'+itemId).style.display='none';
+  toast(`Recorded: ${qty}× ${item.name} sold for ${fmtS(revenue)}.`);
+};
+
+window.deleteMarketItem=async function(itemId){
+  const item=_marketItems[itemId];
+  if(!confirm(`Remove "${item?.name}" from inventory? This won't delete sales history.`))return;
+  await remove(ref(db,'marketItems/'+itemId));
+};
+
+function renderMarketStats(){
+  const el=document.getElementById('marketStats');
+  if(!el)return;
+  const items=Object.values(_marketItems);
+  if(!items.length){el.innerHTML='';return;}
+  const totalStockValue=items.reduce((s,i)=>(i.stock||0)*(i.salePrice||0)+s,0);
+  const totalRevenue=items.reduce((s,i)=>s+(i.totalRevenue||0),0);
+  const totalCost=items.reduce((s,i)=>s+(i.totalCost||0),0);
+  const profit=totalRevenue-totalCost;
+  el.innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+    <div style="flex:1;min-width:120px;padding:10px 14px;background:rgba(28,42,64,.05);border-radius:3px;border-left:3px solid rgba(200,160,74,.4)">
+      <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Stock Value</div>
+      <div style="font-size:16px;font-family:Georgia,serif;font-weight:bold;color:var(--navy)">${fmtS(totalStockValue)}</div>
+    </div>
+    <div style="flex:1;min-width:120px;padding:10px 14px;background:rgba(28,42,64,.05);border-radius:3px;border-left:3px solid rgba(42,90,42,.4)">
+      <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Total Revenue</div>
+      <div style="font-size:16px;font-family:Georgia,serif;font-weight:bold;color:#2a5a2a">${fmtS(totalRevenue)}</div>
+    </div>
+    <div style="flex:1;min-width:120px;padding:10px 14px;background:rgba(28,42,64,.05);border-radius:3px;border-left:3px solid rgba(140,36,36,.3)">
+      <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Total Cost</div>
+      <div style="font-size:16px;font-family:Georgia,serif;font-weight:bold;color:var(--seal-red)">${fmtS(totalCost)}</div>
+    </div>
+    <div style="flex:1;min-width:120px;padding:10px 14px;background:rgba(28,42,64,.05);border-radius:3px;border-left:3px solid ${profit>=0?'rgba(42,90,42,.5)':'rgba(140,36,36,.5)'}">
+      <div style="font-size:10px;font-variant:small-caps;letter-spacing:1.5px;color:var(--ink-soft)">Net Profit</div>
+      <div style="font-size:16px;font-family:Georgia,serif;font-weight:bold;color:${profit>=0?'#2a5a2a':'var(--seal-red)'}">${profit>=0?'':'-'}${fmtS(Math.abs(profit))}</div>
+    </div>
+  </div>`;
+}
+
+const _MI_INP='font-family:Georgia,serif;font-size:11px;padding:4px 6px;background:rgba(255,255,255,.85);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box;margin-bottom:4px';
+const _ADD_CARD=`<div onclick="openMiAddCard(event)" style="background:rgba(255,255,255,.3);border:2px dashed rgba(120,90,50,.3);border-radius:4px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;min-height:140px">
+  <div style="font-size:28px;color:rgba(120,90,50,.4);line-height:1">+</div>
+  <div style="font-size:11px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft)">Define Item</div>
+</div>`;
+
+function renderMarketItems(){
+  const el=document.getElementById('marketItemList');
+  if(!el)return;
+  const items=Object.entries(_marketItems);
+  const inputStyle='font-family:Georgia,serif;font-size:12px;padding:4px 7px;background:rgba(255,255,255,.8);border:1px solid rgba(46,32,20,.3);color:var(--ink)';
+  const itemCards=items.sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'')).map(([id,item])=>{
+    const stock=item.stock||0;
+    const target=item.targetStock||stock||1;
+    const salePrice=item.salePrice||0;
+    const stockColor=stock>=target?'#2a5a2a':stock>0?'var(--navy)':'var(--seal-red)';
+    const iconHtml=item.albionId
+      ?`<img src="${window.albionItemImg(item.albionId,item.albionEnc||0)}" width="56" height="56" style="border-radius:4px;image-rendering:pixelated" onerror="this.style.display='none'">`
+      :`<div style="width:56px;height:56px;background:rgba(120,90,50,.15);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--ink-soft)">?</div>`;
+    return`<div style="position:relative;background:rgba(255,255,255,.5);border:1px solid rgba(120,90,50,.2);border-radius:4px;padding:10px 8px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <button onclick="deleteMarketItem('${id}')" title="Remove" style="position:absolute;top:4px;right:5px;font-size:11px;background:none;border:none;color:var(--seal-red);cursor:pointer;opacity:.55;line-height:1">✕</button>
+      <button onclick="openMiEditForm('${id}')" title="Edit" style="position:absolute;top:4px;left:5px;font-size:12px;background:none;border:none;color:var(--ink-soft);cursor:pointer;opacity:.55;line-height:1">✎</button>
+      ${iconHtml}
+      <div style="font-size:12px;font-family:Georgia,serif;color:var(--navy);line-height:1.3;word-break:break-word;font-weight:bold">${item.name}</div>
+      <div style="font-size:15px;font-family:Georgia,serif;font-weight:bold;color:${stockColor}">${stock}<span style="font-size:11px;font-weight:normal;color:var(--ink-soft)">/${target}</span></div>
+      <div style="font-size:9px;color:var(--ink-soft);letter-spacing:.5px;font-variant:small-caps">in stock / target</div>
+      ${salePrice?`<div style="font-size:10px;color:var(--ink-soft);margin-top:2px">${fmtS(salePrice)}/item</div>`:''}
+      <div style="display:flex;gap:4px;margin-top:4px;width:100%">
+        <button class="ghost-btn" style="font-size:10px;padding:3px 6px;flex:1" onclick="postItemQuest('${id}')">+ Quest</button>
+        <button class="green-btn" style="font-size:10px;padding:3px 6px;flex:1" onclick="openSellForm('${id}')">Sell</button>
+      </div>
+      <div id="edit-form-${id}" style="display:none;position:absolute;top:0;left:0;right:0;z-index:11;background:rgba(245,240,228,.97);border:1px solid rgba(120,90,50,.3);border-radius:4px;padding:8px;text-align:left;box-sizing:border-box">
+        <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:5px">Edit Item</div>
+        <input type="text" id="edit-name-${id}" value="${(item.name||'').replace(/"/g,'&quot;')}" placeholder="Name" style="${inputStyle};width:100%;margin-bottom:3px;box-sizing:border-box">
+        <input type="text" class="silver-input" inputmode="numeric" id="edit-price-${id}" value="${salePrice||''}" placeholder="Sale price" style="${inputStyle};width:100%;margin-bottom:3px;box-sizing:border-box">
+        <div style="display:flex;gap:3px;margin-bottom:3px">
+          <div style="flex:1;min-width:0"><div style="font-size:8px;color:var(--ink-soft);font-variant:small-caps;margin-bottom:1px">Stock</div><input type="number" id="edit-stock-${id}" value="${stock}" min="0" style="${inputStyle};margin:0;width:100%;box-sizing:border-box"></div>
+          <div style="flex:1;min-width:0"><div style="font-size:8px;color:var(--ink-soft);font-variant:small-caps;margin-bottom:1px">Target</div><input type="number" id="edit-target-${id}" value="${target}" min="1" style="${inputStyle};margin:0;width:100%;box-sizing:border-box"></div>
+        </div>
+        <div style="margin-bottom:5px"><div style="font-size:8px;color:var(--ink-soft);font-variant:small-caps;margin-bottom:1px">Enchant</div><select id="edit-enc-${id}" style="${inputStyle};margin:0;width:100%;box-sizing:border-box"><option value="0"${(item.albionEnc||0)===0?' selected':''}>None</option><option value="1"${(item.albionEnc||0)===1?' selected':''}>.1</option><option value="2"${(item.albionEnc||0)===2?' selected':''}>.2</option><option value="3"${(item.albionEnc||0)===3?' selected':''}>.3</option></select></div>
+        <div style="display:flex;gap:3px">
+          <button class="gold-btn" style="font-size:11px;padding:3px 8px;flex:1" onclick="saveMiEditInline('${id}')">Save</button>
+          <button class="ghost-btn" style="font-size:11px;padding:3px 6px" onclick="document.getElementById('edit-form-${id}').style.display='none'">✕</button>
+        </div>
+      </div>
+      <div id="sell-form-${id}" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:10;background:rgba(245,240,228,.97);border:1px solid rgba(120,90,50,.3);border-radius:4px;padding:10px 8px;text-align:left">
+        <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:6px">Record Sale</div>
+        <input type="number" id="sell-qty-${id}" min="1" max="${stock}" placeholder="Qty sold" style="${inputStyle};width:100%;margin-bottom:4px;box-sizing:border-box">
+        <input type="text" class="silver-input" inputmode="numeric" id="sell-price-${id}" placeholder="Price/item" style="${inputStyle};width:100%;margin-bottom:6px;box-sizing:border-box" value="${salePrice||''}">
+        <div style="display:flex;gap:4px">
+          <button class="gold-btn" style="font-size:11px;padding:3px 10px;flex:1" onclick="recordMarketSale('${id}')">Confirm</button>
+          <button class="ghost-btn" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('sell-form-${id}').style.display='none'">✕</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px';
+  if(_miAddOpen){
+    if(document.getElementById('mi-search')){
+      _miFormState.search=document.getElementById('mi-search').value||_miFormState.search||'';
+      _miFormState.albionId=document.getElementById('mi-albion-id')?.value||_miFormState.albionId||'';
+      _miFormState.enc=parseInt(document.getElementById('mi-enc')?.value)||_miFormState.enc||0;
+      _miFormState.name=document.getElementById('mi-name')?.value||_miFormState.name||'';
+      _miFormState.price=document.getElementById('mi-sale-price')?.value||_miFormState.price||'';
+      _miFormState.stock=document.getElementById('mi-initial-stock')?.value??_miFormState.stock??0;
+      _miFormState.target=document.getElementById('mi-target-stock')?.value??_miFormState.target??10;
+    }
+    const s=_miFormState;
+    const cIS='font-family:Georgia,serif;font-size:11px;padding:4px 7px;background:rgba(255,255,255,.85);border:1px solid rgba(46,32,20,.3);color:var(--ink);width:100%;box-sizing:border-box';
+    const iconHtml=s.albionId?`<img src="${window.albionItemImg(s.albionId,s.enc||0)}" width="32" height="32" style="border-radius:3px;display:block;margin:0 auto 4px">`:'';
+    grid.insertAdjacentHTML('beforeend',`<div style="background:rgba(255,255,255,.5);border:1px solid rgba(120,90,50,.3);border-radius:4px;padding:10px 8px;display:flex;flex-direction:column;gap:4px;align-self:start">
+      <div style="font-size:10px;font-variant:small-caps;letter-spacing:1px;color:var(--ink-soft);margin-bottom:1px">Define Item</div>
+      ${iconHtml}
+      <div style="position:relative">
+        <input type="text" id="mi-search" value="${(s.search||'').replace(/"/g,'&quot;')}" placeholder="Search Albion..." autocomplete="off" oninput="onMarketItemSearch(this.value)" style="${cIS}">
+        <div id="mi-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:#f5f0e8;border:1px solid rgba(120,90,50,.3);border-radius:3px;z-index:200;max-height:180px;overflow-y:auto"></div>
+      </div>
+      <input type="hidden" id="mi-albion-id" value="${s.albionId||''}">
+      <select id="mi-enc" onchange="updateMiIconPreview()" style="${cIS}">
+        <option value="0"${(s.enc||0)===0?' selected':''}>No enchant</option>
+        <option value="1"${(s.enc||0)===1?' selected':''}>.1</option>
+        <option value="2"${(s.enc||0)===2?' selected':''}>.2</option>
+        <option value="3"${(s.enc||0)===3?' selected':''}>.3</option>
+      </select>
+      <input type="text" id="mi-name" value="${(s.name||'').replace(/"/g,'&quot;')}" placeholder="Name..." style="${cIS}">
+      <input type="text" class="silver-input" inputmode="numeric" id="mi-sale-price" value="${s.price||''}" placeholder="Sale price" style="${cIS}">
+      <div style="display:flex;gap:3px">
+        <input type="number" id="mi-initial-stock" value="${s.stock||0}" min="0" placeholder="Stock" style="${cIS};flex:1">
+        <input type="number" id="mi-target-stock" value="${s.target||10}" min="1" placeholder="Target" style="${cIS};flex:1">
+      </div>
+      <button class="gold-btn" style="font-size:11px;padding:4px;width:100%" onclick="submitMarketItem()">Add</button>
+      <button class="ghost-btn" style="font-size:11px;padding:3px;width:100%;margin-top:1px" onclick="closeMiAddCard()">Cancel</button>
+    </div>`);
+  } else {
+    grid.insertAdjacentHTML('beforeend',_ADD_CARD);
+  }
+  grid.insertAdjacentHTML('beforeend',itemCards.join(''));
+  el.innerHTML='';
+  el.appendChild(grid);
+  renderMarketStats();
+}
+window.openSellForm=function(id){
+  document.querySelectorAll('[id^="sell-form-"],[id^="edit-form-"]').forEach(el=>{if(el.id!=='sell-form-'+id)el.style.display='none';});
+  const f=document.getElementById('sell-form-'+id);
+  if(f)f.style.display=f.style.display==='none'?'block':'none';
+};
+window.openMiEditForm=function(id){
+  document.querySelectorAll('[id^="edit-form-"],[id^="sell-form-"]').forEach(el=>{if(el.id!=='edit-form-'+id)el.style.display='none';});
+  const f=document.getElementById('edit-form-'+id);
+  if(f)f.style.display=f.style.display==='none'?'block':'none';
+};
+window.saveMiEditInline=async function(id){
+  const name=(document.getElementById('edit-name-'+id)?.value||'').trim();
+  const salePrice=parseAmt(document.getElementById('edit-price-'+id)?.value)||0;
+  const stock=parseInt(document.getElementById('edit-stock-'+id)?.value)||0;
+  const targetStock=Math.max(parseInt(document.getElementById('edit-target-'+id)?.value)||1,stock);
+  const albionEnc=parseInt(document.getElementById('edit-enc-'+id)?.value)||0;
+  if(!name){toast('Name required.');return;}
+  await update(ref(db,'marketItems/'+id),{name,salePrice,stock,targetStock,albionEnc});
+  document.getElementById('edit-form-'+id).style.display='none';
+  toast('Item updated.');
+};
+window.openMiAddCard=function(e){
+  if(e)e.stopPropagation();
+  _miAddOpen=true;
+  _miFormState={};
+  renderMarketItems();
+  setTimeout(()=>document.getElementById('mi-search')?.focus(),50);
+};
+window.closeMiAddCard=function(){
+  _miAddOpen=false;
+  _miFormState={};
+  renderMarketItems();
+};
+window.toggleMarketItemForm=function(){
+  if(_miAddOpen)window.closeMiAddCard();else window.openMiAddCard();
+};
+
+window.fixMisattributedLaxi=async function(){
+  const n=12;
+  const reason='Fill & Deliver | T5 Gathering Journals';
+  const rate=silverRate||0;
+  if(!confirm(`Add ${n} Laxi to Island Affairs and transfer ${fmtS(n*rate)} to Treasury?\n"${reason}"`))return;
+  try{
+    const at=Date.now();const by=currentUserData?.name||'Admin';
+    const silver=n*rate;
+    await push(ref(db,'funds/island/prestigeEntries'),{amount:-n,reason:`Quest ×${n}: ${reason}`,at,by,auto:true});
+    if(silver>0){
+      const bal=getFundBal('island');
+      const pay=Math.min(bal,silver);
+      if(pay>0)await push(ref(db,'funds/island/entries'),{amount:-pay,reason:`Laxi ×${n} — ${reason}`,at,by,auto:true});
+      await push(ref(db,'treasury/entries'),{amount:silver,reason:`Laxi ×${n} — ${reason} (island)`,at,by,auto:true});
+    }
+    toast(`✓ ${n} Laxi added to Island Affairs.${silver>0?' Treasury updated.':' (silverRate=0, no silver moved)'}`);
+  }catch(e){
+    console.error('fixMisattributedLaxi error:',e);
+    toast('Error: '+e.message);
+  }
+};
 
 </script>
 </body>

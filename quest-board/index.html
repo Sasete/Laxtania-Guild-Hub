@@ -733,6 +733,11 @@
   .participants-panel-title{font-size:10px;font-variant:small-caps;letter-spacing:2px;color:var(--ink-soft);margin-bottom:7px;}
   .participant-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(120,90,50,0.08);font-size:13px;}
   .participant-row:last-child{border-bottom:none;}
+  .qb-pill{font-family:Georgia,serif;font-variant:small-caps;letter-spacing:1px;font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid rgba(120,90,50,.35);background:rgba(255,255,255,.25);color:rgba(241,228,196,.7);cursor:pointer;transition:all .15s;}
+  .qb-pill:hover{background:rgba(255,255,255,.4);color:rgba(241,228,196,.95);}
+  .qb-pill-active{background:rgba(200,160,74,.25);border-color:rgba(200,160,74,.6);color:rgba(241,228,196,1);}
+  #qb-search{transition:border-color .15s;}
+  #qb-search:focus{border-color:rgba(200,160,74,.6);background:rgba(255,255,255,.8);}
 </style>
 </head>
 <body>
@@ -772,6 +777,20 @@
 </div>
 
 <div id="questApprovalSection" style="display:none;margin:0 auto 24px;max-width:820px;padding:0 16px"></div>
+
+<div id="qb-filter-bar" style="max-width:980px;margin:0 auto 24px;padding:10px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:rgba(0,0,0,.35);border-radius:4px;border:1px solid rgba(200,160,74,.2)">
+  <input id="qb-search" type="text" placeholder="Search quests..." oninput="applyQbFilter()" autocomplete="off"
+    style="font-family:Georgia,serif;font-size:12px;padding:5px 12px;background:rgba(255,255,255,.12);border:1px solid rgba(200,160,74,.35);border-radius:20px;color:rgba(241,228,196,.9);width:160px;outline:none">
+  <div style="width:1px;height:18px;background:rgba(200,160,74,.2)"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap" id="qb-ministry-pills">
+    <button class="qb-pill qb-pill-active" data-ministry="all" onclick="setQbMinistry('all')">All</button>
+    <button class="qb-pill" data-ministry="quest" onclick="setQbMinistry('quest')">Market</button>
+    <button class="qb-pill" data-ministry="island" onclick="setQbMinistry('island')">Island</button>
+    <button class="qb-pill" data-ministry="events" onclick="setQbMinistry('events')">Events</button>
+    <button class="qb-pill" data-ministry="recruitment" onclick="setQbMinistry('recruitment')">Recruitment</button>
+    <button class="qb-pill" data-ministry="general" onclick="setQbMinistry('general')">General</button>
+  </div>
+</div>
 
 <div class="quests">
   <!-- Cards rendered dynamically from Firebase questDefs -->
@@ -866,6 +885,16 @@
   let currentUserData = null;
   let isAdmin = false;
   let adminMode = false;
+  let _qbMinistry = 'all', _qbSearch = '';
+  window.setQbMinistry = function(m) {
+    _qbMinistry = m;
+    document.querySelectorAll('.qb-pill').forEach(p => p.classList.toggle('qb-pill-active', p.dataset.ministry === m));
+    renderBoard(currentQuestDefs);
+  };
+  window.applyQbFilter = function() {
+    _qbSearch = (document.getElementById('qb-search')?.value || '').toLowerCase().trim();
+    renderBoard(currentQuestDefs);
+  };
   let currentClaims = {};
   let currentParties = {};
   let claimListenersAdmin = {};
@@ -2088,7 +2117,15 @@
     questsContainer.innerHTML = '';
 
     const entries = Object.entries(questDefs || {})
-      .filter(([, def]) => def && !isExpired(def) && def.active !== false)
+      .filter(([, def]) => {
+        if (!def || isExpired(def) || def.active === false) return false;
+        if (_qbMinistry !== 'all') {
+          if (_qbMinistry === 'general') { if (def.ministry) return false; }
+          else { if ((def.ministry || '') !== _qbMinistry) return false; }
+        }
+        if (_qbSearch && !def.name?.toLowerCase().includes(_qbSearch) && !def.description?.toLowerCase().includes(_qbSearch)) return false;
+        return true;
+      })
       .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0));
 
     if (entries.length === 0) {
