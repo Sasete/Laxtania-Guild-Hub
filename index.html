@@ -387,7 +387,6 @@
       <div class="live-stat"><span class="live-num" id="statSilverRate">—</span><span class="live-lbl">Silver / Laxi</span></div>
     </div>
 
-    <div id="myClaimNotices" style="max-width:980px;margin:0 auto 0;display:flex;flex-direction:column;gap:8px"></div>
     <div id="myPaymentNotices" style="max-width:980px;margin:8px auto 20px;display:flex;flex-direction:column;gap:8px"></div>
 
     <hr class="divider">
@@ -465,7 +464,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, set, get, update, remove, onValue, push }
+import { getDatabase, ref, set, get, update, remove, onValue, push, query, orderByChild, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const FC={apiKey:"AIzaSyB_PsKhCwuv7nlGBGv-c9AcZcTWgP9DPFk",authDomain:"laxtania-albion-quest-board.firebaseapp.com",databaseURL:"https://laxtania-albion-quest-board-default-rtdb.europe-west1.firebasedatabase.app",projectId:"laxtania-albion-quest-board",storageBucket:"laxtania-albion-quest-board.firebasestorage.app",messagingSenderId:"636241022279",appId:"1:636241022279:web:42d7af06401d9cdda89062"};
@@ -583,7 +582,6 @@ onAuthStateChanged(auth,async user=>{
   onValue(ref(db,'tasks'),snap=>{
     const tasks=snap.val()||{};
     _allTasksData=tasks;
-    _updateCouncilNavBadgeMain();
     const uname=currentUserData?.name?.toLowerCase();
     const container=document.getElementById('myPaymentNotices');
     if(!container||!uname){if(container)container.innerHTML='';return;}
@@ -1254,17 +1252,14 @@ function loadLiveStats(){
     el.title = bal.toLocaleString() + ' Silver';
     el.style.color=bal<0?'#c05050':'';
   });
-  let _silverRate=0,_silverRatePrev=0;
+  let _silverRate=0,_silverRateDelta=0;
   function _updateSilverRate(){
     const v=_silverRate;
     const el=document.getElementById('statSilverRate');
     const txt=(v>=1000000?parseFloat((Math.round(v/10000)/100).toFixed(2))+'M':v>=1000?parseFloat((Math.round(v/100)/10).toFixed(1))+'K':v.toLocaleString())+' S';
     let arrow='';
-    if(_silverRatePrev&&v!==_silverRatePrev){
-      arrow=v>_silverRatePrev
-        ?'<span style="font-size:18px;color:#2a7a2a;margin-left:4px">▲</span>'
-        :'<span style="font-size:18px;color:#8c2424;margin-left:4px">▼</span>';
-    }
+    if(_silverRateDelta>0) arrow='<span style="font-size:18px;color:#2a7a2a;margin-left:4px">▲</span>';
+    else if(_silverRateDelta<0) arrow='<span style="font-size:18px;color:#8c2424;margin-left:4px">▼</span>';
     el.innerHTML=txt+arrow;
     el.title = v.toLocaleString() + ' Silver';
   }
@@ -1272,8 +1267,11 @@ function loadLiveStats(){
     _silverRate=snap.exists()?snap.val():10000;
     _updateSilverRate();
   });
-  onValue(ref(db,'treasury/settings/silverPerPrestigeSnapshot'),snap=>{
-    _silverRatePrev=snap.exists()?snap.val():0;
+  onValue(ref(db,'treasury/settings/rateHistory'),snap=>{
+    if(!snap.exists()){_silverRateDelta=0;_updateSilverRate();return;}
+    const entries=Object.values(snap.val());
+    const last=entries.sort((a,b)=>(b.changedAt||0)-(a.changedAt||0))[0];
+    _silverRateDelta=(last.value||0)-(last.prevValue||0);
     _updateSilverRate();
   });
 

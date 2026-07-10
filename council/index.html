@@ -514,6 +514,7 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <input type="text" id="mq-gain-quest" placeholder="Guild Gain (optional — e.g. 50 Potions delivered)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
+        <!-- <label style="font-size:11px;color:var(--ink);display:flex;align-items:center;gap:4px;cursor:pointer;font-family:Georgia,serif;font-variant:small-caps"><input type="checkbox" id="mq-family-quest"> Family Quest</label> -->
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('quest')">Post Quest</button>
@@ -653,6 +654,7 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <input type="text" id="mq-gain-events" placeholder="Guild Gain (optional — e.g. 50 Potions delivered)" style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
+        <!-- <label style="font-size:11px;color:var(--ink);display:flex;align-items:center;gap:4px;cursor:pointer;font-family:Georgia,serif;font-variant:small-caps"><input type="checkbox" id="mq-family-events"> Family Quest</label> -->
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('events')">Post Quest</button>
@@ -728,6 +730,7 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <input type="text" id="mq-gain-island" placeholder="Guild Gain (optional)..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
+        <!-- <label style="font-size:11px;color:var(--ink);display:flex;align-items:center;gap:4px;cursor:pointer;font-family:Georgia,serif;font-variant:small-caps"><input type="checkbox" id="mq-family-island"> Family Quest</label> -->
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('island')">Post Quest</button>
@@ -795,6 +798,7 @@
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <input type="text" id="mq-gain-recruitment" placeholder="Guild Gain (optional)..." style="font-family:Georgia,serif;font-size:13px;padding:6px 9px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);color:var(--ink);flex:1;min-width:200px">
+        <!-- <label style="font-size:11px;color:var(--ink);display:flex;align-items:center;gap:4px;cursor:pointer;font-family:Georgia,serif;font-variant:small-caps"><input type="checkbox" id="mq-family-recruitment"> Family Quest</label> -->
       </div>
       <div style="display:flex;gap:8px">
         <button class="gold-btn" onclick="submitMinistryQuest('recruitment')">Post Quest</button>
@@ -2910,18 +2914,26 @@ window.completeTask=async function(id,silent=false){
     toast(`Event approved — ${t.prestigeTotal||0} pts distributed${t.guildIncome>0?' · '+fmtS(t.guildIncome)+' income recorded':''}.`);
     return;
   } else if(t.type==='prestige_quest'&&t.prestigePoints){
-    // Award prestige split among party members
-    const party=t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)):[t.holder];
-    const perMember=Math.floor(t.prestigePoints/party.length);
-    if(perMember>0){
-      const membersSnap=await get(ref(db,'prestige/members'));
-      const members=membersSnap.val()||{};
-      const upd={};
-      for(const mName of party){
-        const entry=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===mName.toLowerCase());
-        if(entry)upd[`prestige/members/${entry[0]}/points`]=(entry[1].points||0)+perMember;
+    if (t.forFamily) {
+      const famSnap=await get(ref(db,'prestige/families/'+t.forFamily));
+      const fam=famSnap.val()||{};
+      await update(ref(db),{
+        [`prestige/families/${t.forFamily}/bonusPoints`]:(fam.bonusPoints||0)+t.prestigePoints
+      });
+    } else {
+      // Award prestige split among party members
+      const party=t.partyMembers?(Array.isArray(t.partyMembers)?t.partyMembers:Object.values(t.partyMembers)):[t.holder];
+      const perMember=Math.floor(t.prestigePoints/party.length);
+      if(perMember>0){
+        const membersSnap=await get(ref(db,'prestige/members'));
+        const members=membersSnap.val()||{};
+        const upd={};
+        for(const mName of party){
+          const entry=Object.entries(members).find(([,m])=>m.name?.toLowerCase()===mName.toLowerCase());
+          if(entry)upd[`prestige/members/${entry[0]}/points`]=(entry[1].points||0)+perMember;
+        }
+        if(Object.keys(upd).length)await update(ref(db),upd);
       }
-      if(Object.keys(upd).length)await update(ref(db),upd);
     }
     // Clean up quest + market stock (single fetch)
     let _questFundKey='quest';
@@ -2933,7 +2945,11 @@ window.completeTask=async function(id,silent=false){
         // Remove claimant & reduce slots
         const questSnap=await get(ref(db,'quests/'+t.questId));
         const claimsArr=questSnap.exists()?(Array.isArray(questSnap.val())?questSnap.val():Object.values(questSnap.val()||{})):[];
-        const holderIdx=claimsArr.findIndex(n=>n?.toLowerCase()===(t.holder||'').toLowerCase());
+        const holderIdx=claimsArr.findIndex(n=>{
+          if (!n) return false;
+          if (t.forFamily && n.startsWith('family:'+t.forFamily)) return n.toLowerCase().endsWith(':'+(t.holder||'').toLowerCase());
+          return n.toLowerCase()===(t.holder||'').toLowerCase();
+        });
         if(holderIdx>=0)claimsArr.splice(holderIdx,1);
         const newSlots=Math.max(0,(qd.slots||1)-1);
         const questUpd={};
@@ -3174,6 +3190,7 @@ window.submitMinistryQuest=async function(key){
   const gainInput=document.getElementById('mq-gain-'+key);
   const guildGain=(gainInput?.value||'').trim()||`Contributes to ${MINISTRY_NAMES[key]||key} objectives`;
   const ministry=MINISTRY_NAMES[key]||key;
+  const isFamily = document.getElementById('mq-family-'+key)?.checked || false;
   if(!name||!desc||!laxi){toast('Fill in name, description and Laxi reward.');return;}
   const by=currentUserData?.name||'Council';
   const order=Date.now();
@@ -3182,6 +3199,7 @@ window.submitMinistryQuest=async function(key){
     issuer:ministry,
     description:desc,
     guildGain,
+    isFamilyQuest:isFamily,
     rewards:[{icon:'£',text:`${laxi} Laxi`}],
     ministry:key,
     createdBy:by,createdAt:Date.now(),
@@ -3197,6 +3215,8 @@ window.submitMinistryQuest=async function(key){
   document.getElementById('mq-desc-'+key).value='';
   document.getElementById('mq-laxi-'+key).value='';
   if(gainInput)gainInput.value='';
+  const famCheck = document.getElementById('mq-family-'+key);
+  if(famCheck) famCheck.checked = false;
   toggleMinistryForm(key);
   toast(`Quest posted to quest board as "${ministry}".`);
 };
@@ -3620,7 +3640,7 @@ onAuthStateChanged(auth,async user=>{
     }
     populateCertificateUsers();
   });
-  safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();renderMinistryCommitments('recruitment',_questDefs);});
+  safeOnValue('funds/recruitment/entries',snap=>{recruitmentEntries=snap.val()||{};renderRecruitmentFund();renderOverview();renderPrestigeValue();renderMinistryCommitments('recruitment',_questDefs);});
   safeOnValue('bondRequests',snap=>{_bondRequests=snap.val()||{};renderBonds();});
   renderBudgetPermissions();
 });
@@ -3970,9 +3990,10 @@ window.submitMiQuest=async function(){
   const slots=Math.max(1,parseInt(document.getElementById('miQuestSlots').value)||1);
   const laxi=Math.max(1,parseInt(document.getElementById('miQuestLaxi').value)||1);
   const by=currentUserData?.name||'Council';
+  const itemTag = item.albionId ? `[item="${item.albionId}${item.albionEnc ? '@'+item.albionEnc : ''}"] ` : '';
   const def={
-    name:`Deliver: ${item.name}`,
-    description:`Deliver ${qty}× ${item.name} to the guild island market.`,
+    name:`Supply: ${item.name}`,
+    description:`We require ${qty}× ${itemTag}<b>${item.name}</b> for guild operations.<br><br>Please acquire these items and deliver them directly into the designated <b>Market Commission Chest</b> on our Guild Island.<br><br><span style="color:var(--ink-soft);font-size:12px"><i>(Note: Do not list them on the island market!)</i></span>`,
     level:'Market · Supply',
     issuer:'Market Commission',
     type:'prestige_quest',

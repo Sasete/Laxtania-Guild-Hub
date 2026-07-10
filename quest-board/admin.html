@@ -935,7 +935,8 @@
 
   // --- Helpers ---
   function escapeHtml(str) {
-    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
   function slugify(text) {
@@ -1094,7 +1095,7 @@
   function buildCardShell(opts) {
     const { tilt, level, slotsValue, slotsLabel, name, issuer, descriptionHtml,
             guildGain, prestige, silver, claimsHtml, slotStatus, slotStatusFull,
-            saveLabel, deadlineValue, outOfTime, isActive } = opts;
+            saveLabel, deadlineValue, outOfTime, isActive, isFamilyQuest } = opts;
 
     const article = document.createElement('article');
     article.className = 'quest-card';
@@ -1109,6 +1110,9 @@
       <div class="quest-eyebrow">
         <span class="level editable" contenteditable="true">${level}</span>
         <span style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--ink-soft);font-family:Georgia,serif;font-variant:small-caps;">
+            <input type="checkbox" class="family-quest-cb" ${isFamilyQuest ? 'checked' : ''}> Family Quest
+          </label>
           <button class="active-toggle ${activeCls}" title="Toggle active/inactive">${activeLabel}</button>
           <span class="slots-edit">
             <input type="number" class="num-input slots-input" min="1" value="${slotsValue}">
@@ -1206,7 +1210,8 @@
       saveLabel: 'Save Changes',
       deadlineValue: def.deadline ? isoToLocalInputValue(def.deadline) : '',
       outOfTime: isExpired(def),
-      isActive: def.active !== false
+      isActive: def.active !== false,
+      isFamilyQuest: !!def.isFamilyQuest
     });
 
     article.classList.toggle('out-of-time', isExpired(def));
@@ -1249,7 +1254,8 @@
       saveLabel: 'Post Contract',
       deadlineValue: '',
       outOfTime: false,
-      isActive: true
+      isActive: true,
+      isFamilyQuest: false
     });
 
     article.dataset.draft = 'true';
@@ -1275,7 +1281,8 @@
       guildGain: card.querySelector('.guild-gain .editable').textContent.trim(),
       prestige: parseInt(card.querySelector('.reward-prestige-input').value, 10) || 0,
       silver: parseInt(card.querySelector('.reward-silver-input').value, 10) || 0,
-      deadline: localInputValueToIso(card.querySelector('.deadline-input').value)
+      deadline: localInputValueToIso(card.querySelector('.deadline-input').value),
+      isFamilyQuest: card.querySelector('.family-quest-cb').checked
     };
   }
 
@@ -1290,6 +1297,7 @@
       description: data.description,
       guildGain: data.guildGain,
       deadline: data.deadline,
+      isFamilyQuest: data.isFamilyQuest,
       rewards: [
         { icon: '♦', text: `${data.prestige} Prestige` },
         { icon: '⛀', text: `${formatSilver(data.silver)} Silver` }
