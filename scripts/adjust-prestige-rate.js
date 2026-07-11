@@ -24,13 +24,16 @@ const VOL_LOW      = 0.08;   // 3-8%  → +1 step
 // > 8%              → +2 steps
 
 // Normal price adjustment (runs when NOT in crisis)
-// Script runs every 4h → 6×/day. Per-run cap = 0.001 → total daily ≈ 0.6%
+// Script runs every 4h → 6×/day.
 const UP_RATIO         = 0.05;
 const UP_MIN           = 8;     // min step per run (S)
 const UP_RUN_CAP_PCT   = 0.001; // max step per run as % of nominal
-const DOWN_RATIO       = 0.20;
-const DOWN_MIN         = 100;
-const DOWN_MAX         = 1500;
+const DOWN_RATIO       = 0.10;  // 10% of gap per run (slowed down from 20%)
+const DOWN_MIN         = 8;     // min step per run (S)
+const DOWN_MAX         = 500;   // max drop per run
+// Market Noise Config
+const NOISE_BOOST_CHANCE   = 0.15; // 15% chance to multiply the upward step
+const NOISE_REVERSE_CHANCE = 0.10; // 10% chance to move in the opposite direction by a small amount
 // ─────────────────────────────────────────────────────────────────────────
 
 // --crisis-only: skip normal price adjustment, only handle crisis zone logic
@@ -39,14 +42,20 @@ const CRISIS_ONLY = process.argv.includes('--crisis-only');
 async function main() {
   const now = Date.now();
 
-  const [treasurySnap, bondsSnap, membersSnap, familiesSnap, settingsSnap, crisisSnap, tasksSnap] = await Promise.all([
+  const [
+    treasurySnap, membersSnap, familiesSnap, settingsSnap, crisisSnap, tasksSnap,
+    questSnap, eventsSnap, islandSnap, recruitSnap
+  ] = await Promise.all([
     db.ref('treasury/entries').get(),
-    db.ref('bonds').get(),
     db.ref('prestige/members').get(),
     db.ref('prestige/families').get(),
     db.ref('treasury/settings/silverPerLaxi').get(),
     db.ref('treasury/settings/crisis').get(),
     db.ref('tasks').get(),
+    db.ref('funds/quest/entries').get(),
+    db.ref('funds/events/entries').get(),
+    db.ref('funds/island/entries').get(),
+    db.ref('funds/recruitment/entries').get(),
   ]);
 
   const nominal = settingsSnap.exists() ? settingsSnap.val() : 10000;
@@ -56,16 +65,13 @@ async function main() {
   const entries  = treasurySnap.val() || {};
   const treasury = Object.values(entries).reduce((s, e) => s + (e.amount || 0), 0);
 
-  // ── Bond liability ──
-  const bonds = bondsSnap.val() || {};
-  let liability = 0;
-  for (const p of Object.values(bonds)) {
-    if (p.status === 'active' || p.status === 'completing') {
-      for (const s of Object.values(p.sales || {})) {
-        if (!s.redeemed) liability += s.repayment || 0;
-      }
-    }
-  }
+  // ── Funds (to calculate Free Treasury) ──
+  const sumEntries = (snap) => Object.values(snap.val() || {}).reduce((s, e) => s + (e.amount || 0), 0);
+  const questBal   = sumEntries(questSnap);
+  const eventsBal  = sumEntries(eventsSnap);
+  const islandBal  = sumEntries(islandSnap);
+  const recruitBal = sumEntries(recruitSnap);
+  const totalFunds = questBal + eventsBal + islandBal + recruitBal;
 
   // ── Total laxi (members + family bonuses) ──
   const members     = membersSnap.val() || {};
@@ -79,7 +85,7 @@ async function main() {
     process.exit(0);
   }
 
-  const netPosition = treasury - liability;
+  const netPosition = treasury - totalFunds;
   const realValue   = Math.round(netPosition / totalLaxi);
   const ratio       = realValue / nominal;
   const dropPct     = Math.round((1 - ratio) * 100);
@@ -232,15 +238,36 @@ async function main() {
     console.log('ℹ️  Crisis-only mode — skipping normal price adjustment.');
   } else {
     const gap = Math.abs(realValue - nominal);
+    let step = 0;
+    let direction = 1;
+
     if (realValue > nominal) {
+      direction = 1;
       const runCap  = Math.round(nominal * UP_RUN_CAP_PCT);
-      const step    = Math.min(Math.max(Math.round(gap * UP_RATIO), UP_MIN), runCap);
-      newNominal    = nominal + step;
-      console.log(`↑ Adjusting up by ${step.toLocaleString()} S (run cap: ${runCap.toLocaleString()} S)`);
+      step = Math.min(Math.max(Math.round(gap * UP_RATIO), UP_MIN), runCap);
+      
+      // Randomly boost the upward step sometimes (e.g., +50 to +80 instead of +10)
+      if (Math.random() < NOISE_BOOST_CHANCE) {
+        const boost = Math.floor(Math.random() * 6) + 4; // multiplier between 4x and 9x
+        step = Math.min(step * boost, gap); // ensure it doesn't overshoot realValue
+      }
     } else if (realValue < nominal) {
-      const step = Math.min(Math.max(Math.round(gap * DOWN_RATIO), DOWN_MIN), DOWN_MAX);
-      newNominal = nominal - step;
-      console.log(`↓ Adjusting down by ${step.toLocaleString()} S`);
+      direction = -1;
+      const rawStep = Math.round(gap * DOWN_RATIO);
+      step = Math.min(Math.max(rawStep, DOWN_MIN), gap, DOWN_MAX);
+    }
+
+    if (gap > 0 && Math.random() < NOISE_REVERSE_CHANCE) {
+      // 10% chance to move in the wrong direction to create organic market noise
+      direction = -direction;
+      // Move by a random small amount between 5 and 25
+      step = Math.floor(Math.random() * 21) + 5;
+    }
+
+    if (step > 0) {
+      newNominal = nominal + (direction * step);
+      const dirStr = direction === 1 ? '↑ up' : '↓ down';
+      console.log(`${dirStr} by ${step.toLocaleString()} S (noise applied)`);
     } else {
       console.log('= Already at real value — no change.');
     }
