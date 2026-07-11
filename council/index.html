@@ -2895,12 +2895,13 @@ window.completeTask=async function(id,silent=false){
     const pmByName={};
     Object.entries(pmData).forEach(([mid,m])=>{if(m.name)pmByName[m.name.toLowerCase()]={mid,...m};});
     const upd={};
-    for(const award of Object.values(t.awardsMap)){
+    for(const [uid, award] of Object.entries(t.awardsMap)){
       const pm=pmByName[award.name?.toLowerCase()];
       if(pm)upd[`prestige/members/${pm.mid}/points`]=(pm.points||0)+award.delta;
+      if(t.eventId)upd[`events/${t.eventId}/participants/${uid}/prestigeAwarded`]=award.delta;
     }
+    if(t.eventId)upd[`events/${t.eventId}/status`] = 'completed';
     if(Object.keys(upd).length)await update(ref(db),upd);
-    if(t.eventId)await update(ref(db,'events/'+t.eventId),{status:'completed'});
     // Deduct from Events Budget prestige + deduct silver from budget (or record deficit)
     const evTotalPts=t.prestigeTotal||0;
     if(evTotalPts>0){
