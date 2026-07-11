@@ -939,7 +939,14 @@
 
     <!-- Laxi Rate Chart -->
     <div class="add-form" style="margin-bottom:28px">
-      <div class="section-eyebrow" style="margin:0 0 12px">Laxi Rate — Last 10 Days</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 12px">
+        <div class="section-eyebrow" style="margin:0">Laxi Rate</div>
+        <div style="display:flex;gap:4px">
+          <button class="ghost-btn" id="btnChart48h" style="font-size:10px;padding:2px 6px;background:var(--gold);color:white" onclick="setRateChartRange('48h')">48H</button>
+          <button class="ghost-btn" id="btnChart1w" style="font-size:10px;padding:2px 6px" onclick="setRateChartRange('1w')">1W</button>
+          <button class="ghost-btn" id="btnChart1m" style="font-size:10px;padding:2px 6px" onclick="setRateChartRange('1m')">1M</button>
+        </div>
+      </div>
       <div style="position:relative">
         <svg id="rateChart" viewBox="0 0 520 120" style="width:100%;display:block;overflow:visible;cursor:crosshair"></svg>
         <div id="rateChartTooltip" style="display:none;position:absolute;background:rgba(28,42,64,.92);color:#f1e4c4;font-family:Georgia,serif;font-size:11px;padding:6px 10px;border-radius:3px;pointer-events:none;white-space:nowrap;z-index:10"></div>
@@ -986,12 +993,6 @@
       <div id="crisisLogList" style="font-size:12px;color:var(--ink-soft);font-style:italic">No circuit breaker events on record.</div>
     </div>
 
-    <!-- Admin Tools -->
-    <div class="add-form" style="margin-top:20px">
-      <div class="section-eyebrow" style="margin:0 0 10px">Admin Tools</div>
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">Fix misattributed Laxi: move 12 pts (Fill &amp; Deliver | T5 Gathering Journals) from Market Commission → Island Affairs.</div>
-      <button class="gold-btn" onclick="fixMisattributedLaxi()">Apply Fix (12 Laxi → Island Affairs)</button>
-    </div>
 
   </div>
 
@@ -1085,6 +1086,7 @@ let _fundRequests={};
 let questPrestigeEntries={},eventsPrestigeEntries={},islandPrestigeEntries={},recruitmentPrestigeEntries={};
 let _miAddOpen=false,_miFormState={};
 let treasuryBalance=0,treasuryEntries={},questEntries={},eventsEntries={},islandEntries={},recruitmentEntries={},bondPeriods={},tasks={},silverRate=10000,prestigeMembers={},prestigeFamilies={},_allUsers={},_questDefs={},_activeQuests={},_bondRequests={},_certificates={},_marketItems={};
+let _rateHistoryAll=[], _rateChartRange='48h';
 let _fundDeficits={quest:0,events:0,island:0,recruitment:0};
 function fmtLaxi(n){const a=Math.abs(n);const s=a>=1000000?(a/1000000).toFixed(2).replace(/\.?0+$/,'')+'M':a>=1000?(a/1000).toFixed(1).replace(/\.0$/,'')+'K':String(a);return(n<0?'−':'')+s;}
 
@@ -1577,13 +1579,13 @@ function renderOverview(){
 
   // Treasury entry log
   const FUND_LABELS={quest:'Market Commission',events:'Ministry of War',island:'Ministry of Island Affairs'};
-  const sorted=Object.entries(treasuryEntries).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
+  const sorted=Object.entries(treasuryEntries).sort((a,b)=>((b[1].at||b[1].timestamp||0))-((a[1].at||a[1].timestamp||0)));
   renderEntryPage(sorted,'adjList','adjPagination','treasury',
     ([eid,e])=>`<div class="adj-row">
       <span class="entry-amount ${e.amount>=0?'pos':'neg'}" style="font-size:13px">${e.amount>=0?'+':''}${fmtS(e.amount)}</span>
       ${e.fund?`<span class="fund-tag" style="flex-shrink:0">${FUND_LABELS[e.fund]||e.fund}</span>`:''}
-      <span style="flex:1;font-size:13px;color:var(--ink)">${e.reason||'—'}</span>
-      <span class="entry-meta">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.by||'?'} · ${e.at?fmtDate(e.at):''}</span>
+      <span style="flex:1;font-size:13px;color:var(--ink)">${e.reason||e.note||'—'}</span>
+      <span class="entry-meta">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.by||'?'} · ${e.at||e.timestamp?fmtDate(e.at||e.timestamp):''}</span>
     </div>`);
 }
 
@@ -1661,12 +1663,12 @@ function renderFundEntries(fundKey){
       pendingEl.innerHTML='';
     }
   }
-  const sorted=Object.entries(getFundEntries(fundKey)).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
+  const sorted=Object.entries(getFundEntries(fundKey)).sort((a,b)=>((b[1].at||b[1].timestamp||0))-((a[1].at||a[1].timestamp||0)));
   renderEntryPage(sorted,FUND_LIST_ELS[fundKey],fundKey+'EntryPagination',fundKey,
     ([,e])=>`<div class="entry-row">
       <span class="entry-amount ${e.amount>=0?'pos':'neg'}">${e.amount>=0?'+':''}${fmtS(e.amount)}</span>
-      <span class="entry-reason">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.reason||'—'}</span>
-      <span class="entry-meta">${e.by||'?'} · ${e.at?fmtDate(e.at):''}</span>
+      <span class="entry-reason">${e.auto?'<span class="auto-tag">auto</span> ':''}${e.reason||e.note||'—'}</span>
+      <span class="entry-meta">${e.by||'?'} · ${e.at||e.timestamp?fmtDate(e.at||e.timestamp):''}</span>
     </div>`);
 }
 
@@ -3440,97 +3442,147 @@ onAuthStateChanged(auth,async user=>{
       Sell margin: <strong style="color:#8c2424">−${totalMargin}%</strong> (base 10% + ${penalty}% crisis penalty)<br>
       <span style="color:#8c2424">Margin increases every 2h while sell pressure persists. Correction triggers at −50%.</span>`;
   });
+  // ── Laxi Rate Chart Rendering ──
+  window.setRateChartRange = function(range) {
+    _rateChartRange = range;
+    ['48h','1w','1m'].forEach(r => {
+      const btn = document.getElementById('btnChart'+r);
+      if(btn) {
+        if(r === range) {
+          btn.style.background = 'var(--gold)';
+          btn.style.color = 'white';
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.color = 'var(--ink)';
+        }
+      }
+    });
+    renderRateChart();
+  };
+
+  function renderRateChart() {
+    const svg = document.getElementById('rateChart');
+    if(!svg) return;
+    if(_rateHistoryAll.length === 0) {
+      svg.innerHTML = '';
+      return;
+    }
+    const W=520,H=100,PAD={t:14,r:12,b:28,l:54};
+    const now = Date.now();
+    const points = [];
+    
+    if (_rateChartRange === '48h') {
+      let lastDate = null;
+      for(let i=12;i>=0;i--){
+        const d=new Date(now-i*4*3600000);
+        const timeStr = d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        let label = timeStr;
+        if (dateStr !== lastDate) { label = dateStr; lastDate = dateStr; }
+        const fullLabel = `${dateStr} ${timeStr}`;
+        const candidates=_rateHistoryAll.filter(e=>e.changedAt<=d.getTime());
+        if(candidates.length) points.push({label, fullLabel, value:candidates[candidates.length-1].value});
+        else if(points.length) points.push({label, fullLabel, value:points[points.length-1].value});
+      }
+    } else if (_rateChartRange === '1w') {
+      let lastDate = null;
+      for(let i=14;i>=0;i--){
+        const d=new Date(now-i*12*3600000); // 12-hour increments
+        const timeStr = d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        let label = '';
+        if (dateStr !== lastDate) { label = dateStr; lastDate = dateStr; }
+        const fullLabel = `${dateStr} ${timeStr}`;
+        const candidates=_rateHistoryAll.filter(e=>e.changedAt<=d.getTime());
+        if(candidates.length) points.push({label, fullLabel, value:candidates[candidates.length-1].value});
+        else if(points.length) points.push({label, fullLabel, value:points[points.length-1].value});
+      }
+    } else if (_rateChartRange === '1m') {
+      let lastMonth = null;
+      for(let i=30;i>=0;i--){
+        const d=new Date(now-i*86400000); // Daily
+        const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        const monthStr = d.toLocaleDateString('en-GB',{month:'short'});
+        let label = (i%5===0 || i===30 || i===0) ? dateStr : ''; 
+        if (monthStr !== lastMonth && i !== 30) { label = dateStr; lastMonth = monthStr; }
+        if (i===30) lastMonth = monthStr;
+        const fullLabel = dateStr;
+        const candidates=_rateHistoryAll.filter(e=>e.changedAt<=d.setHours(23,59,59,999));
+        if(candidates.length) points.push({label, fullLabel, value:candidates[candidates.length-1].value});
+        else if(points.length) points.push({label, fullLabel, value:points[points.length-1].value});
+      }
+    }
+
+    if(points.length<2){svg.innerHTML='';return;}
+    
+    const vals=points.map(p=>p.value);
+    const minV=Math.min(...vals), maxV=Math.max(...vals);
+    const vRange=maxV-minV||1;
+    const xScale=(W-PAD.l-PAD.r)/(points.length-1);
+    const yScale=(H-PAD.t-PAD.b)/vRange;
+    const px=i=>PAD.l+i*xScale;
+    const py=v=>PAD.t+(maxV-v)*yScale;
+    const pathD=points.map((p,i)=>`${i===0?'M':'L'}${px(i).toFixed(1)},${py(p.value).toFixed(1)}`).join(' ');
+    const areaD=pathD+` L${px(points.length-1).toFixed(1)},${(H-PAD.b).toFixed(1)} L${px(0).toFixed(1)},${(H-PAD.b).toFixed(1)} Z`;
+    
+    const yLabels=[minV,Math.round((minV+maxV)/2),maxV].map(v=>`<text x="${PAD.l-6}" y="${py(v)+4}" text-anchor="end" font-size="9" fill="#8a7560" font-family="Georgia,serif">${v.toLocaleString()}</text>`).join('');
+    const xLabels=points.map((p,i)=>p.label ? `<text x="${px(i)}" y="${H-PAD.b+14}" text-anchor="middle" font-size="9" fill="#8a7560" font-family="Georgia,serif">${p.label}</text>` : '').join('');
+    const dots=points.map((p,i)=>`<circle class="rate-dot" cx="${px(i).toFixed(1)}" cy="${py(p.value).toFixed(1)}" r="4" fill="#4a6a3a" stroke="white" stroke-width="1.5" data-idx="${i}" style="cursor:pointer"/>`).join('');
+    const hitAreas=points.map((p,i)=>`<rect x="${(px(i)-xScale/2).toFixed(1)}" y="${PAD.t}" width="${xScale.toFixed(1)}" height="${H-PAD.t-PAD.b}" fill="transparent" data-idx="${i}" class="rate-hit"/>`).join('');
+    
+    svg.innerHTML=`
+      <defs><linearGradient id="rateGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a6a3a" stop-opacity="0.18"/><stop offset="100%" stop-color="#4a6a3a" stop-opacity="0"/></linearGradient></defs>
+      <line x1="${PAD.l}" y1="${PAD.t}" x2="${PAD.l}" y2="${H-PAD.b}" stroke="rgba(120,90,50,.2)" stroke-width="1"/>
+      <line x1="${PAD.l}" y1="${H-PAD.b}" x2="${W-PAD.r}" y2="${H-PAD.b}" stroke="rgba(120,90,50,.2)" stroke-width="1"/>
+      <line id="rateHoverLine" x1="0" y1="${PAD.t}" x2="0" y2="${H-PAD.b}" stroke="rgba(74,106,58,.4)" stroke-width="1" stroke-dasharray="3,2" style="display:none"/>
+      ${yLabels}${xLabels}
+      <path d="${areaD}" fill="url(#rateGrad)"/>
+      <path d="${pathD}" fill="none" stroke="#4a6a3a" stroke-width="2" stroke-linejoin="round"/>
+      ${dots}${hitAreas}`;
+
+    const tip=document.getElementById('rateChartTooltip');
+    const svgEl=svg;
+    svg.querySelectorAll('.rate-hit').forEach(rect=>{
+      rect.addEventListener('mouseenter',e=>{
+        const idx=parseInt(rect.dataset.idx);
+        const p=points[idx];
+        if(!p)return;
+        const prev=idx>0?points[idx-1]:null;
+        const diff=prev?p.value-prev.value:null;
+        const diffStr=diff===null?'':(diff>0?` ▲ +${diff.toLocaleString()}`:(diff<0?` ▼ ${diff.toLocaleString()}`:''));
+        const diffColor=diff>0?'#6aaa6a':diff<0?'#e06060':'inherit';
+        tip.innerHTML=`<strong>${p.fullLabel||p.label}</strong><br><span style="font-size:13px;font-weight:bold">${p.value.toLocaleString()} S</span>${diff!==null?`<br><span style="color:${diffColor}">${diffStr} S</span>`:''}`;
+        const svgRect=svgEl.getBoundingClientRect();
+        const cx=px(idx)/W*svgRect.width;
+        tip.style.display='block';
+        tip.style.left=(cx+8)+'px';
+        tip.style.top=(py(p.value)/120*svgRect.height-10)+'px';
+        const hline=svg.getElementById('rateHoverLine');
+        if(hline){hline.setAttribute('x1',px(idx).toFixed(1));hline.setAttribute('x2',px(idx).toFixed(1));hline.style.display='';}
+        svg.querySelectorAll('.rate-dot').forEach((d,di)=>{d.setAttribute('r',di===idx?'5':'3.5');d.setAttribute('fill',di===idx?'#2a5a2a':'#4a6a3a');});
+      });
+      rect.addEventListener('mouseleave',()=>{
+        tip.style.display='none';
+        const hline=svg.getElementById('rateHoverLine');
+        if(hline)hline.style.display='none';
+        svg.querySelectorAll('.rate-dot').forEach(d=>{d.setAttribute('r','4');d.setAttribute('fill','#4a6a3a');});
+      });
+    });
+  }
+
   // ── Laxi Rate History ──
-  onValue(query(ref(db,'treasury/settings/rateHistory'),orderByChild('changedAt'),limitToLast(50)),snap=>{
+  onValue(query(ref(db,'treasury/settings/rateHistory'),orderByChild('changedAt'),limitToLast(300)),snap=>{
     const el=document.getElementById('rateHistoryList');
-    const svg=document.getElementById('rateChart');
     if(!el)return;
     if(!snap.exists()){
       el.innerHTML='<span style="font-style:italic">No rate changes recorded yet.</span>';
-      if(svg)svg.innerHTML='';
+      _rateHistoryAll=[];
+      renderRateChart();
       return;
     }
-    const all=Object.values(snap.val()).sort((a,b)=>(a.changedAt||0)-(b.changedAt||0));
-
-    // ── Mini line chart (last 10 days) ──
-    if(svg){
-      const W=520,H=100,PAD={t:14,r:12,b:28,l:54};
-      const now=Date.now(), cutoff=now-10*86400000;
-      // Build daily close: for each day, last entry's value
-      const dayMap={};
-      all.forEach(e=>{
-        const d=new Date(e.changedAt||0).toLocaleDateString('en-GB');
-        dayMap[d]={value:e.value,ts:e.changedAt};
-      });
-      // Fill last 10 days
-      const points=[];
-      for(let i=9;i>=0;i--){
-        const d=new Date(now-i*86400000);
-        const key=d.toLocaleDateString('en-GB');
-        const label=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-        // find last known value on or before this day
-        const candidates=all.filter(e=>e.changedAt<=d.setHours(23,59,59,999));
-        if(candidates.length) points.push({label,value:candidates[candidates.length-1].value});
-        else if(points.length) points.push({label,value:points[points.length-1].value});
-      }
-      if(points.length<2){svg.innerHTML='';return;}
-      const vals=points.map(p=>p.value);
-      const minV=Math.min(...vals), maxV=Math.max(...vals);
-      const vRange=maxV-minV||1;
-      const xScale=(W-PAD.l-PAD.r)/(points.length-1);
-      const yScale=(H-PAD.t-PAD.b)/vRange;
-      const px=i=>PAD.l+i*xScale;
-      const py=v=>PAD.t+(maxV-v)*yScale;
-      const pathD=points.map((p,i)=>`${i===0?'M':'L'}${px(i).toFixed(1)},${py(p.value).toFixed(1)}`).join(' ');
-      const areaD=pathD+` L${px(points.length-1).toFixed(1)},${(H-PAD.b).toFixed(1)} L${px(0).toFixed(1)},${(H-PAD.b).toFixed(1)} Z`;
-      // Y axis labels
-      const yLabels=[minV,Math.round((minV+maxV)/2),maxV].map(v=>`<text x="${PAD.l-6}" y="${py(v)+4}" text-anchor="end" font-size="9" fill="#8a7560" font-family="Georgia,serif">${v.toLocaleString()}</text>`).join('');
-      // X axis labels (every other day to avoid clutter)
-      const xLabels=points.map((p,i)=>i%2===0?`<text x="${px(i)}" y="${H-PAD.b+14}" text-anchor="middle" font-size="9" fill="#8a7560" font-family="Georgia,serif">${p.label}</text>`:'').join('');
-      // Dots
-      const dots=points.map((p,i)=>`<circle class="rate-dot" cx="${px(i).toFixed(1)}" cy="${py(p.value).toFixed(1)}" r="4" fill="#4a6a3a" stroke="white" stroke-width="1.5" data-label="${p.label}" data-value="${p.value}" style="cursor:pointer"/>`).join('');
-      // Invisible wider hit areas for easier hover
-      const hitAreas=points.map((p,i)=>`<rect x="${(px(i)-xScale/2).toFixed(1)}" y="${PAD.t}" width="${xScale.toFixed(1)}" height="${H-PAD.t-PAD.b}" fill="transparent" data-idx="${i}" class="rate-hit"/>`).join('');
-      svg.innerHTML=`
-        <defs><linearGradient id="rateGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a6a3a" stop-opacity="0.18"/><stop offset="100%" stop-color="#4a6a3a" stop-opacity="0"/></linearGradient></defs>
-        <line x1="${PAD.l}" y1="${PAD.t}" x2="${PAD.l}" y2="${H-PAD.b}" stroke="rgba(120,90,50,.2)" stroke-width="1"/>
-        <line x1="${PAD.l}" y1="${H-PAD.b}" x2="${W-PAD.r}" y2="${H-PAD.b}" stroke="rgba(120,90,50,.2)" stroke-width="1"/>
-        <line id="rateHoverLine" x1="0" y1="${PAD.t}" x2="0" y2="${H-PAD.b}" stroke="rgba(74,106,58,.4)" stroke-width="1" stroke-dasharray="3,2" style="display:none"/>
-        ${yLabels}${xLabels}
-        <path d="${areaD}" fill="url(#rateGrad)"/>
-        <path d="${pathD}" fill="none" stroke="#4a6a3a" stroke-width="2" stroke-linejoin="round"/>
-        ${dots}${hitAreas}`;
-
-      // Hover interactivity
-      const tip=document.getElementById('rateChartTooltip');
-      const svgEl=svg;
-      svg.querySelectorAll('.rate-hit').forEach(rect=>{
-        rect.addEventListener('mouseenter',e=>{
-          const idx=parseInt(rect.dataset.idx);
-          const p=points[idx];
-          if(!p)return;
-          const prev=idx>0?points[idx-1]:null;
-          const diff=prev?p.value-prev.value:null;
-          const diffStr=diff===null?'':(diff>0?` ▲ +${diff.toLocaleString()}`:(diff<0?` ▼ ${diff.toLocaleString()}`:''));
-          const diffColor=diff>0?'#6aaa6a':diff<0?'#e06060':'inherit';
-          tip.innerHTML=`<strong>${p.label}</strong><br><span style="font-size:13px;font-weight:bold">${p.value.toLocaleString()} S</span>${diff!==null?`<br><span style="color:${diffColor}">${diffStr} S</span>`:''}`;
-          const svgRect=svgEl.getBoundingClientRect();
-          const cx=px(idx)/W*svgRect.width;
-          tip.style.display='block';
-          tip.style.left=(cx+8)+'px';
-          tip.style.top=(py(p.value)/120*svgRect.height-10)+'px';
-          const hline=svg.getElementById('rateHoverLine');
-          if(hline){hline.setAttribute('x1',px(idx).toFixed(1));hline.setAttribute('x2',px(idx).toFixed(1));hline.style.display='';}
-          svg.querySelectorAll('.rate-dot').forEach((d,di)=>{d.setAttribute('r',di===idx?'5':'3.5');d.setAttribute('fill',di===idx?'#2a5a2a':'#4a6a3a');});
-        });
-        rect.addEventListener('mouseleave',()=>{
-          tip.style.display='none';
-          const hline=svg.getElementById('rateHoverLine');
-          if(hline)hline.style.display='none';
-          svg.querySelectorAll('.rate-dot').forEach(d=>{d.setAttribute('r','4');d.setAttribute('fill','#4a6a3a');});
-        });
-      });
-    }
+    _rateHistoryAll=Object.values(snap.val()).sort((a,b)=>(a.changedAt||0)-(b.changedAt||0));
+    renderRateChart();
+    const all = _rateHistoryAll;
 
     // ── Log list with pagination ──
     const _rateEntries=[...all].reverse();
@@ -3843,9 +3895,9 @@ window.approveFundRequest = async function(id) {
     const ts = Date.now();
     const by = currentUserData?.name || currentUserId;
     const tRef = push(ref(db, 'treasury/entries'));
-    const tEntry = { amount: -req.amount, note: `Fund Request Approved: To ${fundName} - ${req.reason}`, timestamp: ts, by: by };
+    const tEntry = { amount: -req.amount, reason: `Fund Request Approved: To ${fundName} - ${req.reason}`, at: ts, by: by };
     const fRef = push(ref(db, `funds/${req.fundKey}/entries`));
-    const fEntry = { amount: req.amount, note: `Fund Request Approved: ${req.reason} (by ${by})`, timestamp: ts, by: by };
+    const fEntry = { amount: req.amount, reason: `Fund Request Approved: ${req.reason} (by ${by})`, at: ts, by: by };
     const updates = {};
     updates[`treasury/entries/${tRef.key}`] = tEntry;
     updates[`funds/${req.fundKey}/entries/${fRef.key}`] = fEntry;
@@ -4216,28 +4268,6 @@ window.closeMiAddCard=function(){
 };
 window.toggleMarketItemForm=function(){
   if(_miAddOpen)window.closeMiAddCard();else window.openMiAddCard();
-};
-
-window.fixMisattributedLaxi=async function(){
-  const n=12;
-  const reason='Fill & Deliver | T5 Gathering Journals';
-  const rate=silverRate||0;
-  if(!confirm(`Add ${n} Laxi to Island Affairs and transfer ${fmtS(n*rate)} to Treasury?\n"${reason}"`))return;
-  try{
-    const at=Date.now();const by=currentUserData?.name||'Admin';
-    const silver=n*rate;
-    await push(ref(db,'funds/island/prestigeEntries'),{amount:-n,reason:`Quest ×${n}: ${reason}`,at,by,auto:true});
-    if(silver>0){
-      const bal=getFundBal('island');
-      const pay=Math.min(bal,silver);
-      if(pay>0)await push(ref(db,'funds/island/entries'),{amount:-pay,reason:`Laxi ×${n} — ${reason}`,at,by,auto:true});
-      await push(ref(db,'treasury/entries'),{amount:silver,reason:`Laxi ×${n} — ${reason} (island)`,at,by,auto:true});
-    }
-    toast(`✓ ${n} Laxi added to Island Affairs.${silver>0?' Treasury updated.':' (silverRate=0, no silver moved)'}`);
-  }catch(e){
-    console.error('fixMisattributedLaxi error:',e);
-    toast('Error: '+e.message);
-  }
 };
 
 </script>
