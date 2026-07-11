@@ -413,7 +413,7 @@
       <div id="fundTabActions-quest" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('quest',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('quest',-1)">− Expense</button>
-        <button id="fundTransferOut-quest" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('quest',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button id="fundTransferOut-quest" class="ghost-btn" style="display:none" onclick="openFundAction('quest',-1,'transfer-out')">→ Transfer to Treasury</button>
         <button class="ghost-btn" onclick="openFundRequest('quest')">🙏 Request Fund</button>
       </div>
     </div>
@@ -544,7 +544,7 @@
       <div id="fundTabActions-events" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('events',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('events',-1)">− Expense</button>
-        <button id="fundTransferOut-events" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('events',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button id="fundTransferOut-events" class="ghost-btn" style="display:none" onclick="openFundAction('events',-1,'transfer-out')">→ Transfer to Treasury</button>
         <button class="ghost-btn" onclick="openFundRequest('events')">🙏 Request Fund</button>
       </div>
     </div>
@@ -682,7 +682,7 @@
       <div id="fundTabActions-island" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('island',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('island',-1)">− Expense</button>
-        <button id="fundTransferOut-island" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('island',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button id="fundTransferOut-island" class="ghost-btn" style="display:none" onclick="openFundAction('island',-1,'transfer-out')">→ Transfer to Treasury</button>
         <button class="ghost-btn" onclick="openFundRequest('island')">🙏 Request Fund</button>
       </div>
     </div>
@@ -758,7 +758,7 @@
       <div id="fundTabActions-recruitment" style="display:none;gap:8px;flex-wrap:wrap">
         <button class="green-btn" onclick="openFundAction('recruitment',1)">+ Income</button>
         <button class="red-btn" onclick="openFundAction('recruitment',-1)">− Expense</button>
-        <button id="fundTransferOut-recruitment" class="ghost-btn" style="display:none" onclick="openFundOverviewAction('recruitment',-1,'transfer-out')">→ Transfer to Treasury</button>
+        <button id="fundTransferOut-recruitment" class="ghost-btn" style="display:none" onclick="openFundAction('recruitment',-1,'transfer-out')">→ Transfer to Treasury</button>
         <button class="ghost-btn" onclick="openFundRequest('recruitment')">🙏 Request Fund</button>
       </div>
     </div>
@@ -2127,12 +2127,16 @@ window.doHouseDist=async function(){
   toast(`Dağıtıldı — ${totalLaxi} Laxi · ${fmtS(totalSilver)} hazineye aktarıldı.`);
 };
 
-window.openFundAction=function(fund,sign){
+window.openFundAction=function(fund,sign,mode){
   const panel=document.getElementById('fundActionPanel-'+fund);
   const label=document.getElementById('fundActionLabel-'+fund);
   if(!panel)return;
   panel._sign=sign;
-  if(label)label.textContent=`${FUND_LABELS_MAP[fund]} — ${sign>0?'Income':'Expense'}`;
+  panel._mode=mode||'normal';
+  if(label){
+    if(panel._mode==='transfer-out') label.textContent=`Transfer ${FUND_LABELS_MAP[fund]} → Free Treasury`;
+    else label.textContent=`${FUND_LABELS_MAP[fund]} — ${sign>0?'Income':'Expense'}`;
+  }
   panel.style.display='block';
   document.getElementById('fAmt-'+fund).value='';
   document.getElementById('fReason-'+fund).value='';
@@ -2145,6 +2149,7 @@ window.closeFundAction=function(fund){
 window.submitFundAction=async function(fund,forceMode){
   const panel=document.getElementById('fundActionPanel-'+fund);
   const sign=panel?panel._sign:1;
+  const mode=panel?panel._mode:'normal';
   const rawAmt=parseAmt(document.getElementById('fAmt-'+fund).value)||0;
   const reason=document.getElementById('fReason-'+fund).value.trim();
   if(!rawAmt||rawAmt<1){toast('Enter a valid amount.');return;}
@@ -2153,6 +2158,14 @@ window.submitFundAction=async function(fund,forceMode){
   const by=currentUserData.name;
   const at=Date.now();
   const deficit=_fundDeficits[fund]||0;
+
+  if(mode==='transfer-out'){
+    await push(ref(db,`funds/${fund}/entries`),{amount,reason,by,at,transfer:true});
+    closeFundAction(fund);
+    toast(`Transferred: ${fmtS(amount)}`);
+    return;
+  }
+
   // Income entry with active deficit → ask how to handle
   if(amount>0&&deficit<0&&!forceMode){
     const defAbs=Math.abs(deficit);
