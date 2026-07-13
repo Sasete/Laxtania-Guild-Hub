@@ -2964,8 +2964,10 @@ window.completeTask=async function(id,silent=false){
         const claimsArr=questSnap.exists()?(Array.isArray(questSnap.val())?questSnap.val():Object.values(questSnap.val()||{})):[];
         const holderIdx=claimsArr.findIndex(n=>{
           if (!n) return false;
-          if (t.forFamily && n.startsWith('family:'+t.forFamily)) return n.toLowerCase().endsWith(':'+(t.holder||'').toLowerCase());
-          return n.toLowerCase()===(t.holder||'').toLowerCase();
+          if (t.claimValue && n === t.claimValue) return true;
+          const b = (n.lastIndexOf('::') >= 0) ? n.slice(0, n.lastIndexOf('::')) : n;
+          if (t.forFamily && b.startsWith('family:'+t.forFamily)) return b.toLowerCase().endsWith(':'+(t.holder||'').toLowerCase());
+          return b.toLowerCase()===(t.holder||'').toLowerCase();
         });
         if(holderIdx>=0)claimsArr.splice(holderIdx,1);
         const newSlots=Math.max(0,(qd.slots||1)-1);
@@ -3087,8 +3089,17 @@ window.approveAllQuestTasks=async function(ids){
       const questSnap=await get(ref(db,'quests/'+sample.questId));
       let claimsArr=questSnap.exists()?(Array.isArray(questSnap.val())?questSnap.val():Object.values(questSnap.val()||{})):[];
       for(const id of toApprove){
-        const h=(tasks[id]?.holder||'').toLowerCase();
-        const idx=claimsArr.findIndex(c=>c?.toLowerCase()===h);
+        const tObj = tasks[id] || {};
+        const exactClaim = tObj.claimValue;
+        const h=(tObj.holder||'').toLowerCase();
+        const idx=claimsArr.findIndex(c=>{
+          if (!c) return false;
+          if (exactClaim && c === exactClaim) return true;
+          const b = (c.lastIndexOf('::') >= 0) ? c.slice(0, c.lastIndexOf('::')) : c;
+          let holderName = b;
+          if (holderName.startsWith('family:')) holderName = holderName.split(':')[2] || holderName;
+          return holderName.toLowerCase() === h;
+        });
         if(idx>=0)claimsArr.splice(idx,1);
       }
       const newSlots=Math.max(0,(qd.slots||n)-n);
