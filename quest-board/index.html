@@ -3037,7 +3037,7 @@
       const onCancel = () => { cleanup(); resolve(null); };
       
       btnSelf.addEventListener('click', onSelf);
-      btnFamily.addEventListener('click', onFamily);
+      if (btnFamily) btnFamily.addEventListener('click', onFamily);
       btnCancel.addEventListener('click', onCancel);
     });
   }
@@ -3047,7 +3047,8 @@
     const id = card.dataset.questId;
     const def = currentQuestDefs[id] || {};
     const totalSlots = parseInt(card.dataset.slots, 10);
-    const claimsArr = Array.isArray(def.claims) ? def.claims : (def.claims && typeof def.claims === 'object' ? Object.values(def.claims) : []);
+    const claimsRaw = currentClaims[id];
+    const claimsArr = Array.isArray(claimsRaw) ? claimsRaw : (claimsRaw && typeof claimsRaw === 'object' ? Object.values(claimsRaw) : []);
     const remaining = Math.max(0, totalSlots - claimsArr.length);
     if (remaining <= 0) { toast('No contracts remaining.'); return; }
 
@@ -3080,11 +3081,16 @@
       let result;
       try {
         result = await ref.transaction(current => {
-          const claims = current || [];
+          let claims = current || [];
+          if (!Array.isArray(claims)) claims = Object.values(claims);
           if (claims.length >= totalSlots) return;
           return [...claims, claimValue];
         });
-      } catch (e) { break; }
+      } catch (e) { 
+        console.error("Claim Transaction Error:", e);
+        alert("Transaction failed: " + e.message);
+        break; 
+      }
       if (!result?.committed) break;
       claimed++;
     }
