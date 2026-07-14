@@ -474,7 +474,7 @@ function render() {
 
   // Tab filter
   if (activeTab === 'browse') {
-    entries = entries.filter(([,l]) => l.status === 'active' || l.status === 'pending' || l.status === 'awaiting_confirmation');
+    entries = entries.filter(([,l]) => l.status === 'active' || l.status === 'pending' || l.status === 'awaiting_confirmation' || (isAdmin && l.status === 'disputed'));
   } else if (activeTab === 'mine') {
     entries = currentUser
       ? entries.filter(([,l]) => l.sellerId === currentUser.uid && l.status !== 'cancelled' && l.status !== 'removed')
@@ -545,7 +545,7 @@ function render() {
       actionHtml = `<div class="action-cell"><span class="sold-tag">Sold${l.buyerName?' → '+escHtml(l.buyerName):''}</span></div>`;
     } else if (isPending) {
       if (isMine) {
-        actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved by ${escHtml(l.buyerName||'?')}</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmDelivery('${id}')">Confirm Delivery</button><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
+        actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved by ${escHtml(l.buyerName||'?')}</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmDelivery('${id}')">Confirm Delivery</button><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelSellerSale('${id}')">Cancel</button></div>`;
       } else if (isMyBuy) {
         actionHtml = `<div class="action-cell"><span class="pending-tag">Waiting for seller…</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelBuyerOrder('${id}')">Cancel Order</button></div>`;
       } else {
@@ -555,7 +555,7 @@ function render() {
       if (isMyBuy) {
         actionHtml = `<div class="action-cell"><span class="awaiting-tag">Item delivered?</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="confirmReceipt('${id}')">Confirm Receipt</button><button class="mk-btn" style="padding:4px 10px;font-size:10px;border-color:rgba(200,60,60,0.4);color:#e07070;" onclick="disputeOrder('${id}')">Dispute</button></div>`;
       } else if (isMine) {
-        actionHtml = `<div class="action-cell"><span class="awaiting-tag">Awaiting ${escHtml(l.buyerName||'buyer')}…</span></div>`;
+      actionHtml = `<div class="action-cell"><span class="awaiting-tag">Awaiting ${escHtml(l.buyerName||'buyer')}…</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelSellerSale('${id}')">Cancel</button></div>`;
       } else {
         actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved</span></div>`;
       }
@@ -817,6 +817,26 @@ window.cancelBuyerOrder = async function(id) {
     status:'active', buyerId:null, buyerName:null, reservedAt:null, reservedPts:null
   });
   alert('Order cancelled. Your Laxi has been refunded.');
+};
+// ── Seller cancel sale (pending or awaiting) ──
+window.cancelSellerSale = async function(id) {
+  const l = allListings[id];
+  if (!l || l.sellerId !== currentUser?.uid || (l.status !== 'pending' && l.status !== 'awaiting_confirmation')) return;
+  if (!confirm('Cancel this sale? The buyer will be refunded and your item will go back on the market.')) return;
+  
+  if (l.buyerName && l.reservedPts) {
+    const membersSnap = await get(ref(db,'prestige/members'));
+    const members = membersSnap.val()||{};
+    const buyerEntry = Object.entries(members).find(([,m])=>m.name?.toLowerCase()===(l.buyerName||'').toLowerCase());
+    if (buyerEntry) {
+      const [bk,bd] = buyerEntry;
+      await update(ref(db,'prestige/members'),{[`${bk}/points`]: (bd.points||0)+(l.reservedPts||0)});
+    }
+  }
+  await update(ref(db,`market/listings/${id}`),{
+    status:'active', buyerId:null, buyerName:null, reservedAt:null, reservedPts:null, deliveredAt:null
+  });
+  alert('Sale cancelled. Item is back on the market.');
 };
 
 // ── Dispute (awaiting_confirmation — buyer says item not received) ──
