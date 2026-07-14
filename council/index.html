@@ -2284,7 +2284,8 @@ function renderBonds(){
   const qBal=Object.values(questEntries).reduce((s,e)=>s+(e.amount||0),0);
   const eBal=Object.values(eventsEntries).reduce((s,e)=>s+(e.amount||0),0);
   const iBal=Object.values(islandEntries).reduce((s,e)=>s+(e.amount||0),0);
-  const freeNet=(treasuryBalance-qBal-eBal-iBal)-liability;
+  const rBal=calcRecruitmentBal();
+  const freeNet=(treasuryBalance-qBal-eBal-iBal-rBal)-liability;
   const fn=document.getElementById('bondFreeNetVal');
   if(fn){fn.textContent=fmtS(freeNet);fn.className='metric-value'+(freeNet<0?' neg':freeNet>0?' pos':'');}
 
