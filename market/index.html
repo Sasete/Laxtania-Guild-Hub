@@ -560,15 +560,21 @@ function render() {
         actionHtml = `<div class="action-cell"><span class="pending-tag">Reserved</span></div>`;
       }
     } else if (isDisputed) {
+      let labelHtml = '';
       if (isMyBuy) {
-        actionHtml = `<div class="action-cell"><span style="font-size:10px;font-variant:small-caps;color:#e07070;background:rgba(200,60,60,0.1);border:1px solid rgba(200,60,60,0.3);padding:3px 8px;">Disputed — Council reviewing</span></div>`;
+        labelHtml = `<span style="font-size:10px;font-variant:small-caps;color:#e07070;background:rgba(200,60,60,0.1);border:1px solid rgba(200,60,60,0.3);padding:3px 8px;">Disputed — Council reviewing</span>`;
       } else if (isMine) {
-        actionHtml = `<div class="action-cell"><span style="font-size:10px;font-variant:small-caps;color:#e07070;background:rgba(200,60,60,0.1);border:1px solid rgba(200,60,60,0.3);padding:3px 8px;">Disputed by ${escHtml(l.disputedBy||'buyer')}</span></div>`;
-      } else if (isAdmin) {
-        actionHtml = `<div class="action-cell"><span style="font-size:10px;color:#e07070;">⚠ Disputed</span><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="resolveDispute('${id}','buyer')">Refund Buyer</button><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="resolveDispute('${id}','seller')">Pay Seller</button></div>`;
+        labelHtml = `<span style="font-size:10px;font-variant:small-caps;color:#e07070;background:rgba(200,60,60,0.1);border:1px solid rgba(200,60,60,0.3);padding:3px 8px;">Disputed by ${escHtml(l.disputedBy||'buyer')}</span>`;
       } else {
-        actionHtml = `<div class="action-cell"><span class="pending-tag">Disputed</span></div>`;
+        labelHtml = `<span style="font-size:10px;color:#e07070;">⚠ Disputed</span>`;
       }
+      
+      let adminBtns = '';
+      if (isAdmin) {
+        adminBtns = `<div style="display:flex;gap:6px;"><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="resolveDispute('${id}','buyer')">Refund Buyer</button><button class="mk-btn confirm" style="padding:4px 10px;font-size:10px;" onclick="resolveDispute('${id}','seller')">Pay Seller</button></div>`;
+      }
+      
+      actionHtml = `<div class="action-cell">${labelHtml}${adminBtns}</div>`;
     } else if (isMine) {
       actionHtml = `<div class="action-cell"><span class="mine-tag">Your listing</span><button class="mk-btn" style="padding:4px 10px;font-size:10px;" onclick="cancelListing('${id}')">Cancel</button></div>`;
     } else {
