@@ -711,6 +711,7 @@
       <div id="houseDistRows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
       <div id="houseDistPreview" style="font-size:12px;color:var(--ink-soft);font-style:italic;margin-bottom:10px"></div>
       <button class="gold-btn" style="font-size:12px" onclick="doHouseDist()">Distribute</button>
+      <button class="red-btn" style="font-size:12px; margin-left:8px;" onclick="fixMissingIslandLogs()">Fix Logs</button>
     </div>
 
 
@@ -2120,12 +2121,61 @@ window.doHouseDist=async function(){
     upd[`prestige/families/${fid}/bonusPoints`]=(f.bonusPoints||0)+laxi;
   }
   await update(ref(db),upd);
+  // Create log entries so distribution counts towards monthly rankings
+  for(const{fid,laxi}of entries){
+    await push(ref(db,`prestige/families/${fid}/log`),{delta:laxi,reason,by,at});
+  }
   await push(ref(db,'funds/island/prestigeEntries'),{amount:-totalLaxi,reason,by,at,auto:true,detail:summary});
   await _fundDeductSilver('island',totalSilver,reason,by,at,null);
   // Reset inputs
   entries.forEach(e=>{const el=document.getElementById('hdist-'+e.fid);if(el)el.value='';});
   document.getElementById('houseDistPreview').textContent='';
   toast(`Dağıtıldı — ${totalLaxi} Laxi · ${fmtS(totalSilver)} hazineye aktarıldı.`);
+};
+
+window.fixMissingIslandLogs = async function() {
+  if (!confirm("Are you sure you want to fix missing Island distribution logs? This will look at the last distribution and add the missing log entries to families.")) return;
+  const entriesSnap = await get(ref(db, 'funds/island/prestigeEntries'));
+  if (!entriesSnap.exists()) { toast("No entries found."); return; }
+  const entries = entriesSnap.val();
+  let latestEntry = null;
+  for (const key in entries) {
+    const e = entries[key];
+    if (e.reason === 'Weekly Private House Income Distribution' && !e.fixedLog) {
+      if (!latestEntry || e.at > latestEntry.at) {
+        latestEntry = { key, ...e };
+      }
+    }
+  }
+  if (!latestEntry) { toast("No un-fixed distribution found."); return; }
+  
+  const famSnap = await get(ref(db, 'prestige/families'));
+  const fams = famSnap.val() || {};
+  
+  const details = latestEntry.detail; 
+  if (!details) { toast("No details found in the entry."); return; }
+  
+  const parts = details.split(', ');
+  let fixedCount = 0;
+  for (const part of parts) {
+    const match = part.match(/(.+) \+(\d+)/);
+    if (match) {
+      const famName = match[1];
+      const amount = parseInt(match[2], 10);
+      const fid = Object.keys(fams).find(id => fams[id].name === famName);
+      if (fid) {
+        await push(ref(db, `prestige/families/${fid}/log`), {
+          delta: amount,
+          reason: 'Island Distribution (Recovered)',
+          by: currentUserData?.name || 'System',
+          at: latestEntry.at
+        });
+        fixedCount++;
+      }
+    }
+  }
+  await update(ref(db, `funds/island/prestigeEntries/${latestEntry.key}`), { fixedLog: true });
+  toast(`Fixed logs for ${fixedCount} families successfully!`);
 };
 
 window.openFundAction=function(fund,sign,mode){

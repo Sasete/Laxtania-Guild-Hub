@@ -1536,13 +1536,13 @@
 
   async function _submitCompleteTask(id, def, name, partyMembers) {
     const rawClaimValue = name; // preserve for party cleanup
-    name = _claimBaseName(name); // strip ::batchId
-    let holderName = name;
+    const baseName = _claimBaseName(name); // strip ::batchId
+    let holderName = baseName;
     let forFamily = null;
-    if (name && name.startsWith('family:')) {
-      const parts = name.split(':');
+    if (baseName && baseName.startsWith('family:')) {
+      const parts = baseName.split(':');
       forFamily = parts[1];
-      holderName = parts[2] || name;
+      holderName = parts[2] || baseName;
     }
     
     const prestigeReward = extractRewardValue(def.rewards, '£') || extractRewardValue(def.rewards, '♦');
@@ -1564,7 +1564,8 @@
       issuerName: def.ownerName || null,
       issuerUid: def.ownerUid || null,
     });
-    await db.ref('questDefs/' + id + '/pendingComplete/' + taskRef.key).set(name);
+    // Save rawClaimValue to pendingComplete so renderMyActiveSection can correctly match batch IDs
+    await db.ref('questDefs/' + id + '/pendingComplete/' + taskRef.key).set(rawClaimValue);
   }
 
   async function completeClaimant(id, index) {
@@ -2434,7 +2435,10 @@
       const partyVal = (currentParties[id] || {})[pKey];
       const partyMembers = partyVal ? (Array.isArray(partyVal) ? [...partyVal] : Object.values(partyVal)) : [holderName];
       const pendingMap = def.pendingComplete || {};
-      const pendingCount = Object.values(pendingMap).filter(n => { const b = _claimBaseName(n); return b === _claimBaseName(c) || b?.toLowerCase() === uname; }).length;
+      const pendingCount = Object.values(pendingMap).filter(n => {
+        if (c.includes('::')) return n === c;
+        const b = _claimBaseName(n); return b === _claimBaseName(c) || b?.toLowerCase() === uname;
+      }).length;
       const isPending = pendingCount > 0 && pendingCount >= count;
       const familyName = isFamilyClaim && _qbNavMyFid ? (_qbNavAllFamilies[_qbNavMyFid]?.name || 'Family') : '';
       const rewards = Array.isArray(def.rewards) ? def.rewards : Object.values(def.rewards || {});
@@ -2781,7 +2785,10 @@
     const partyVal = (currentParties[id] || {})[pKey];
     const partyMembers = partyVal ? (Array.isArray(partyVal) ? [...partyVal] : Object.values(partyVal)) : [holderName];
     const pendingMap = def.pendingComplete || {};
-    const pendingCount = Object.values(pendingMap).filter(n => { const b = _claimBaseName(n); return b === _claimBaseName(claimValue) || b?.toLowerCase() === holderName.toLowerCase(); }).length;
+    const pendingCount = Object.values(pendingMap).filter(n => {
+      if (claimValue.includes('::')) return n === claimValue;
+      const b = _claimBaseName(n); return b === _claimBaseName(claimValue) || b?.toLowerCase() === holderName.toLowerCase();
+    }).length;
     const familyName = isFamilyClaim && _qbNavMyFid ? (_qbNavAllFamilies[_qbNavMyFid]?.name || 'Family') : '';
     const rewards = Array.isArray(def.rewards) ? def.rewards : Object.values(def.rewards || {});
     const rewardsHtml = rewards.filter(r=>r).map(r => {
