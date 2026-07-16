@@ -2481,22 +2481,22 @@
           <div id="sec-pmembers-${uid}">
             ${partyMembers.map((m,i) => `<div class="participant-row">
               <span>${escapeHtml(m)}${i===0?' <span style="font-size:10px;color:var(--ink-soft)">(Holder)</span>':''}</span>
-              ${i>0?`<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="myqRemovePartyMember('${id}','${escapeHtml(c).replace(/'/g,"\\'")}',${i})">Remove</button>`:''}
+              ${i>0?`<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="myqRemovePartyMember('${id}','${escapeHtml(c).replace(/&#39;/g,"\\'")}',${i})">Remove</button>`:''}
             </div>`).join('')}
           </div>
           <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
             <input id="sec-pinput-${uid}" placeholder="Add to party…" list="member-names-list" autocomplete="off"
               style="font-family:Georgia,serif;font-size:12px;flex:1;min-width:100px;padding:4px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);border-radius:2px"
-              onkeydown="if(event.key==='Enter')secAddParty('${uid}','${id}','${escapeHtml(c).replace(/'/g,"\\'")}')">
-            <button class="gold-btn" style="font-size:11px;padding:4px 10px" onclick="secAddParty('${uid}','${id}','${escapeHtml(c).replace(/'/g,"\\'")}')">Add</button>
+              onkeydown="if(event.key==='Enter')secAddParty('${uid}','${id}','${escapeHtml(c).replace(/&#39;/g,"\\'")}')">
+            <button class="gold-btn" style="font-size:11px;padding:4px 10px" onclick="secAddParty('${uid}','${id}','${escapeHtml(c).replace(/&#39;/g,"\\'")}')">Add</button>
           </div>
         </div>` : ''}
         <div class="claim-section">
           ${isPending
             ? `<span style="font-size:11px;font-style:italic;color:var(--ink-soft)">⏳ ${pendingCount < count ? pendingCount + '/' + count + ' awaiting approval…' : 'Awaiting councillor approval…'}</span>`
             : `<div style="display:flex;gap:8px;align-items:center">
-                <button class="claim-btn" style="flex:1" onclick="secComplete('${id}','${escapeHtml(c).replace(/'/g,"\\'")}','${escapeHtml(def.name||'').replace(/'/g,"\\'")}',${count})">✓ Complete${count > 1 ? ` (×${count})` : ' Contract'}</button>
-                <button class="red-btn" style="font-size:11px;padding:8px 14px" onclick="myqDropBatch('${id}','${indices.join(',')}','${escapeHtml(c).replace(/'/g,"\\'")}')">✕ Drop${count > 1 ? ` (×${count})` : ''}</button>
+                <button class="claim-btn" style="flex:1" onclick="secComplete('${id}','${escapeHtml(c).replace(/&#39;/g,"\\'")}','${escapeHtml(def.name||'').replace(/&#39;/g,"\\'")}',${count})">✓ Complete${count > 1 ? ` (×${count})` : ' Contract'}</button>
+                <button class="red-btn" style="font-size:11px;padding:8px 14px" onclick="myqDropBatch('${id}','${indices.join(',')}','${escapeHtml(c).replace(/&#39;/g,"\\'")}')">✕ Drop${count > 1 ? ` (×${count})` : ''}</button>
               </div>`
           }
         </div>`;
@@ -2609,7 +2609,7 @@
       membersEl.innerHTML = members.length
         ? members.map((m, i) => `<div class="participant-row">
             <span>${m}${i===0?' <span style="font-size:10px;color:var(--ink-soft)">(Holder)</span>':''}</span>
-            ${i > 0 && myClaimName ? `<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="questPartyRemove('${id}','${myClaimName.replace(/'/g,"\\'")}',${i})">Remove</button>` : ''}
+            ${i > 0 && myClaimName ? `<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="questPartyRemove('${id}','${escapeHtml(myClaimName).replace(/&#39;/g,"\\'")}',${i})">Remove</button>` : ''}
           </div>`).join('')
         : '<div style="font-size:12px;font-style:italic;color:var(--ink-soft)">No participants yet.</div>';
     }
@@ -2711,7 +2711,7 @@
               <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${escapeHtml(inv.invitedBy)} invited you to their party</div>
             </div>
             <div style="display:flex;gap:6px;flex-shrink:0">
-              <button class="gold-btn" style="font-size:11px;padding:4px 12px" onclick="acceptPartyInvite('${iid}','${inv.questId}','${escapeHtml(inv.claimValue||inv.holderName).replace(/'/g,"\\'")}')">✓ Accept</button>
+              <button class="gold-btn" style="font-size:11px;padding:4px 12px" onclick="acceptPartyInvite('${iid}','${inv.questId}','${escapeHtml(inv.claimValue||inv.holderName).replace(/&#39;/g,"\\'")}')">✓ Accept</button>
               <button class="red-btn" style="font-size:11px;padding:4px 12px" onclick="declinePartyInvite('${iid}')">✕ Decline</button>
             </div>
           </div>`).join('');
@@ -2834,13 +2834,13 @@
         <div id="myq-pmembers-${uid}">
           ${partyMembers.map((m,i) => `<div class="participant-row">
             <span>${escapeHtml(m)}${i===0?' <span style="font-size:10px;color:var(--ink-soft)">(Holder)</span>':''}</span>
-            ${i>0?`<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="myqRemovePartyMember('${id}','${escapeHtml(claimValue).replace(/'/g,"\\'")}',${i})">Remove</button>`:''}
+            ${i>0?`<button class="red-btn" style="font-size:10px;padding:2px 8px" onclick="myqRemovePartyMember('${id}','${escapeHtml(claimValue).replace(/&#39;/g,"\\'")}',${i})">Remove</button>`:''}
           </div>`).join('')}
         </div>
         <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
           <input id="myq-pinput-${uid}" placeholder="Add to party…" list="member-names-list" autocomplete="off" style="font-family:Georgia,serif;font-size:12px;flex:1;min-width:100px;padding:4px 8px;background:rgba(255,255,255,.7);border:1px solid rgba(46,32,20,.3);border-radius:2px"
-            onkeydown="if(event.key==='Enter')myqAddPartyMember('${uid}','${id}','${escapeHtml(claimValue).replace(/'/g,"\\'")}')">
-          <button class="gold-btn" style="font-size:11px;padding:4px 10px" onclick="myqAddPartyMember('${uid}','${id}','${escapeHtml(claimValue).replace(/'/g,"\\'")}')">Add</button>
+            onkeydown="if(event.key==='Enter')myqAddPartyMember('${uid}','${id}','${escapeHtml(claimValue).replace(/&#39;/g,"\\'")}')">
+          <button class="gold-btn" style="font-size:11px;padding:4px 10px" onclick="myqAddPartyMember('${uid}','${id}','${escapeHtml(claimValue).replace(/&#39;/g,"\\'")}')">Add</button>
         </div>
       </div>` : ''}
       <div class="claim-section">
@@ -2848,11 +2848,11 @@
           ${pendingCount > 0
             ? `<span style="font-size:11px;font-style:italic;color:var(--ink-soft)">⏳ ${pendingCount} awaiting approval…</span>`
             : `<div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="myqComplete('${id}','${escapeHtml(claimValue).replace(/'/g,"\\'")}','${escapeHtml(def.name||'').replace(/'/g,"\\'")}',${count})">✓ Complete${count > 1 ? ` (×${count})` : ''}</button>
+                <button class="gold-btn" style="font-size:11px;padding:5px 14px" onclick="myqComplete('${id}','${escapeHtml(claimValue).replace(/&#39;/g,"\\'")}','${escapeHtml(def.name||'').replace(/&#39;/g,"\\'")}',${count})">✓ Complete${count > 1 ? ` (×${count})` : ''}</button>
                 ${count > 1 ? `<button class="ghost-btn" style="font-size:11px;padding:5px 14px" onclick="myqSplit('${groupKey}')">⊕ Split</button>` : ''}
               </div>`
           }
-          <button class="red-btn" style="font-size:11px;padding:5px 14px" onclick="myqDropBatch('${id}','${indices.join(',')}','${escapeHtml(claimValue).replace(/'/g,"\\'")}')">✕ Drop${count > 1 ? ` (×${count})` : ''}</button>
+          <button class="red-btn" style="font-size:11px;padding:5px 14px" onclick="myqDropBatch('${id}','${indices.join(',')}','${escapeHtml(claimValue).replace(/&#39;/g,"\\'")}')">✕ Drop${count > 1 ? ` (×${count})` : ''}</button>
         </div>
       </div>`;
     return article;
@@ -2886,7 +2886,7 @@
       <div class="reward">${rewardsHtml}</div>
       <div class="claim-section">
         <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px">Party: ${members.map(m=>`<strong>${escapeHtml(m)}</strong>`).join(', ')}</div>
-        <button class="red-btn" style="font-size:11px;padding:5px 14px" onclick="myqLeaveParty('${id}','${escapeHtml(claimValue).replace(/'/g,"\\'")}')">✕ Leave Party</button>
+        <button class="red-btn" style="font-size:11px;padding:5px 14px" onclick="myqLeaveParty('${id}','${escapeHtml(claimValue).replace(/&#39;/g,"\\'")}')">✕ Leave Party</button>
       </div>`;
     return article;
   }
