@@ -262,8 +262,8 @@ const PAST_PAGE_SIZE=10;
 function renderEvents(){
   const now=Date.now();
   const list=Object.entries(events).map(([id,e])=>({id,...e}));
-  const upcoming=list.filter(e=>e.status!=='cancelled'&&e.status!=='completed'&&(e.date||0)>=now-(3600000*3)).sort((a,b)=>a.date-b.date);
-  const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*3)).sort((a,b)=>b.date-a.date);
+  const upcoming=list.filter(e=>e.status!=='cancelled'&&e.status!=='completed'&&(e.date||0)>=now-(3600000*24)).sort((a,b)=>a.date-b.date);
+  const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*24)).sort((a,b)=>b.date-a.date);
 
   const upEl=document.getElementById('upcomingContainer');
   upEl.innerHTML=upcoming.length?`<div class="events-grid">${upcoming.map(e=>buildCard(e)).join('')}</div>`:'<div class="empty">No upcoming events. Be the first to organise one!</div>';
@@ -307,7 +307,7 @@ window.changePastPage=function(dir){
   _pastPage+=dir;
   const now=Date.now();
   const list=Object.entries(events).map(([id,e])=>({id,...e}));
-  const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*3)).sort((a,b)=>b.date-a.date);
+  const past=list.filter(e=>e.status==='completed'||e.status==='cancelled'||(e.date||0)<now-(3600000*24)).sort((a,b)=>b.date-a.date);
   renderPastList(past);
 };
 
@@ -512,7 +512,7 @@ window.postEvent=async function(){
     document.getElementById('evTitle').value='';
     document.getElementById('evDesc').value='';
     document.getElementById('evDate').value='';
-    document.getElementById('evGrantCert').value='';
+    if(document.getElementById('evGrantCert')) document.getElementById('evGrantCert').value='';
     document.getElementById('evMax').value='0';
     document.getElementById('createForm').classList.remove('open');
   }catch(e){
